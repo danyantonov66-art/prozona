@@ -30,9 +30,6 @@ export default async function InquiryPage({ params }: Props) {
     notFound()
   }
 
-  // Намери първата категория на специалиста (за примерните съобщения)
-  const specialistCategory = specialist.categories[0]?.category?.slug || 'default'
-
   return (
     <main className="min-h-screen bg-[#0D0D1A]">
       {/* Header */}
@@ -78,11 +75,10 @@ export default async function InquiryPage({ params }: Props) {
             <h1 className="text-2xl font-bold text-white mb-2">Изпрати запитване до</h1>
             <p className="text-xl text-[#1DB954] mb-6">{specialist.user.name}</p>
             
-            {/* Подаваме и категорията на формата */}
+            {/* Премахнат пропът category, защото InquiryForm не го очаква */}
             <InquiryForm 
               specialistId={id} 
               specialistName={specialist.user.name}
-              category={specialistCategory}
             />
           </div>
         </div>
