@@ -1,7 +1,6 @@
-// components/category/ProZonaCategoryCard.tsx
 import Link from "next/link";
 
-export default function ProZonaCategoryCard({ data }) {
+export default function ProZonaCategoryCard({ data }: { data: any }) {
   return (
     <Link href={`/categories/${data.slug}`}>
       <div className="bg-[#1A1A2E] rounded-lg p-6 hover:bg-[#25253a] transition-colors group cursor-pointer">
