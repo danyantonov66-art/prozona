@@ -1,4 +1,3 @@
-// app/[locale]/page.tsx
 'use client'
 
 import Link from 'next/link'
@@ -164,7 +163,7 @@ export default function Home({ params }: Props) {
       </section>
 
       {/* Footer */}
-      <ProZonaFooter locale={locale} />
+      <ProZonaFooter />
     </main>
   )
 }
