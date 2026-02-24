@@ -69,7 +69,7 @@ export default function Home({ params }: Props) {
       <ProZonaHeader locale={locale} />
       
       {/* Hero секция */}
-      <Hero locale={locale} />
+      <Hero />
 
       {/* Бързи връзки */}
       <section className="container mx-auto px-4 py-12">
@@ -164,7 +164,7 @@ export default function Home({ params }: Props) {
       </section>
 
       {/* Footer */}
-      <ProZonaFooter locale={locale} />
+      <ProZonaFooter />
     </main>
   )
 }
