@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default async function SpecialistProfilePage({ params }: Props) {
-  const { id, locale } = params
+  const { id, locale } = await params
 
   const specialist = await prisma.specialist.findUnique({
     where: { id },

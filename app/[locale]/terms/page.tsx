@@ -1,4 +1,4 @@
-// app/terms/page.tsx
+﻿// app/terms/page.tsx
 import Link from 'next/link'
 
 export default function TermsPage() {
@@ -22,7 +22,7 @@ export default function TermsPage() {
             <h2 className="text-2xl font-bold text-white mb-4">1. Общи положения</h2>
             <div className="text-gray-300 space-y-2">
               <p>1.1. Настоящите Общи условия уреждат отношенията между:</p>
-              <p className="ml-4">„Констант“ 2003 ООД, ЕИК 208363639, със седалище и адрес на управление: [впишете адрес], наричано по-долу „Оператор“, и потребителите на онлайн платформата ProZona, достъпна на: prozona.bg</p>
+              <p className="ml-4">„Констант“ 2003 ООД, ЕИК 208363639, със седалище и адрес на управление: гр. Видин, наричано по-долу „Оператор“, и потребителите на онлайн платформата ProZona, достъпна на: prozona.bg</p>
               <p>1.2. Чрез регистрация или използване на платформата потребителят приема настоящите условия.</p>
             </div>
           </section>

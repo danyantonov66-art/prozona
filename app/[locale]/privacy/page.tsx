@@ -1,4 +1,4 @@
-// app/privacy/page.tsx
+﻿// app/privacy/page.tsx
 import Link from 'next/link'
 
 export default function PrivacyPage() {
@@ -24,7 +24,7 @@ export default function PrivacyPage() {
               <p>Администратор на личните данни е:</p>
               <p className="font-semibold">„Констант“ 2003 ООД</p>
               <p>ЕИК: 208363639</p>
-              <p>Адрес на управление: [впишете адрес]</p>
+              <p>Адрес на управление: гр. Видин</p>
               <p>Имейл за контакт: office@prozona.bg</p>
               <p>Телефон: +359 883 202 922</p>
               <p className="mt-2">Наричано по-долу „Администратор“ или „ProZona“.</p>
