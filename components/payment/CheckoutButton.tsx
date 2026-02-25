@@ -1,68 +1,83 @@
-// components/payment/CheckoutButton.tsx
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react'
+import { loadStripe } from '@stripe/stripe-js'
 
-interface CheckoutButtonProps {
-  planType: string;
-  label: string;
-  className?: string;
+type Props = {
+  specialistId: string
+  plan?: 'basic' | 'pro'
+  label?: string
+  className?: string
 }
 
-export default function CheckoutButton({ planType, label, className }: CheckoutButtonProps) {
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+export default function CheckoutButton({
+  specialistId,
+  plan = 'basic',
+  label = 'Плати',
+  className = '',
+}: Props) {
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleCheckout = async () => {
-    setLoading(true);
-    
+    setLoading(true)
+    setErrorMsg(null)
+
     try {
-      const response = await fetch('/api/stripe/create-checkout', {
+      const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planType }),
-      });
+        body: JSON.stringify({ specialistId, plan }),
+      })
 
-      const data = await response.json();
+      const data: { sessionId?: string; error?: string } = await res.json()
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Грешка при плащане');
+      if (!res.ok) {
+        setErrorMsg(data?.error || 'Грешка при създаване на checkout сесия.')
+        return
       }
 
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        router.push(data.url);
-      } else {
-        // Load Stripe dynamically
-        const { loadStripe } = await import('@stripe/stripe-js');
-        const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-        
-        if (stripe) {
-          const { error } = await stripe.redirectToCheckout({
-            sessionId: data.sessionId,
-          });
-
-          if (error) {
-            console.error('Stripe redirect error:', error);
-          }
-        }
+      if (!data?.sessionId) {
+        setErrorMsg('Липсва sessionId от сървъра.')
+        return
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Възникна грешка. Опитайте отново.');
+
+      const stripe = await stripePromise
+      if (!stripe) {
+        setErrorMsg('Stripe не можа да се зареди.')
+        return
+      }
+
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: data.sessionId,
+      })
+
+      if (error) {
+        setErrorMsg(error.message || 'Stripe checkout грешка.')
+      }
+    } catch (e) {
+      setErrorMsg('Неуспешна заявка. Опитай отново.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <button
-      onClick={handleCheckout}
-      disabled={loading}
-      className={className || 'px-6 py-3 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] disabled:opacity-50'}
-    >
-      {loading ? 'Зареждане...' : label}
-    </button>
-  );
+    <div>
+      <button
+        type="button"
+        onClick={handleCheckout}
+        disabled={loading}
+        className={className}
+      >
+        {loading ? 'Обработва се…' : label}
+      </button>
+
+      {errorMsg && (
+        <p className="mt-2 text-sm text-red-500">{errorMsg}</p>
+      )}
+    </div>
+  )
 }
