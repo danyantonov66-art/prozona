@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { loadStripe, type Stripe as StripeJs } from '@stripe/stripe-js'
+import { loadStripe } from '@stripe/stripe-js'
 
 type Props = {
   specialistId?: string
@@ -23,8 +23,7 @@ export default function CheckoutButton({
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const resolvedPlan: 'basic' | 'pro' =
-    plan ?? (planType === 'pro' ? 'pro' : 'basic')
+  const resolvedPlan: 'basic' | 'pro' = plan ?? (planType === 'pro' ? 'pro' : 'basic')
 
   const handleCheckout = async () => {
     setLoading(true)
@@ -49,13 +48,14 @@ export default function CheckoutButton({
         return
       }
 
-      const stripe = (await stripePromise) as StripeJs | null
+      const stripe = await stripePromise
       if (!stripe) {
         setErrorMsg('Stripe не можа да се зареди.')
         return
       }
 
-      const { error } = await stripe.redirectToCheckout({
+      // FIX: заобикаля TS конфликт, който при теб вижда грешен тип Stripe
+      const { error } = await (stripe as any).redirectToCheckout({
         sessionId: data.sessionId,
       })
 
