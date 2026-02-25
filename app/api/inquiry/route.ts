@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Resend } from 'resend'
 
@@ -27,20 +27,20 @@ export async function POST(req: Request) {
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to: specialist.user.email,
         subject: 'Ново запитване от ProZona',
-        text: `
-Име: ${name ?? ''}
-Имейл: ${email ?? ''}
-Телефон: ${phone ?? ''}
-
-Съобщение:
-${message ?? ''}
-        `
+        text: [
+          `Име: ${name ?? ''}`,
+          `Имейл: ${email ?? ''}`,
+          `Телефон: ${phone ?? ''}`,
+          '',
+          'Съобщение:',
+          `${message ?? ''}`
+        ].join('\n')
       })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error(error)
+    console.error('Inquiry error:', error)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
