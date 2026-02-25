@@ -1,12 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { loadStripe } from '@stripe/stripe-js'
+import { loadStripe, type Stripe as StripeJs } from '@stripe/stripe-js'
 
 type Props = {
   specialistId?: string
   plan?: 'basic' | 'pro'
-  // backward-compatible alias (ползва се в buy-credits/page.tsx)
   planType?: string
   label?: string
   className?: string
@@ -24,7 +23,8 @@ export default function CheckoutButton({
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const resolvedPlan = (plan ?? (planType === 'pro' ? 'pro' : 'basic')) as 'basic' | 'pro'
+  const resolvedPlan: 'basic' | 'pro' =
+    plan ?? (planType === 'pro' ? 'pro' : 'basic')
 
   const handleCheckout = async () => {
     setLoading(true)
@@ -34,7 +34,6 @@ export default function CheckoutButton({
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // backend да приема plan (basic/pro) и евентуално specialistId ако ти трябва
         body: JSON.stringify({ specialistId, plan: resolvedPlan }),
       })
 
@@ -50,7 +49,7 @@ export default function CheckoutButton({
         return
       }
 
-      const stripe = await stripePromise
+      const stripe = (await stripePromise) as StripeJs | null
       if (!stripe) {
         setErrorMsg('Stripe не можа да се зареди.')
         return
@@ -72,7 +71,12 @@ export default function CheckoutButton({
 
   return (
     <div>
-      <button type="button" onClick={handleCheckout} disabled={loading} className={className}>
+      <button
+        type="button"
+        onClick={handleCheckout}
+        disabled={loading}
+        className={className}
+      >
         {loading ? 'Обработва се…' : label}
       </button>
 
