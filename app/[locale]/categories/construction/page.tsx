@@ -1,9 +1,9 @@
 ﻿import { categories } from '@/lib/constants'
 import Link from 'next/link'
 
-export default function BeautyPage({ params }: { params: { locale: string } }) {
+export default function ConstructionPage({ params }: { params: { locale: string } }) {
   const { locale } = params
-  const category = categories.find(c => c.slug === 'beauty')
+  const category = categories.find(c => c.slug === 'construction')
 
   if (!category) {
     return <div>Категорията не е намерена</div>
