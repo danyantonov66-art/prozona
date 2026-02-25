@@ -27,20 +27,20 @@ export async function POST(req: Request) {
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to: specialist.user.email,
         subject: 'Ново запитване от ProZona',
-        text: [
-          `Име: ${name ?? ''}`,
-          `Имейл: ${email ?? ''}`,
-          `Телефон: ${phone ?? ''}`,
-          '',
-          'Съобщение:',
-          `${message ?? ''}`
-        ].join('\n')
+        text: `
+Име: ${name ?? ''}
+Имейл: ${email ?? ''}
+Телефон: ${phone ?? ''}
+
+Съобщение:
+${message ?? ''}
+        `
       })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Inquiry error:', error)
+    console.error(error)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
