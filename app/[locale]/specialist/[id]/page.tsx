@@ -25,11 +25,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
       },
       reviews: {
         include: {
-          client: {
-            include: {
-              user: true
-            }
-          }
+          client: true   // ← само client, без include user
         },
         orderBy: {
           createdAt: 'desc'
@@ -173,11 +169,13 @@ export default async function SpecialistProfilePage({ params }: Props) {
                         <div className="flex items-center gap-3 mb-2">
                           <div className="w-8 h-8 bg-[#1A1A2E] rounded-full flex items-center justify-center">
                             <span className="text-[#1DB954] text-sm">
-                              {review.client.user.name.charAt(0)}
+                              {review.client?.user?.name?.charAt(0) || 'C'}
                             </span>
                           </div>
                           <div>
-                            <p className="text-white font-medium">{review.client.user.name}</p>
+                            <p className="text-white font-medium">
+                              {review.client?.user?.name || 'Клиент'}
+                            </p>
                             <div className="flex items-center gap-1">
                               {[...Array(5)].map((_, i) => (
                                 <StarIcon
@@ -210,7 +208,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
                 <p className="text-gray-400">на час</p>
               </div>
 
-              {/* Опит - с оправена проверка за null */}
+              {/* Опит - с проверка за null */}
               {specialist.experienceYears != null && specialist.experienceYears > 0 && (
                 <div className="flex items-center gap-2 text-gray-400 mb-4">
                   <ClockIcon className="w-5 h-5" />
