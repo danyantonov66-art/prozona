@@ -1,42 +1,22 @@
-// middleware.ts
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-import { match } from '@formatjs/intl-localematcher'
-import Negotiator from 'negotiator'
+export async function proxy(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith("/admin")) {
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
-// Поддържани езици
-let locales = ['bg', 'en']
-let defaultLocale = 'bg'
+    if (!token || (token as any).role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+  }
 
-function getLocale(request: NextRequest): string {
-  const negotiatorHeaders: Record<string, string> = {}
-  request.headers.forEach((value, key) => (negotiatorHeaders[key] = value))
-
-  // @ts-ignore
-  const languages = new Negotiator({ headers: negotiatorHeaders }).languages()
-
-  return match(languages, locales, defaultLocale)
-}
-
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  // Провери дали пътят вече съдържа език
-  const pathnameHasLocale = locales.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
-  )
-
-  if (pathnameHasLocale) return
-
-  // Пренасочи към предпочитания език
-  const locale = getLocale(request)
-  request.nextUrl.pathname = `/${locale}${pathname}`
-  return NextResponse.redirect(request.nextUrl)
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
-  ],
-}
+  matcher: ["/admin/:path*"],
+};

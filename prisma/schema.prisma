@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============== ENUMS (първо) ==============
 enum Role {
   CLIENT
   SPECIALIST
@@ -21,65 +19,12 @@ enum SubscriptionPlan {
   PREMIUM
 }
 
-enum InquiryStatus {
-  PENDING
-  VIEWED
-  REPLIED
-  COMPLETED
-  CANCELLED
-}
-
-enum BannerPosition {
-  HOME_LEFT
-  HOME_RIGHT
-  CATEGORY_TOP
-  CATEGORY_SIDEBAR
-  SEARCH_SIDEBAR
-  SPECIALIST_SIDEBAR
-}
-
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-  EXPIRED
-}
-
-enum PaymentType {
-  CREDIT_PURCHASE
-  INQUIRY_ACCESS
-  SUBSCRIPTION
-}
-
-enum TransactionType {
-  PURCHASE
-  USAGE
-  MONTHLY_RESET
-  BONUS
-  REFUND
-}
-
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  COMPLETED
-  CANCELLED
-}
-
-enum CategorySuggestionStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 enum BadgeType {
-  BASIC        // Основна проверка (телефон, имейл)
-  PROFESSIONAL // Професионална (документи, лицензи)
-  PREMIUM      // Премиум (застраховка, сертификати)
+  BASIC
+  PROFESSIONAL
+  PREMIUM
 }
 
-// ============== USER MODELS ==============
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -97,10 +42,6 @@ model User {
   clientProfile ClientProfile?
   accounts      Account[]
   sessions      Session[]
-  inquiries     Inquiry[] @relation("ClientInquiries")
-  reviews       Review[]
-  payments      Payment[]
-  bookings      Booking[]
 }
 
 model Account {
@@ -116,9 +57,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([provider, providerAccountId])
 }
 
@@ -130,338 +69,30 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ============== CLIENT MODELS ==============
 model ClientProfile {
   id          String   @id @default(cuid())
   userId      String   @unique
   address     String?
   city        String?
   preferences Json?
-
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  favorites   Favorite[]
 }
 
-// ============== SPECIALIST MODELS ==============
 model Specialist {
   id                   String         @id @default(cuid())
   userId               String         @unique
   businessName         String?
-  description          String         @db.Text
+  description          String
   experienceYears      Int?
   city                 String
   serviceAreas         String[]
-  address              String?
   phone                String?
-  latitude             Float?
-  longitude            Float?
   verified             Boolean        @default(false)
-  verifiedAt           DateTime?
-  verifiedBy           String?        // ID на администратор
-  verificationDocs     String[]       // URLs към качени документи
-  verificationBadge    Boolean        @default(false) // Значка "Проверен"
-  badgeType            BadgeType?     // Basic, Professional, Premium
-  verificationExpiry   DateTime?      // Срок на валидност на верификацията
-  isFeatured           Boolean        @default(false)
-  featuredExpiresAt    DateTime?
-  
   subscriptionPlan     SubscriptionPlan @default(FREE)
-  subscriptionExpiresAt DateTime?
   credits              Int            @default(0)
-  totalCreditsUsed     Int            @default(0)
-  monthlyCredits       Int            @default(0)
-  creditPrice          Float          @default(2.99)
-  maxImages            Int            @default(5)
-  maxPriceListItems    Int            @default(0)
-  priorityInquiries    Boolean        @default(false)
-  
   rating               Float          @default(0)
   reviewCount          Int            @default(0)
-  viewsCount           Int            @default(0)
-  inquiryCount         Int            @default(0)
-  completedJobs        Int            @default(0)
-  workingHours         Json?
-  website              String?
-  facebook             String?
-  instagram            String?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
-
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  categories           SpecialistCategory[]
-  gallery              GalleryImage[]
-  reviews              Review[]
-  inquiries            Inquiry[]      @relation("SpecialistReceivedInquiries")
-  priceList            PriceListItem[]
-  certifications       Certification[]
-  favorites            Favorite[]
-  payments             Payment[]
-  creditTransactions   CreditTransaction[]
-  inquiryResponses     InquiryResponse[]
-  bookings             Booking[]
-  categorySuggestions  CategorySuggestion[]
-}
-
-model SpecialistCategory {
-  id            Int      @id @default(autoincrement())
-  specialistId  String
-  categoryId    Int
-  subcategoryId Int?
-  price         Float?
-  experience    String?
-
-  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-  category     Category   @relation(fields: [categoryId], references: [id])
-  subcategory  Subcategory? @relation(fields: [subcategoryId], references: [id])
-
-  @@unique([specialistId, categoryId, subcategoryId])
-}
-
-model GalleryImage {
-  id            Int      @id @default(autoincrement())
-  specialistId  String
-  imageUrl      String   @db.Text
-  thumbnailUrl  String?
-  title         String?
-  description   String?
-  sortOrder     Int      @default(0)
-  isPrimary     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-
-  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-}
-
-// ⭐ АКТУАЛИЗИРАН МОДЕЛ ЗА ЦЕНИ ⭐
-model PriceListItem {
-  id            Int      @id @default(autoincrement())
-  specialistId  String
-  name          String
-  description   String?
-  price         Float?        // Фиксирана цена
-  unit          String?       // час, брой, кв.м, месец и т.н.
-  isNegotiable  Boolean  @default(false)  // По договаряне
-  minPrice      Float?        // Минимална цена (за диапазон)
-  maxPrice      Float?        // Максимална цена (за диапазон)
-  categoryId    Int?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-  category   Category?  @relation(fields: [categoryId], references: [id])
-}
-
-model Certification {
-  id            Int      @id @default(autoincrement())
-  specialistId  String
-  name          String
-  issuer        String?
-  issueDate     DateTime?
-  expiryDate    DateTime?
-  certificateUrl String?
-  verified      Boolean  @default(false)
-
-  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-}
-
-// ============== CATEGORY MODELS ==============
-model Category {
-  id          Int           @id @default(autoincrement())
-  name        String        @unique
-  slug        String        @unique
-  description String?
-  icon        String?
-  imageUrl    String?
-  sortOrder   Int           @default(0)
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  subcategories Subcategory[]
-  specialists   SpecialistCategory[]
-  priceList     PriceListItem[]
-  banners       Banner[]
-  inquiries     Inquiry[]
-}
-
-model Subcategory {
-  id          Int      @id @default(autoincrement())
-  categoryId  Int
-  name        String
-  slug        String
-  description String?
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
-
-  category     Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  specialists  SpecialistCategory[]
-}
-
-// ============== INQUIRY MODELS ==============
-model Inquiry {
-  id           String       @id @default(cuid())
-  specialistId String?
-  clientId     String?
-  name         String
-  email        String
-  phone        String?
-  message      String       @db.Text
-  categoryId   Int
-  city         String
-  status       InquiryStatus @default(PENDING)
-  viewedBy     Int          @default(0)
-  respondedBy  Int          @default(0)
-  
-  viewedAt     DateTime?
-  repliedAt    DateTime?
-  completedAt  DateTime?
-  notes        String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-
-  specialist   Specialist?   @relation("SpecialistReceivedInquiries", fields: [specialistId], references: [id], onDelete: SetNull)
-  client       User?         @relation("ClientInquiries", fields: [clientId], references: [id], onDelete: SetNull)
-  category     Category      @relation(fields: [categoryId], references: [id])
-  responses    InquiryResponse[]
-  review       Review?
-  booking      Booking?
-}
-
-model InquiryResponse {
-  id            String   @id @default(cuid())
-  inquiryId     String
-  specialistId  String
-  message       String   @db.Text
-  creditsSpent  Int      @default(1)
-  viewed        Boolean  @default(false)
-  createdAt     DateTime @default(now())
-
-  inquiry       Inquiry    @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
-  specialist    Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-
-  @@unique([inquiryId, specialistId])
-}
-
-// ============== BOOKING MODEL ==============
-model Booking {
-  id            String       @id @default(cuid())
-  inquiryId     String       @unique
-  specialistId  String
-  clientId      String
-  status        BookingStatus @default(PENDING)
-  price         Float?
-  scheduledDate DateTime?
-  completedAt   DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  inquiry       Inquiry      @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
-  specialist    Specialist   @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-  client        User         @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  review        Review?
-}
-
-// ============== REVIEW MODEL ==============
-model Review {
-  id           String   @id @default(cuid())
-  specialistId String
-  clientId     String
-  bookingId    String?  @unique
-  inquiryId    String?  @unique
-  rating       Int      @db.SmallInt
-  comment      String?
-  response     String?
-  responseAt   DateTime?
-  isVerified   Boolean  @default(false)
-  isPublic     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-  client       User       @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  inquiry      Inquiry?   @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
-  booking      Booking?   @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-
-  @@unique([specialistId, clientId])
-}
-
-// ============== FAVORITES ==============
-model Favorite {
-  clientId     String
-  specialistId String
-  createdAt    DateTime @default(now())
-
-  client       ClientProfile @relation(fields: [clientId], references: [userId], onDelete: Cascade)
-  specialist   Specialist    @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-
-  @@id([clientId, specialistId])
-}
-
-// ============== PAYMENT MODELS ==============
-model Payment {
-  id            String   @id @default(cuid())
-  userId        String
-  specialistId  String
-  amount        Float
-  credits       Int?
-  status        PaymentStatus @default(PENDING)
-  type          PaymentType
-  expiresAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialist    Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-}
-
-model CreditTransaction {
-  id            String         @id @default(cuid())
-  specialistId  String
-  amount        Int
-  type          TransactionType
-  price         Float?
-  description   String?
-  createdAt     DateTime       @default(now())
-  expiresAt     DateTime?
-
-  specialist    Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-}
-
-// ============== CATEGORY SUGGESTION MODEL ==============
-model CategorySuggestion {
-  id            String   @id @default(cuid())
-  specialistId  String
-  type          String   // "category" или "subcategory"
-  name          String   // Име на предложената категория/подкатегория
-  parentId      Int?     // За подкатегория - ID на родителската категория
-  parentName    String?  // За подкатегория - име на родителската категория (ако няма ID)
-  description   String   @db.Text
-  reason        String   @db.Text
-  status        CategorySuggestionStatus @default(PENDING)
-  adminNotes    String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  specialist    Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-}
-
-// ============== BANNER MODELS ==============
-model Banner {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String?
-  imageUrl    String
-  linkUrl     String?
-  position    BannerPosition
-  categoryId  Int?
-  city        String?
-  startDate   DateTime?
-  endDate     DateTime?
-  isActive    Boolean   @default(true)
-  impressions Int       @default(0)
-  clicks      Int       @default(0)
-  createdBy   String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  category Category? @relation(fields: [categoryId], references: [id])
 }
