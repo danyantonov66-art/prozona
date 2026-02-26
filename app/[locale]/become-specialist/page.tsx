@@ -4,24 +4,28 @@ import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { categories, cities } from '@/lib/constants'
 
 export default function BecomeSpecialistPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
 
-  const [category, setCategory] = useState('')
-  const [subcategory, setSubcategory] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedSubcategory, setSelectedSubcategory] = useState('')
   const [description, setDescription] = useState('')
-  const [hourlyRate, setHourlyRate] = useState('')
   const [selectedCity, setSelectedCity] = useState('')
   const [experience, setExperience] = useState('')
-  const [phone, setPhone] = useState('') // ← променено тук
+  const [phone, setPhone] = useState('')
+  const [businessName, setBusinessName] = useState('')
 
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const selectedCategoryData = categories.find(c => c.slug === selectedCategory)
+  const subcategories = selectedCategoryData?.subcategories || []
+
   if (status === 'loading') {
-    return <div>Зареждане...</div>
+    return <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center text-white">Зареждане...</div>
   }
 
   if (!session) {
@@ -43,14 +47,15 @@ export default function BecomeSpecialistPage() {
     setError('')
 
     try {
-      const res = await fetch('/api/specialist/apply', {
+      const res = await fetch('/api/specialist/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          category,
-          subcategory,
+          userId: (session.user as any).id,
+          businessName,
+          category: selectedCategory,
+          subcategory: selectedSubcategory,
           description,
-          hourlyRate: Number(hourlyRate),
           city: selectedCity,
           experience: Number(experience),
           phone,
@@ -84,35 +89,52 @@ export default function BecomeSpecialistPage() {
           )}
 
           <div>
-            <label className="block text-white mb-2">Категория</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
-              required
-            >
-              <option value="">Изберете категория</option>
-              <option value="construction">Строителство</option>
-              <option value="home">Домашни услуги</option>
-              <option value="beauty">Красота</option>
-              <option value="photography">Фотография</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-white mb-2">Подкатегория</label>
+            <label className="block text-white mb-2">Име на фирма (ако имате)</label>
             <input
               type="text"
-              value={subcategory}
-              onChange={(e) => setSubcategory(e.target.value)}
-              placeholder="Напр. ВиК, Електроинсталации..."
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              placeholder="Пример: Иван Иванов ЕТ"
               className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
-              required
             />
           </div>
 
           <div>
-            <label className="block text-white mb-2">Описание на услугите</label>
+            <label className="block text-white mb-2">Категория *</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value)
+                setSelectedSubcategory('')
+              }}
+              className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
+              required
+            >
+              <option value="">Изберете категория</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.slug}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-white mb-2">Подкатегория *</label>
+            <select
+              value={selectedSubcategory}
+              onChange={(e) => setSelectedSubcategory(e.target.value)}
+              className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
+              required
+              disabled={!selectedCategory}
+            >
+              <option value="">Изберете подкатегория</option>
+              {subcategories.map((sub: string) => (
+                <option key={sub} value={sub}>{sub}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-white mb-2">Описание на услугите *</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -124,27 +146,18 @@ export default function BecomeSpecialistPage() {
           </div>
 
           <div>
-            <label className="block text-white mb-2">Часова ставка (лв/час)</label>
-            <input
-              type="number"
-              value={hourlyRate}
-              onChange={(e) => setHourlyRate(e.target.value)}
-              placeholder="25"
-              className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-white mb-2">Град</label>
-            <input
-              type="text"
+            <label className="block text-white mb-2">Град *</label>
+            <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              placeholder="София, Пловдив, Варна..."
               className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
               required
-            />
+            >
+              <option value="">Изберете град</option>
+              {cities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -155,12 +168,13 @@ export default function BecomeSpecialistPage() {
               onChange={(e) => setExperience(e.target.value)}
               placeholder="5"
               className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
-              required
+              min="0"
+              max="50"
             />
           </div>
 
           <div>
-            <label className="block text-white mb-2">Телефон за връзка</label>
+            <label className="block text-white mb-2">Телефон за връзка *</label>
             <input
               type="tel"
               value={phone}
