@@ -1,4 +1,4 @@
-// components/header/ProZonaHeader.tsx
+﻿// components/header/ProZonaHeader.tsx
 'use client'
 
 import Link from "next/link";
@@ -38,7 +38,7 @@ export default function ProZonaHeader({ locale = 'bg' }: HeaderProps) {
     }
   };
 
-  const t = translations[currentLocale as keyof typeof translations];
+  const t = translations[currentLocale as keyof typeof translations] || translations['bg'];
 
   return (
     <header className="border-b border-gray-800 bg-[#0D0D1A]">
