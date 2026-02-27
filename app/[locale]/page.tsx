@@ -13,6 +13,7 @@ import { categories } from '@/lib/constants'
 export default function Home() {
   const params = useParams()
   const locale = params.locale as string
+  console.log('locale:', locale)
   const { data: session, status } = useSession()
 
   const freelancers = [
