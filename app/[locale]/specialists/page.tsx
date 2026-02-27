@@ -1,10 +1,9 @@
-﻿// app/specialists/page.tsx
+// app/specialists/page.tsx
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 
 export default async function SpecialistsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  // Вземи всички специалисти от базата
   const specialists = await prisma.specialist.findMany({
     include: {
       user: true,
@@ -17,7 +16,7 @@ export default async function SpecialistsPage({ params }: { params: Promise<{ lo
     orderBy: {
       rating: 'desc'
     },
-    take: 20 // Покажи първите 20
+    take: 20
   })
 
   return (
@@ -34,7 +33,7 @@ export default async function SpecialistsPage({ params }: { params: Promise<{ lo
           {specialists.map((specialist) => (
             <Link 
               key={specialist.id}
-              href={`/${params?.locale || "bg"}/specialist/${specialist.id}`}
+              href={`/${locale}/specialist/${specialist.id}`}
               className="bg-[#1A1A2E] rounded-lg p-6 hover:bg-[#25253a] transition-colors group"
             >
               <div className="text-center">
