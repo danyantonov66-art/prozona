@@ -19,6 +19,58 @@ enum SubscriptionPlan {
   PREMIUM
 }
 
+enum InquiryStatus {
+  PENDING
+  VIEWED
+  REPLIED
+  COMPLETED
+  CANCELLED
+}
+
+enum BannerPosition {
+  HOME_LEFT
+  HOME_RIGHT
+  CATEGORY_TOP
+  CATEGORY_SIDEBAR
+  SEARCH_SIDEBAR
+  SPECIALIST_SIDEBAR
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  EXPIRED
+}
+
+enum PaymentType {
+  CREDIT_PURCHASE
+  INQUIRY_ACCESS
+  SUBSCRIPTION
+}
+
+enum TransactionType {
+  PURCHASE
+  USAGE
+  MONTHLY_RESET
+  BONUS
+  REFUND
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum CategorySuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum BadgeType {
   BASIC
   PROFESSIONAL
@@ -37,11 +89,14 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
   specialist    Specialist?
   clientProfile ClientProfile?
   accounts      Account[]
   sessions      Session[]
+  inquiries     Inquiry[] @relation("ClientInquiries")
+  reviews       Review[]
+  payments      Payment[]
+  bookings      Booking[]
 }
 
 model Account {
@@ -76,23 +131,297 @@ model ClientProfile {
   city        String?
   preferences Json?
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites   Favorite[]
 }
 
 model Specialist {
-  id                   String         @id @default(cuid())
-  userId               String         @unique
+  id                   String           @id @default(cuid())
+  userId               String           @unique
   businessName         String?
   description          String
   experienceYears      Int?
   city                 String
   serviceAreas         String[]
+  address              String?
   phone                String?
-  verified             Boolean        @default(false)
+  latitude             Float?
+  longitude            Float?
+  verified             Boolean          @default(false)
+  verifiedAt           DateTime?
+  verifiedBy           String?
+  verificationDocs     String[]
+  verificationBadge    Boolean          @default(false)
+  badgeType            BadgeType?
+  verificationExpiry   DateTime?
+  isFeatured           Boolean          @default(false)
+  featuredExpiresAt    DateTime?
   subscriptionPlan     SubscriptionPlan @default(FREE)
-  credits              Int            @default(0)
-  rating               Float          @default(0)
-  reviewCount          Int            @default(0)
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionExpiresAt DateTime?
+  credits              Int              @default(0)
+  totalCreditsUsed     Int              @default(0)
+  monthlyCredits       Int              @default(0)
+  creditPrice          Float            @default(2.99)
+  maxImages            Int              @default(5)
+  maxPriceListItems    Int              @default(0)
+  priorityInquiries    Boolean          @default(false)
+  rating               Float            @default(0)
+  reviewCount          Int              @default(0)
+  viewsCount           Int              @default(0)
+  inquiryCount         Int              @default(0)
+  completedJobs        Int              @default(0)
+  workingHours         Json?
+  website              String?
+  facebook             String?
+  instagram            String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories           SpecialistCategory[]
+  gallery              GalleryImage[]
+  reviews              Review[]
+  inquiries            Inquiry[]        @relation("SpecialistReceivedInquiries")
+  priceList            PriceListItem[]
+  certifications       Certification[]
+  favorites            Favorite[]
+  payments             Payment[]
+  creditTransactions   CreditTransaction[]
+  inquiryResponses     InquiryResponse[]
+  bookings             Booking[]
+  categorySuggestions  CategorySuggestion[]
 }
+
+model SpecialistCategory {
+  id            Int         @id @default(autoincrement())
+  specialistId  String
+  categoryId    Int
+  subcategoryId Int?
+  price         Float?
+  experience    String?
+  specialist    Specialist  @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  category      Category    @relation(fields: [categoryId], references: [id])
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  @@unique([specialistId, categoryId, subcategoryId])
+}
+
+model GalleryImage {
+  id           Int        @id @default(autoincrement())
+  specialistId String
+  imageUrl     String
+  thumbnailUrl String?
+  title        String?
+  description  String?
+  sortOrder    Int        @default(0)
+  isPrimary    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+}
+
+model PriceListItem {
+  id           Int        @id @default(autoincrement())
+  specialistId String
+  name         String
+  description  String?
+  price        Float?
+  unit         String?
+  isNegotiable Boolean    @default(false)
+  minPrice     Float?
+  maxPrice     Float?
+  categoryId   Int?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  category     Category?  @relation(fields: [categoryId], references: [id])
+}
+
+model Certification {
+  id             Int        @id @default(autoincrement())
+  specialistId   String
+  name           String
+  issuer         String?
+  issueDate      DateTime?
+  expiryDate     DateTime?
+  certificateUrl String?
+  verified       Boolean    @default(false)
+  specialist     Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id            Int                  @id @default(autoincrement())
+  name          String               @unique
+  slug          String               @unique
+  description   String?
+  icon          String?
+  imageUrl      String?
+  sortOrder     Int                  @default(0)
+  isActive      Boolean              @default(true)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  subcategories Subcategory[]
+  specialists   SpecialistCategory[]
+  priceList     PriceListItem[]
+  banners       Banner[]
+  inquiries     Inquiry[]
+}
+
+model Subcategory {
+  id          Int                  @id @default(autoincrement())
+  categoryId  Int
+  name        String
+  slug        String
+  description String?
+  sortOrder   Int                  @default(0)
+  isActive    Boolean              @default(true)
+  category    Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  specialists SpecialistCategory[]
+}
+
+model Inquiry {
+  id           String        @id @default(cuid())
+  specialistId String?
+  clientId     String?
+  name         String
+  email        String
+  phone        String?
+  message      String
+  categoryId   Int
+  city         String
+  status       InquiryStatus @default(PENDING)
+  viewedBy     Int           @default(0)
+  respondedBy  Int           @default(0)
+  viewedAt     DateTime?
+  repliedAt    DateTime?
+  completedAt  DateTime?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  specialist   Specialist?   @relation("SpecialistReceivedInquiries", fields: [specialistId], references: [id], onDelete: SetNull)
+  client       User?         @relation("ClientInquiries", fields: [clientId], references: [id], onDelete: SetNull)
+  category     Category      @relation(fields: [categoryId], references: [id])
+  responses    InquiryResponse[]
+  review       Review?
+  booking      Booking?
+}
+
+model InquiryResponse {
+  id           String     @id @default(cuid())
+  inquiryId    String
+  specialistId String
+  message      String
+  creditsSpent Int        @default(1)
+  viewed       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  inquiry      Inquiry    @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  @@unique([inquiryId, specialistId])
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  inquiryId     String        @unique
+  specialistId  String
+  clientId      String
+  status        BookingStatus @default(PENDING)
+  price         Float?
+  scheduledDate DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  inquiry       Inquiry       @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  specialist    Specialist    @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  client        User          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  review        Review?
+}
+
+model Review {
+  id           String     @id @default(cuid())
+  specialistId String
+  clientId     String
+  bookingId    String?    @unique
+  inquiryId    String?    @unique
+  rating       Int
+  comment      String?
+  response     String?
+  responseAt   DateTime?
+  isVerified   Boolean    @default(false)
+  isPublic     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  client       User       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  inquiry      Inquiry?   @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  booking      Booking?   @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  @@unique([specialistId, clientId])
+}
+
+model Favorite {
+  clientId     String
+  specialistId String
+  createdAt    DateTime      @default(now())
+  client       ClientProfile @relation(fields: [clientId], references: [userId], onDelete: Cascade)
+  specialist   Specialist    @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  @@id([clientId, specialistId])
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+  userId       String
+  specialistId String
+  amount       Float
+  credits      Int?
+  status       PaymentStatus @default(PENDING)
+  type         PaymentType
+  expiresAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialist   Specialist    @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+}
+
+model CreditTransaction {
+  id           String          @id @default(cuid())
+  specialistId String
+  amount       Int
+  type         TransactionType
+  price        Float?
+  description  String?
+  createdAt    DateTime        @default(now())
+  expiresAt    DateTime?
+  specialist   Specialist      @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+}
+
+model CategorySuggestion {
+  id           String                   @id @default(cuid())
+  specialistId String
+  type         String
+  name         String
+  parentId     Int?
+  parentName   String?
+  description  String
+  reason       String
+  status       CategorySuggestionStatus @default(PENDING)
+  adminNotes   String?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  specialist   Specialist               @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+}
+
+model Banner {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String?
+  imageUrl    String
+  linkUrl     String?
+  position    BannerPosition
+  categoryId  Int?
+  city        String?
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean        @default(true)
+  impressions Int            @default(0)
+  clicks      Int            @default(0)
+  createdBy   String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  category    Category?      @relation(fields: [categoryId], references: [id])
+}
+
