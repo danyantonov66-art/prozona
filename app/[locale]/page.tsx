@@ -47,7 +47,6 @@ export default function Home() {
 
 Отвори файла:
 ```
-code -r "app/[locale]/page.tsx"
           ))}
         </div>
       </section>
