@@ -1,8 +1,9 @@
-// app/specialists/page.tsx
+﻿// app/specialists/page.tsx
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 
-export default async function SpecialistsPage() {
+export default async function SpecialistsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   // Вземи всички специалисти от базата
   const specialists = await prisma.specialist.findMany({
     include: {
@@ -33,7 +34,7 @@ export default async function SpecialistsPage() {
           {specialists.map((specialist) => (
             <Link 
               key={specialist.id}
-              href={`/specialist/${specialist.id}`}
+              href={`/${params?.locale || "bg"}/specialist/${specialist.id}`}
               className="bg-[#1A1A2E] rounded-lg p-6 hover:bg-[#25253a] transition-colors group"
             >
               <div className="text-center">
