@@ -88,7 +88,7 @@ export default function ClientDashboard() {
             </div>
             <h2 className="text-xl font-semibold text-white mb-2">Моят профил</h2>
             <p className="text-gray-400 mb-2">{session.user?.email}</p>
-            <p className="text-gray-400 mb-4">Клиент</p>
+            {session.user?.role === 'ADMIN' ? 'Администратор' : session.user?.role === 'SPECIALIST' ? 'Специалист' : 'Клиент'}
             <Link 
               href="/profile/edit" 
               className="text-[#1DB954] hover:underline inline-flex items-center gap-1"
