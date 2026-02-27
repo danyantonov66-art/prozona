@@ -13,7 +13,6 @@ import { categories } from '@/lib/constants'
 export default function Home() {
   const params = useParams()
   const locale = params.locale as string
-  console.log('locale:', locale)
   const { data: session, status } = useSession()
 
   const freelancers = [
@@ -43,10 +42,6 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category) => (
             <ProZonaCategoryCard key={category.id} data={{...category, locale}} />
-```
-
-Отвори файла:
-```
           ))}
         </div>
       </section>
