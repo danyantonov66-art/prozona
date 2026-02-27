@@ -1,8 +1,8 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function ProZonaCategoryCard({ data }: { data: any }) {
   return (
-    <Link href={`/categories/${data.slug}`}>
+    <Link href={`/${data.locale || "bg"}/categories/${data.slug}`}>
       <div className="bg-[#1A1A2E] rounded-lg p-6 hover:bg-[#25253a] transition-colors group cursor-pointer">
         <div className="text-3xl mb-4">{data.icon}</div>
         <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-[#1DB954] transition-colors">
