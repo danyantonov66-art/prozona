@@ -83,7 +83,7 @@ export default function Home() {
         <div className="bg-gradient-to-r from-[#1DB954] to-[#169b43] rounded-2xl p-12 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ти си професионалист?</h2>
           <p className="text-xl text-white mb-8">Присъедини се към нас и намери нови клиенти</p>
-          <Link href={`/${locale}/for-specialists`} className="inline-block px-8 py-4 bg-white text-[#1DB954] font-semibold rounded-lg hover:bg-gray-100 transition-colors text-lg">Започни да печелиш</Link>
+          <Link href={`/${locale}/register/specialist`} className="inline-block px-8 py-4 bg-white text-[#1DB954] font-semibold rounded-lg hover:bg-gray-100 transition-colors text-lg">Започни да печелиш</Link>
         </div>
       </section>
 
