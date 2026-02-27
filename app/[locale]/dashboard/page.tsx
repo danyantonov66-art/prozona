@@ -1,4 +1,4 @@
-// app/dashboard/page.tsx
+﻿// app/dashboard/page.tsx
 'use client'
 
 import { useSession } from 'next-auth/react'
@@ -12,12 +12,16 @@ export default function ClientDashboard() {
   const [inquiries, setInquiries] = useState([])
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) {
-      router.push('/login')
-    }
-    // Тук може да заредиш запитванията на клиента
-  }, [session, status, router])
+  if (status === 'loading') return
+  if (!session) {
+    router.push('/login')
+    return
+  }
+  if ((session.user as any)?.role === 'ADMIN') {
+    router.push('/bg/admin')
+    return
+  }
+}, [session, status, router])
 
   if (status === 'loading') {
     return (
