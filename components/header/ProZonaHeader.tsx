@@ -68,6 +68,9 @@ export default function ProZonaHeader({ locale = 'bg' }: HeaderProps) {
             </Link>
             <Link 
               href={`/${currentLocale}/for-specialists`} 
+              <Link href={`/${currentLocale}/pricing`} className="text-gray-300 hover:text-white transition-colors">
+  {currentLocale === 'bg' ? 'Цени' : 'Pricing'}
+</Link>
               className="text-gray-300 hover:text-white transition-colors"
             >
               {t.forSpecialists}
