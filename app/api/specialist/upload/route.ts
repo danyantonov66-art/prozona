@@ -10,6 +10,8 @@ export const config = {
   api: { bodyParser: false }
 }
 
+export async function GET() { return new Response(null, { status: 405 }) }
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
