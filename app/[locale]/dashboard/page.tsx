@@ -2,13 +2,15 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 export default function ClientDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const params = useParams()
+  const locale = params?.locale || 'bg'
   const [inquiries, setInquiries] = useState([])
 
   useEffect(() => {
@@ -90,7 +92,7 @@ export default function ClientDashboard() {
             <p className="text-gray-400 mb-2">{session.user?.email}</p>
             {session.user?.role === 'ADMIN' ? 'Администратор' : session.user?.role === 'SPECIALIST' ? 'Специалист' : 'Клиент'}
             <Link 
-              href="/profile/edit" 
+              href={`/${locale}/specialist/profile/edit`} 
               className="text-[#1DB954] hover:underline inline-flex items-center gap-1"
             >
               Редактирай
