@@ -1,20 +1,21 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'import { getServerSession } from 'next-auth'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { StarIcon, MapPinIcon, ClockIcon, CheckBadgeIcon } from '@heroicons/react/24/solid'
+import { StarIcon, MapPinIcon, CheckBadgeIcon } from '@heroicons/react/24/solid'
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string
     locale: string
-  }
+  }>
 }
 
 export default async function SpecialistProfilePage({ params }: Props) {
-  const { id, locale } = await paramsconst session = await getServerSession(authOptions)
-const isOwner = session && specialist && (session.user as any)?.id === specialist.userId
+  const { id, locale } = await params
+  const session = await getServerSession(authOptions)
 
   const specialist = await prisma.specialist.findUnique({
     where: { id },
@@ -34,6 +35,8 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
     notFound()
   }
 
+  const isOwner = session && (session.user as any)?.id === specialist.userId
+
   const averageRating =
     specialist.reviews.length > 0
       ? specialist.reviews.reduce((acc, review) => acc + review.rating, 0) /
@@ -42,7 +45,6 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
 
   return (
     <div className="min-h-screen bg-[#0D0D1A]">
-      {/* HEADER */}
       <header className="border-b border-gray-800">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link href={`/${locale}`} className="flex items-center gap-2">
@@ -57,7 +59,6 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* ЛЯВА КОЛОНА */}
           <div className="lg:col-span-2">
             <div className="bg-[#1A1A2E] rounded-lg p-8">
 
@@ -106,10 +107,18 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
                     <MapPinIcon className="w-5 h-5" />
                     <span>{specialist.city || 'Не е посочен'}</span>
                   </div>
+
+                  {isOwner && (
+                    <Link
+                      href={`/${locale}/specialist/profile/edit`}
+                      className="mt-4 inline-block px-4 py-2 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] text-sm"
+                    >
+                      ✏️ Редактирай профила
+                    </Link>
+                  )}
                 </div>
               </div>
 
-              {/* ОПИСАНИЕ */}
               <div className="border-t border-gray-800 pt-6">
                 <h2 className="text-xl font-semibold text-white mb-4">За мен</h2>
                 <p className="text-gray-400 whitespace-pre-line">
@@ -117,7 +126,6 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
                 </p>
               </div>
 
-              {/* КАТЕГОРИИ */}
               <div className="border-t border-gray-800 pt-6 mt-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Категории</h2>
                 <div className="flex flex-wrap gap-2">
@@ -133,7 +141,6 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
                 </div>
               </div>
 
-              {/* ОТЗИВИ */}
               <div className="border-t border-gray-800 pt-6 mt-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Отзиви</h2>
 
@@ -144,7 +151,6 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
                     {specialist.reviews.map((review) => (
                       <div key={review.id} className="bg-[#25253a] rounded-lg p-4">
                         <div className="flex items-center gap-3 mb-2">
-
                           <div className="w-8 h-8 bg-[#1A1A2E] rounded-full flex items-center justify-center overflow-hidden">
                             {review.client?.image ? (
                               <Image
@@ -160,21 +166,16 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
                               </span>
                             )}
                           </div>
-
                           <div>
                             <p className="text-white font-medium">
                               {review.client?.name || 'Клиент'}
                             </p>
                           </div>
-
                           <span className="ml-auto text-gray-400 text-sm">
                             {new Date(review.createdAt).toLocaleDateString('bg-BG')}
                           </span>
                         </div>
-
-                        <p className="text-gray-300 text-sm">
-                          {review.comment}
-                        </p>
+                        <p className="text-gray-300 text-sm">{review.comment}</p>
                       </div>
                     ))}
                   </div>
@@ -184,14 +185,10 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
             </div>
           </div>
 
-          {/* ДЯСНА КОЛОНА */}
           <div className="lg:col-span-1">
             <div className="bg-[#1A1A2E] rounded-lg p-6 sticky top-24">
-
               <div className="text-center mb-6">
-                <p className="text-3xl font-bold text-[#1DB954]">
-                  По договаряне
-                </p>
+                <p className="text-3xl font-bold text-[#1DB954]">По договаряне</p>
                 <p className="text-gray-400">цена</p>
               </div>
 
@@ -202,11 +199,6 @@ const isOwner = session && specialist && (session.user as any)?.id === specialis
                   <p className="text-gray-400 mt-1">{specialist.phone}</p>
                 )}
               </div>
-{isOwner && (
-  <Link href={`/${locale}/specialist/profile/edit`} className="mt-4 inline-block px-4 py-2 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43]">
-    Редактирай профила
-  </Link>
-)}
             </div>
           </div>
 
