@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { StarIcon, MapPinIcon, ClockIcon, CheckBadgeIcon } from '@heroicons/react/24/solid'
 
 interface Props {
@@ -12,7 +13,8 @@ interface Props {
 }
 
 export default async function SpecialistProfilePage({ params }: Props) {
-  const { id, locale } = await params
+  const { id, locale } = await paramsconst session = await getServerSession(authOptions)
+const isOwner = session && specialist && (session.user as any)?.id === specialist.userId
 
   const specialist = await prisma.specialist.findUnique({
     where: { id },
@@ -200,7 +202,11 @@ export default async function SpecialistProfilePage({ params }: Props) {
                   <p className="text-gray-400 mt-1">{specialist.phone}</p>
                 )}
               </div>
-
+{isOwner && (
+  <Link href={`/${locale}/specialist/profile/edit`} className="mt-4 inline-block px-4 py-2 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43]">
+    Редактирай профила
+  </Link>
+)}
             </div>
           </div>
 
