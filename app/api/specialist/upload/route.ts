@@ -6,6 +6,10 @@ import { UTApi } from "uploadthing/server"
 
 const utapi = new UTApi()
 
+export const config = {
+  api: { bodyParser: false }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -18,7 +22,11 @@ export async function POST(request: NextRequest) {
 
     if (!file) return NextResponse.json({ error: "No file" }, { status: 400 })
 
-    const response = await utapi.uploadFiles(file)
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const uploadFile = new File([buffer], file.name, { type: file.type })
+
+    const response = await utapi.uploadFiles(uploadFile)
     if (response.error) return NextResponse.json({ error: response.error.message }, { status: 500 })
 
     const url = response.data.url
