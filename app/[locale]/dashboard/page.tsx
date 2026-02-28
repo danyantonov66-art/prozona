@@ -42,7 +42,7 @@ export default function ClientDashboard() {
       {/* Header */}
       <header className="border-b border-gray-800">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href={`/${locale}`} className="flex items-center gap-2">
             <div className="w-10 h-10 bg-[#1DB954] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">PZ</span>
             </div>
@@ -50,9 +50,9 @@ export default function ClientDashboard() {
           </Link>
           
           <nav className="hidden md:flex gap-6">
-            <Link href="/categories" className="text-gray-300 hover:text-white">Категории</Link>
-            <Link href="/how-it-works" className="text-gray-300 hover:text-white">Как работи</Link>
-            <Link href="/for-specialists" className="text-gray-300 hover:text-white">За специалисти</Link>
+            <Link href={`/${locale}/categories`} className="text-gray-300 hover:text-white">Категории</Link>
+            <Link href={`/${locale}/how-it-works`} className="text-gray-300 hover:text-white">Как работи</Link>
+            <Link href={`/${locale}/for-specialists`} className="text-gray-300 hover:text-white">За специалисти</Link>
           </nav>
           
           <div className="flex gap-3 items-center">
@@ -60,7 +60,7 @@ export default function ClientDashboard() {
               Здравей, {session.user?.name}
             </span>
             <Link 
-              href="/become-specialist" 
+              href={`/${locale}/become-specialist`} 
               className="px-4 py-2 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] transition-colors text-sm"
             >
               Предлагай услуги
@@ -72,7 +72,7 @@ export default function ClientDashboard() {
       {/* Breadcrumb */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center gap-2 text-gray-400">
-          <Link href="/" className="hover:text-[#1DB954]">Начало</Link>
+          <Link href={`/${locale}`} className="hover:text-[#1DB954]">Начало</Link>
           <span>/</span>
           <span className="text-white">Моето табло</span>
         </div>
@@ -108,7 +108,7 @@ export default function ClientDashboard() {
             <h2 className="text-xl font-semibold text-white mb-2">Моите запитвания</h2>
             <p className="text-gray-400 mb-4">Прегледай всички ваши запитвания</p>
             <Link 
-              href="/dashboard/inquiries" 
+              href={`/${locale}/dashboard/inquiries`} 
               className="text-[#1DB954] hover:underline inline-flex items-center gap-1"
             >
               Виж всички
@@ -124,7 +124,7 @@ export default function ClientDashboard() {
             <h2 className="text-xl font-semibold text-white mb-2">Любими специалисти</h2>
             <p className="text-gray-400 mb-4">Специалисти, които сте запазили</p>
             <Link 
-              href="/dashboard/favorites" 
+              href={`/${locale}/dashboard/favorites`} 
               className="text-[#1DB954] hover:underline inline-flex items-center gap-1"
             >
               Виж любими
@@ -142,7 +142,7 @@ export default function ClientDashboard() {
             Предложете услугите си на хиляди клиенти във вашия град!
           </p>
           <Link
-            href="/become-specialist"
+            href={`/${locale}/become-specialist`}
             className="inline-block px-8 py-4 bg-white text-[#1DB954] font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg text-lg"
           >
             🚀 Предлагай услуги
@@ -178,10 +178,10 @@ export default function ClientDashboard() {
             <div>
               <h4 className="text-white font-semibold mb-4">За нас</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/about" className="hover:text-[#1DB954]">За ProZona</Link></li>
-                <li><Link href="/how-it-works" className="hover:text-[#1DB954]">Как работи</Link></li>
-                <li><Link href="/contact" className="hover:text-[#1DB954]">Контакти</Link></li>
-                <li><Link href="/faq" className="hover:text-[#1DB954]">Често задавани въпроси</Link></li>
+                <li><Link href={`/${locale}/about`} className="hover:text-[#1DB954]">За ProZona</Link></li>
+                <li><Link href={`/${locale}/how-it-works`} className="hover:text-[#1DB954]">Как работи</Link></li>
+                <li><Link href={`/${locale}/contact`} className="hover:text-[#1DB954]">Контакти</Link></li>
+                <li><Link href={`/${locale}/faq`} className="hover:text-[#1DB954]">Често задавани въпроси</Link></li>
               </ul>
             </div>
             <div>
