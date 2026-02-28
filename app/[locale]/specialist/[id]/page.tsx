@@ -15,6 +15,7 @@ interface Props {
 
 export default async function SpecialistProfilePage({ params }: Props) {
   const { id, locale } = await params
+console.log('locale:', locale, 'id:', id)
   const session = await getServerSession(authOptions)
 
   const specialist = await prisma.specialist.findUnique({
