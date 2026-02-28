@@ -48,8 +48,7 @@ export default function EditProfilePage() {
         setPhone(data.phone || '')
         setExperience(data.experienceYears?.toString() || '')
         setProfileImage(data.user?.image || null)
-        setGallery(data.gallery?.map((g: any) => g.imageUrl) || [])
-```
+        setGallery(data.gallery || [])
       }
     } catch (error) {
       console.error('Error loading profile:', error)
