@@ -105,3 +105,30 @@ export async function POST(request: Request) {
     )
   }
 }
+export async function PUT(request: Request) {
+  try {
+    const { getServerSession } = await import("next-auth")
+    const { authOptions } = await import("@/lib/auth")
+    const session = await getServerSession(authOptions)
+    if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 })
+
+    const userId = (session.user as any)?.id
+    const body = await request.json()
+    const { businessName, description, phone, experienceYears } = body
+
+    const specialist = await prisma.specialist.update({
+      where: { userId },
+      data: {
+        businessName: businessName || null,
+        description,
+        phone: phone || null,
+        experienceYears: experienceYears || 0,
+      }
+    })
+
+    return Response.json(specialist)
+  } catch (error) {
+    console.error("Update error:", error)
+    return Response.json({ error: "Update failed" }, { status: 500 })
+  }
+}
