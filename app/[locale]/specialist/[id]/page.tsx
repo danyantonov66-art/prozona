@@ -13,6 +13,29 @@ interface Props {
   }>
 }
 
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+  const specialist = await prisma.specialist.findUnique({
+    where: { id },
+    include: { user: true, categories: { include: { category: true }, take: 1 } }
+  })
+  if (!specialist) return { title: 'Специалист не е намерен' }
+  const name = specialist.businessName || specialist.user.name
+  const category = specialist.categories[0]?.category?.name || 'Специалист'
+  const photo = specialist.user.image || specialist.user.avatar || undefined
+  return {
+    title: `${name} - ${category}`,
+    description: specialist.description?.slice(0, 160) || `${name} - ${category} в ${specialist.city}`,
+    openGraph: {
+      title: `${name} | ProZona`,
+      description: specialist.description?.slice(0, 160) || `${name} - ${category} в ${specialist.city}`,
+      images: photo ? [{ url: photo, width: 400, height: 400, alt: name }] : [],
+      url: `https://www.prozona.bg/bg/specialist/${id}`,
+    },
+  }
+}
 export default async function SpecialistProfilePage({ params }: Props) {
   const { id, locale } = await params
   const session = await getServerSession(authOptions)
