@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -33,7 +33,7 @@ export default function Home() {
           <Link href={`/${locale}/categories/home`} className="px-6 py-3 bg-[#1A1A2E] text-white rounded-full hover:bg-[#25253a] transition-colors">🧹 Домашни услуги</Link>
           <Link href={`/${locale}/categories/beauty`} className="px-6 py-3 bg-[#1A1A2E] text-white rounded-full hover:bg-[#25253a] transition-colors">💅 Красота</Link>
           <Link href={`/${locale}/categories/photography`} className="px-6 py-3 bg-[#1A1A2E] text-white rounded-full hover:bg-[#25253a] transition-colors">📸 Фотография</Link>
-          <Link href={`/${locale}/specialists`} className="px-6 py-3 bg-[#1DB954] text-white rounded-full hover:bg-[#169b43] transition-colors">Всички категории →</Link>
+          <Link href={`/${locale}/categories`} className="px-6 py-3 bg-[#1DB954] text-white rounded-full hover:bg-[#169b43] transition-colors">Всички категории →</Link>
         </div>
       </section>
 
