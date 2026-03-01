@@ -48,7 +48,7 @@ export default function EditProfilePage() {
         setPhone(data.phone || '')
         setExperience(data.experienceYears?.toString() || '')
         setProfileImage(data.user?.image || null)
-        setGallery(data.gallery || [])
+        setGallery((data.gallery || []).map((g: any) => g.imageUrl || g))
       }
     } catch (error) {
       console.error('Error loading profile:', error)
@@ -59,6 +59,7 @@ export default function EditProfilePage() {
 
   const uploadProfileImage = async (file: File) => {
     setUploadingProfile(true)
+    setMessage('')
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -70,7 +71,7 @@ export default function EditProfilePage() {
         setMessage('Профилната снимка е качена!')
         setMessageType('success')
       } else {
-        setMessage('Грешка при качване на снимката')
+        setMessage(data.error || 'Грешка при качване')
         setMessageType('error')
       }
     } catch {
@@ -88,6 +89,7 @@ export default function EditProfilePage() {
       return
     }
     setUploadingGallery(true)
+    setMessage('')
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -99,7 +101,7 @@ export default function EditProfilePage() {
         setMessage('Снимката е добавена в галерията!')
         setMessageType('success')
       } else {
-        setMessage('Грешка при качване')
+        setMessage(data.error || 'Грешка при качване')
         setMessageType('error')
       }
     } catch {
@@ -111,13 +113,17 @@ export default function EditProfilePage() {
   }
 
   const removeGalleryImage = async (url: string) => {
-    const newGallery = gallery.filter(g => g !== url)
-    setGallery(newGallery)
-    await fetch('/api/specialist/profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gallery: newGallery })
-    })
+    try {
+      await fetch('/api/specialist/gallery/remove', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: url })
+      })
+      setGallery(prev => prev.filter(g => g !== url))
+    } catch {
+      setMessage('Грешка при изтриване')
+      setMessageType('error')
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,7 +139,6 @@ export default function EditProfilePage() {
           description,
           phone,
           experienceYears: parseInt(experience) || 0,
-          gallery
         })
       })
       if (res.ok) {
@@ -174,7 +179,6 @@ export default function EditProfilePage() {
           </div>
         )}
 
-        {/* Профилна снимка */}
         <div className="bg-[#1A1A2E] rounded-xl p-6 mb-6">
           <h2 className="text-white font-semibold mb-4">Профилна снимка</h2>
           <div className="flex items-center gap-6">
@@ -208,7 +212,6 @@ export default function EditProfilePage() {
           </div>
         </div>
 
-        {/* Галерия */}
         <div className="bg-[#1A1A2E] rounded-xl p-6 mb-6">
           <h2 className="text-white font-semibold mb-4">Галерия ({gallery.length}/5 снимки)</h2>
           <div className="grid grid-cols-3 gap-3 mb-4">
@@ -218,7 +221,7 @@ export default function EditProfilePage() {
                 <button
                   type="button"
                   onClick={() => removeGalleryImage(url)}
-                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 flex items-center justify-center"
                 >
                   ✕
                 </button>
@@ -251,7 +254,6 @@ export default function EditProfilePage() {
           />
         </div>
 
-        {/* Основна информация */}
         <form onSubmit={handleSubmit} className="bg-[#1A1A2E] rounded-xl p-6 space-y-4">
           <h2 className="text-white font-semibold mb-2">Основна информация</h2>
 
