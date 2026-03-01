@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+﻿import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -15,7 +15,6 @@ interface Props {
 
 export default async function SpecialistProfilePage({ params }: Props) {
   const { id, locale } = await params
-console.log('locale:', locale, 'id:', id)
   const session = await getServerSession(authOptions)
 
   const specialist = await prisma.specialist.findUnique({
@@ -28,7 +27,8 @@ console.log('locale:', locale, 'id:', id)
       reviews: {
         include: { client: true },
         orderBy: { createdAt: 'desc' }
-      }
+      },
+      gallery: { orderBy: { sortOrder: 'asc' } }
     }
   })
 
@@ -126,6 +126,25 @@ console.log('locale:', locale, 'id:', id)
                   {specialist.description || 'Няма описание'}
                 </p>
               </div>
+
+              {(specialist as any).gallery?.length > 0 && (
+                <div className="border-t border-gray-800 pt-6 mt-6">
+                  <h2 className="text-xl font-semibold text-white mb-4">Галерия</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {(specialist as any).gallery.map((img: any, i: number) => (
+                      <div key={img.id} className="aspect-square overflow-hidden rounded-lg">
+                        <Image
+                          src={img.imageUrl}
+                          alt={img.title || `Снимка ${i + 1}`}
+                          width={300}
+                          height={300}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="border-t border-gray-800 pt-6 mt-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Категории</h2>
