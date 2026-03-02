@@ -25,11 +25,19 @@ export default function LoginPage() {
         redirect: false
       })
 
-      if (result?.error) {
-        setError('Грешен email или парола')
-      } else {
-        router.push('/')
-      }
+     if (result?.error) {
+  setError('Грешен email или парола')
+} else {
+  const session = await fetch('/api/auth/session').then(r => r.json())
+  const role = session?.user?.role
+  if (role === 'SPECIALIST') {
+    router.push('/bg/specialist/dashboard')
+  } else if (role === 'ADMIN') {
+    router.push('/bg/admin')
+  } else {
+    router.push('/')
+  }
+}
     } catch (error) {
       setError('Възникна грешка. Опитайте отново.')
     } finally {
