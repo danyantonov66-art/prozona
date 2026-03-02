@@ -68,7 +68,7 @@ export default function InquiryActions({ inquiryId, status }: Props) {
           onClick={() => setShowReply(!showReply)}
           className="px-4 py-2 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43]"
         >
-          Отговори (1 кредит)
+          Отговори
         </button>
         {status === 'PENDING' && (
           <button
