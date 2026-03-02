@@ -79,11 +79,10 @@ export default function Hero() {
   return (
     <section className="py-16 bg-[#0D0D1A]">
       <div className="container mx-auto px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+       <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-4">
           Намери надежден специалист
         </h1>
-        <p className="text-xl text-gray-400 mb-8">
-          Верифицирани професионалисти за всички услуги в твоя град
+        <p className="text-xl text-gray-400 mb-8">          Верифицирани професионалисти за всички услуги в твоя град
         </p>
         
         {/* Търсачка с autocomplete */}
