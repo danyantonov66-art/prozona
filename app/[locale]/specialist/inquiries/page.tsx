@@ -27,14 +27,26 @@ export default async function SpecialistInquiriesPage() {
   return (
     <div className="min-h-screen bg-[#0D0D1A] py-8 px-4">
       <div className="container mx-auto max-w-4xl">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Получени запитвания</h1>
-            <p className="text-gray-400 mt-1">Кредити: <span className="text-[#1DB954] font-bold">{specialist.credits}</span></p>
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-white">Получени запитвания</h1>
           <Link href="/specialist/dashboard" className="text-[#1DB954] hover:underline">
             ← Назад към таблото
           </Link>
+        </div>
+
+        {/* Безплатен период */}
+        <div className="bg-[#1DB954]/10 border border-[#1DB954]/30 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">🎉</span>
+            <div>
+              <p className="text-[#1DB954] font-semibold mb-1">ProZona е напълно безплатна за вас!</p>
+              <p className="text-gray-300 text-sm">
+                През първите 3 месеца всички функции са безплатни — виждате контактите на клиентите, 
+                отговаряте на запитвания и използвате всички опции без ограничения. 
+                След това ще има завинаги безплатен план с основни функции.
+              </p>
+            </div>
+          </div>
         </div>
 
         {inquiries.length === 0 ? (
@@ -70,20 +82,9 @@ export default async function SpecialistInquiriesPage() {
                 <p className="text-gray-300 mb-4 whitespace-pre-line">{inquiry.message}</p>
 
                 <div className="flex gap-4 text-sm text-gray-400 mb-2 flex-wrap">
-                  {inquiry.responses.length > 0 ? (
-                    <>
-                      <span>📧 {inquiry.email}</span>
-                      {inquiry.phone && <span>📞 {inquiry.phone}</span>}
-                      <span>📍 {inquiry.city}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>📧 ••••••@••••••</span>
-                      {inquiry.phone && <span>📞 •••• •••• ••••</span>}
-                      <span>📍 {inquiry.city}</span>
-                      <span className="text-yellow-400">🔒 Отговори за да видиш контактите</span>
-                    </>
-                  )}
+                  <span>📧 {inquiry.email}</span>
+                  {inquiry.phone && <span>📞 {inquiry.phone}</span>}
+                  <span>📍 {inquiry.city}</span>
                 </div>
 
                 {inquiry.responses[0] && (
