@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import ProZonaHeader from '@/components/header/ProZonaHeader'
@@ -14,8 +14,13 @@ type SearchResult = {
   matchType: string
 }
 
-export default function SearchPage({ params }: { params: { locale: string } }) {
-  const { locale } = params
+type Props = {
+  params: Promise<{ locale: string }>
+}
+
+export default function SearchPage({ params }: Props) {
+  const { locale } = use(params)
+
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
 
@@ -32,7 +37,6 @@ export default function SearchPage({ params }: { params: { locale: string } }) {
 
       setLoading(true)
 
-      // Мокнати данни за тест
       const mockResults: SearchResult[] = [
         {
           type: 'category',
@@ -64,12 +68,10 @@ export default function SearchPage({ params }: { params: { locale: string } }) {
         }
       ]
 
-      // Филтриране според query
       const filtered = mockResults.filter(item =>
         item.name.toLowerCase().includes(query.toLowerCase())
       )
 
-      // Сортиране по релевантност
       const sortedResults = filtered.sort((a, b) => {
         if (a.matchType === 'category' && b.matchType !== 'category') return -1
         if (a.matchType === 'name' && b.matchType === 'content') return -1
