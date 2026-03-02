@@ -69,10 +69,21 @@ export default async function SpecialistInquiriesPage() {
 
                 <p className="text-gray-300 mb-4 whitespace-pre-line">{inquiry.message}</p>
 
-                <div className="flex gap-4 text-sm text-gray-400 mb-2">
-                  <span>📧 {inquiry.email}</span>
-                  {inquiry.phone && <span>📞 {inquiry.phone}</span>}
-                  <span>📍 {inquiry.city}</span>
+                <div className="flex gap-4 text-sm text-gray-400 mb-2 flex-wrap">
+                  {inquiry.responses.length > 0 ? (
+                    <>
+                      <span>📧 {inquiry.email}</span>
+                      {inquiry.phone && <span>📞 {inquiry.phone}</span>}
+                      <span>📍 {inquiry.city}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>📧 ••••••@••••••</span>
+                      {inquiry.phone && <span>📞 •••• •••• ••••</span>}
+                      <span>📍 {inquiry.city}</span>
+                      <span className="text-yellow-400">🔒 Отговори за да видиш контактите</span>
+                    </>
+                  )}
                 </div>
 
                 {inquiry.responses[0] && (
