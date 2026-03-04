@@ -25,11 +25,6 @@ export default async function Home({ params }: Props) {
       <ProZonaHeader locale={locale} />
 
       {/* Безплатен банер */}
-      <div className="bg-[#1DB954] text-white text-center py-3 px-4">
-        <p className="text-sm font-medium">
-          🎉 ProZona е напълно безплатна за първите 3 месеца — за специалисти и клиенти! След това ще има завинаги безплатен план.
-        </p>
-      </div>
 
       <Hero />
 
