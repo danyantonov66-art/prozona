@@ -31,7 +31,7 @@ export default async function Home({ params }: Props) {
       </div>
 
       {/* Hero section */}
-      <Hero locale={locale} />
+      <Hero />
 
       {/* Categories */}
       <section className="max-w-6xl mx-auto px-4 py-16">
