@@ -38,7 +38,6 @@ export default async function Home({ params }: Props) {
           <Link href={`/${locale}/categories/stroitelstvo`} className="px-6 py-3 bg-[#1A1A2E] text-white rounded-full hover:bg-[#25253a] transition-colors">🔨 Строителство</Link>
           <Link href={`/${locale}/categories/domashni-uslugi`} className="px-6 py-3 bg-[#1A1A2E] text-white rounded-full hover:bg-[#25253a] transition-colors">🧹 Домашни услуги</Link>
           <Link href={`/${locale}/categories/krasota-zdrave`} className="px-6 py-3 bg-[#1A1A2E] text-white rounded-full hover:bg-[#25253a] transition-colors">💅 Красота</Link>
-          <Link href={`/${locale}/categories/fotografiya`} className="px-6 py-3 bg-[#1A1A2E] text-white rounded-full hover:bg-[#25253a] transition-colors">📸 Фотография</Link>
           <Link href={`/${locale}/categories`} className="px-6 py-3 bg-[#1DB954] text-white rounded-full hover:bg-[#169b43] transition-colors">Всички категории →</Link>
         </div>
       </section>

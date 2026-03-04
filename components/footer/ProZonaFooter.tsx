@@ -24,7 +24,6 @@ export default function ProZonaFooter() {
               <li><Link href="/categories/construction" className="hover:text-[#1DB954] transition-colors">Строителство</Link></li>
               <li><Link href="/categories/home" className="hover:text-[#1DB954] transition-colors">Домашни услуги</Link></li>
               <li><Link href="/categories/beauty" className="hover:text-[#1DB954] transition-colors">Красота и здраве</Link></li>
-              <li><Link href="/categories/photography" className="hover:text-[#1DB954] transition-colors">Фотография</Link></li>
             </ul>
           </div>
 
