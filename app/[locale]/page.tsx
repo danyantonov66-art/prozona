@@ -107,5 +107,13 @@ export default async function Home({ params }: Props) {
 
       <ProZonaFooter />
     </main>
+<div className="bg-[#1A1A2E] text-white text-center py-2 px-4">
+  <p className="text-sm">
+    Стартов период: до 20 безплатни специалисти в категория.
+    <a href="/bg/how-it-works" className="ml-2 text-[#1DB954] font-semibold hover:underline">
+      Виж как работи →
+    </a>
+  </p>
+</div>
   )
 }
