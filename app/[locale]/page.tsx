@@ -14,7 +14,7 @@ export default async function Home({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
-      
+
       <ProZonaHeader locale={locale} />
 
       {/* Top info bar */}
@@ -30,59 +30,47 @@ export default async function Home({ params }: Props) {
         </p>
       </div>
 
-      {/* Hero section */}
+      {/* Hero */}
       <Hero />
 
-      {/* Categories */}
+      {/* Popular categories */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-10">
           Популярни категории
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           <Link
             href={`/${locale}/categories/stroitelstvo`}
-            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition"
+            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition text-center"
           >
-            🏗️ Строителство
+            🏗 Строителство и ремонти
           </Link>
 
           <Link
-            href={`/${locale}/categories/remonti`}
-            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition"
+            href={`/${locale}/categories/auto-transport`}
+            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition text-center"
           >
-            🔧 Ремонти
+            🚗 Авто услуги и транспорт
           </Link>
 
           <Link
-            href={`/${locale}/categories/fotografiya`}
-            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition"
+            href={`/${locale}/categories/krasota`}
+            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition text-center"
           >
-            📸 Фотография
+            💄 Красота и грижа
           </Link>
 
+        </div>
+
+        <div className="text-center mt-8">
           <Link
-            href={`/${locale}/categories/transport`}
-            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition"
+            href={`/${locale}/categories`}
+            className="text-[#1DB954] font-semibold hover:underline"
           >
-            🚚 Транспорт
+            Всички категории →
           </Link>
-
-          <Link
-            href={`/${locale}/categories/beauty`}
-            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition"
-          >
-            💄 Красота
-          </Link>
-
-          <Link
-            href={`/${locale}/categories/it`}
-            className="bg-[#1A1A2E] p-6 rounded-xl hover:bg-[#25253a] transition"
-          >
-            💻 IT услуги
-          </Link>
-
         </div>
       </section>
 
