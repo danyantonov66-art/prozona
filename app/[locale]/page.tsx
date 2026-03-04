@@ -2,7 +2,7 @@
 import Link from "next/link";
 import ProZonaHeader from "@/components/header/ProZonaHeader";
 import ProZonaFooter from "@/components/footer/ProZonaFooter";
-import Hero from "@/components/hero/Hero";
+import Hero from "@/components/hero";
 
 interface Props {
   params: {
