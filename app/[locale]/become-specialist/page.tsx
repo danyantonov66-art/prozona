@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
@@ -21,20 +21,20 @@ export default function BecomeSpecialistPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const selectedCategoryData = categories.find(c => c.slug === selectedCategory)
+  const selectedCategoryData = categories.find(c => c.id === selectedCategory)
   const subcategories = selectedCategoryData?.subcategories || []
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center text-white">Зареждане...</div>
+    return <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center text-white">Р—Р°СЂРµР¶РґР°РЅРµ...</div>
   }
 
   if (!session) {
     return (
       <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
         <div className="bg-[#1A1A2E] p-8 rounded-lg text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Трябва да сте влезли в профила си</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">РўСЂСЏР±РІР° РґР° СЃС‚Рµ РІР»РµР·Р»Рё РІ РїСЂРѕС„РёР»Р° СЃРё</h1>
           <Link href="/login" className="bg-[#1DB954] text-white px-6 py-3 rounded-lg hover:bg-[#169b43]">
-            Вход
+            Р’С…РѕРґ
           </Link>
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function BecomeSpecialistPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Нещо се обърка')
+        throw new Error(data.error || 'РќРµС‰Рѕ СЃРµ РѕР±СЉСЂРєР°')
       }
 
       router.push('/specialist/dashboard')
@@ -79,7 +79,7 @@ export default function BecomeSpecialistPage() {
   return (
     <div className="min-h-screen bg-[#0D0D1A] py-12">
       <div className="container mx-auto px-4 max-w-3xl">
-        <h1 className="text-3xl font-bold text-white mb-8">Станете специалист в ProZona</h1>
+        <h1 className="text-3xl font-bold text-white mb-8">РЎС‚Р°РЅРµС‚Рµ СЃРїРµС†РёР°Р»РёСЃС‚ РІ ProZona</h1>
 
         <form onSubmit={handleSubmit} className="bg-[#1A1A2E] rounded-lg p-8 space-y-6">
           {error && (
@@ -89,18 +89,18 @@ export default function BecomeSpecialistPage() {
           )}
 
           <div>
-            <label className="block text-white mb-2">Име на фирма (ако имате)</label>
+            <label className="block text-white mb-2">РРјРµ РЅР° С„РёСЂРјР° (Р°РєРѕ РёРјР°С‚Рµ)</label>
             <input
               type="text"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Пример: Иван Иванов ЕТ"
+              placeholder="РџСЂРёРјРµСЂ: РРІР°РЅ РРІР°РЅРѕРІ Р•Рў"
               className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
             />
           </div>
 
           <div>
-            <label className="block text-white mb-2">Категория *</label>
+            <label className="block text-white mb-2">РљР°С‚РµРіРѕСЂРёСЏ *</label>
             <select
               value={selectedCategory}
               onChange={(e) => {
@@ -110,15 +110,15 @@ export default function BecomeSpecialistPage() {
               className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
               required
             >
-              <option value="">Изберете категория</option>
+              <option value="">РР·Р±РµСЂРµС‚Рµ РєР°С‚РµРіРѕСЂРёСЏ</option>
               {categories.map(cat => (
-                <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-white mb-2">Подкатегория *</label>
+            <label className="block text-white mb-2">РџРѕРґРєР°С‚РµРіРѕСЂРёСЏ *</label>
             <select
               value={selectedSubcategory}
               onChange={(e) => setSelectedSubcategory(e.target.value)}
@@ -126,7 +126,7 @@ export default function BecomeSpecialistPage() {
               required
               disabled={!selectedCategory}
             >
-              <option value="">Изберете подкатегория</option>
+              <option value="">РР·Р±РµСЂРµС‚Рµ РїРѕРґРєР°С‚РµРіРѕСЂРёСЏ</option>
               {subcategories.map((sub: string) => (
                 <option key={sub} value={sub}>{sub}</option>
               ))}
@@ -134,26 +134,26 @@ export default function BecomeSpecialistPage() {
           </div>
 
           <div>
-            <label className="block text-white mb-2">Описание на услугите *</label>
+            <label className="block text-white mb-2">РћРїРёСЃР°РЅРёРµ РЅР° СѓСЃР»СѓРіРёС‚Рµ *</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
-              placeholder="Опишете какво предлагате, опита си, квалификации..."
+              placeholder="РћРїРёС€РµС‚Рµ РєР°РєРІРѕ РїСЂРµРґР»Р°РіР°С‚Рµ, РѕРїРёС‚Р° СЃРё, РєРІР°Р»РёС„РёРєР°С†РёРё..."
               className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
               required
             />
           </div>
 
           <div>
-            <label className="block text-white mb-2">Град *</label>
+            <label className="block text-white mb-2">Р“СЂР°Рґ *</label>
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
               className="w-full bg-[#25253a] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
               required
             >
-              <option value="">Изберете град</option>
+              <option value="">РР·Р±РµСЂРµС‚Рµ РіСЂР°Рґ</option>
               {cities.map(city => (
                 <option key={city} value={city}>{city}</option>
               ))}
@@ -161,7 +161,7 @@ export default function BecomeSpecialistPage() {
           </div>
 
           <div>
-            <label className="block text-white mb-2">Опит (години)</label>
+            <label className="block text-white mb-2">РћРїРёС‚ (РіРѕРґРёРЅРё)</label>
             <input
               type="number"
               value={experience}
@@ -174,7 +174,7 @@ export default function BecomeSpecialistPage() {
           </div>
 
           <div>
-            <label className="block text-white mb-2">Телефон за връзка *</label>
+            <label className="block text-white mb-2">РўРµР»РµС„РѕРЅ Р·Р° РІСЂСЉР·РєР° *</label>
             <input
               type="tel"
               value={phone}
@@ -190,7 +190,7 @@ export default function BecomeSpecialistPage() {
             disabled={loading}
             className="w-full bg-[#1DB954] text-white py-3 rounded-lg font-semibold hover:bg-[#169b43] transition-colors disabled:opacity-50"
           >
-            {loading ? 'Изпращане...' : 'Изпрати заявка'}
+            {loading ? 'РР·РїСЂР°С‰Р°РЅРµ...' : 'РР·РїСЂР°С‚Рё Р·Р°СЏРІРєР°'}
           </button>
         </form>
       </div>
