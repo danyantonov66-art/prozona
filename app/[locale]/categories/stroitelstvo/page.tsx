@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { categories } from '@/lib/constants'
 
@@ -7,17 +7,10 @@ interface Props {
 }
 
 export default async function CategoryPage({ params }: Props) {
-  // Изчакваме params
-  const resolvedParams = await params
-  const { locale, slug } = resolvedParams
+  const { locale, slug } = await params
   
-  // Намираме категорията
   const category = categories.find(c => c.id === slug)
-  
-  // Ако няма такава категория - 404
-  if (!category) {
-    return notFound()
-  }
+  if (!category) return notFound()
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] pt-24">
@@ -39,7 +32,7 @@ export default async function CategoryPage({ params }: Props) {
               href={`/${locale}/categories/${slug}/${sub.id}`}
               className="bg-[#1A1A2E] p-6 rounded-lg hover:bg-[#25253a] transition-colors"
             >
-              <div className="text-3xl mb-4">{sub.icon || '📌'}</div>
+              <div className="text-3xl mb-4">{sub.icon}</div>
               <h2 className="text-lg font-semibold text-white">{sub.name}</h2>
             </Link>
           ))}

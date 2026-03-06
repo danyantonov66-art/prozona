@@ -12,14 +12,17 @@ export default async function SubcategoryPage({ params }: Props) {
   const category = categories.find(c => c.id === slug)
   if (!category) return notFound()
 
+  // Търсим подкатегорията
   let subcategoryData: any = null
   let parentSubcategory: any = null
 
+  // Първо търсим в основните подкатегории
   for (const sub of category.subcategories || []) {
     if (sub.id === subcategory) {
       subcategoryData = sub
       break
     }
+    // Ако има вложени подкатегории
     if (sub.subcategories) {
       for (const nestedSub of sub.subcategories) {
         if (nestedSub.id === subcategory) {
@@ -41,12 +44,12 @@ export default async function SubcategoryPage({ params }: Props) {
             ← Назад към {category.name}
           </Link>
           {parentSubcategory && (
-            <>
-              <span className="text-gray-500 mx-2">•</span>
-              <Link href={`/${locale}/categories/${slug}/${parentSubcategory.id}`} className="text-[#1DB954] hover:underline">
-                {parentSubcategory.name}
-              </Link>
-            </>
+            <span className="text-gray-500 mx-2">•</span>
+          )}
+          {parentSubcategory && (
+            <Link href={`/${locale}/categories/${slug}/${parentSubcategory.id}`} className="text-[#1DB954] hover:underline">
+              {parentSubcategory.name}
+            </Link>
           )}
         </div>
 
@@ -54,12 +57,15 @@ export default async function SubcategoryPage({ params }: Props) {
           {subcategoryData.icon} {subcategoryData.name}
         </h1>
         <p className="text-gray-400 mb-8">
-          Намерете най-добрите специалисти
+          {parentSubcategory ? `Услуга в категория ${parentSubcategory.name}` : `Намерете най-добрите специалисти за ${subcategoryData.name.toLowerCase()}`}
         </p>
 
         <div className="bg-[#1A1A2E] rounded-lg p-12 text-center">
           <p className="text-gray-400 text-lg mb-4">
             Все още няма специалисти в тази категория.
+          </p>
+          <p className="text-gray-500 mb-6">
+            Бъдете първият, който предлага тази услуга!
           </p>
           <Link 
             href={`/${locale}/register/specialist`}

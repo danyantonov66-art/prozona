@@ -1,71 +1,88 @@
-﻿import { notFound } from 'next/navigation'
-import Image from 'next/image'
-import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { StarIcon, MapPinIcon, CheckBadgeIcon } from '@heroicons/react/24/solid'
+﻿import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import TrackPhoneLink from "@/components/analytics/TrackPhoneLink";
+import { StarIcon, MapPinIcon, CheckBadgeIcon } from "@heroicons/react/24/solid";
 
 interface Props {
-  params: Promise<{
-    id: string
-    locale: string
-  }>
+  params: {
+    id: string;
+    locale: string;
+  };
 }
 
-import type { Metadata } from 'next'
+function toAbsoluteUrl(url?: string | null) {
+  if (!url) return undefined;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `https://www.prozona.bg${url.startsWith("/") ? "" : "/"}${url}`;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params
+  const { id, locale } = params;
+
   const specialist = await prisma.specialist.findUnique({
     where: { id },
-    include: { user: true, categories: { include: { category: true }, take: 1 } }
-  })
-  if (!specialist) return { title: 'Специалист не е намерен' }
-  const name = specialist.businessName || specialist.user.name
-  const category = specialist.categories[0]?.category?.name || 'Специалист'
-  const photo = specialist.user.image || specialist.user.avatar || undefined
+    include: { user: true, categories: { include: { category: true }, take: 1 } },
+  });
+
+  if (!specialist) return { title: "Специалист не е намерен" };
+
+  const name = specialist.businessName || specialist.user.name || "Специалист";
+  const category = specialist.categories[0]?.category?.name || "Специалист";
+
+  // Ако нямаш avatar поле в User, остави само specialist.user.image
+  const rawPhoto = specialist.user.image || (specialist.user as any).avatar || undefined;
+  const photo = toAbsoluteUrl(rawPhoto);
+
+  const desc =
+    specialist.description?.slice(0, 160) ||
+    `${name} - ${category} в ${specialist.city || "България"}`;
+
+  const canonicalUrl = `https://www.prozona.bg/${locale}/specialist/${id}`;
+
   return {
     title: `${name} - ${category}`,
-    description: specialist.description?.slice(0, 160) || `${name} - ${category} в ${specialist.city}`,
+    description: desc,
+    alternates: { canonical: canonicalUrl },
     openGraph: {
       title: `${name} | ProZona`,
-      description: specialist.description?.slice(0, 160) || `${name} - ${category} в ${specialist.city}`,
+      description: desc,
+      url: canonicalUrl,
       images: photo ? [{ url: photo, width: 400, height: 400, alt: name }] : [],
-      url: `https://www.prozona.bg/bg/specialist/${id}`,
     },
-  }
+  };
 }
+
 export default async function SpecialistProfilePage({ params }: Props) {
-  const { id, locale } = await params
-  const session = await getServerSession(authOptions)
+  const { id, locale } = params;
+  const session = await getServerSession(authOptions);
 
   const specialist = await prisma.specialist.findUnique({
     where: { id },
     include: {
       user: true,
-      categories: {
-        include: { category: true }
-      },
+      categories: { include: { category: true } },
       reviews: {
         include: { client: true },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: "desc" },
       },
-      gallery: { orderBy: { sortOrder: 'asc' } }
-    }
-  })
+      gallery: { orderBy: { sortOrder: "asc" } },
+    },
+  });
 
-  if (!specialist) {
-    notFound()
-  }
+  if (!specialist) notFound();
 
-  const isOwner = session && (session.user as any)?.id === specialist.userId
+  const isOwner = !!session && (session.user as any)?.id === specialist.userId;
 
   const averageRating =
     specialist.reviews.length > 0
       ? specialist.reviews.reduce((acc, review) => acc + review.rating, 0) /
         specialist.reviews.length
-      : 0
+      : 0;
 
   return (
     <div className="min-h-screen bg-[#0D0D1A]">
@@ -82,23 +99,21 @@ export default async function SpecialistProfilePage({ params }: Props) {
 
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
           <div className="lg:col-span-2">
             <div className="bg-[#1A1A2E] rounded-lg p-8">
-
               <div className="flex items-start gap-6 mb-6">
                 <div className="w-24 h-24 bg-[#25253a] rounded-full flex items-center justify-center overflow-hidden">
                   {specialist.user.image ? (
                     <Image
                       src={specialist.user.image}
-                      alt={specialist.user.name}
+                      alt={specialist.user.name || "Профил"}
                       width={96}
                       height={96}
                       className="rounded-full object-cover"
                     />
                   ) : (
                     <span className="text-4xl text-[#1DB954]">
-                      {specialist.user.name.charAt(0)}
+                      {specialist.user.name?.charAt(0) || "?"}
                     </span>
                   )}
                 </div>
@@ -129,7 +144,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
 
                   <div className="flex items-center gap-1 text-gray-400">
                     <MapPinIcon className="w-5 h-5" />
-                    <span>{specialist.city || 'Не е посочен'}</span>
+                    <span>{specialist.city || "Не е посочен"}</span>
                   </div>
 
                   {isOwner && (
@@ -137,7 +152,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
                       href={`/${locale}/specialist/profile/edit`}
                       className="mt-4 inline-block px-4 py-2 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] text-sm"
                     >
-                      ✏️ Редактирай профила
+                      Редактирай профила
                     </Link>
                   )}
                 </div>
@@ -146,7 +161,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
               <div className="border-t border-gray-800 pt-6">
                 <h2 className="text-xl font-semibold text-white mb-4">За мен</h2>
                 <p className="text-gray-400 whitespace-pre-line">
-                  {specialist.description || 'Няма описание'}
+                  {specialist.description || "Няма описание"}
                 </p>
               </div>
 
@@ -198,24 +213,24 @@ export default async function SpecialistProfilePage({ params }: Props) {
                             {review.client?.image ? (
                               <Image
                                 src={review.client.image}
-                                alt={review.client?.name ?? 'Клиент'}
+                                alt={review.client?.name ?? "Клиент"}
                                 width={32}
                                 height={32}
                                 className="object-cover"
                               />
                             ) : (
                               <span className="text-[#1DB954] text-sm">
-                                {review.client?.name?.charAt(0) || 'C'}
+                                {review.client?.name?.charAt(0) || "C"}
                               </span>
                             )}
                           </div>
                           <div>
                             <p className="text-white font-medium">
-                              {review.client?.name || 'Клиент'}
+                              {review.client?.name || "Клиент"}
                             </p>
                           </div>
                           <span className="ml-auto text-gray-400 text-sm">
-                            {new Date(review.createdAt).toLocaleDateString('bg-BG')}
+                            {new Date(review.createdAt).toLocaleDateString("bg-BG")}
                           </span>
                         </div>
                         <p className="text-gray-300 text-sm">{review.comment}</p>
@@ -224,7 +239,6 @@ export default async function SpecialistProfilePage({ params }: Props) {
                   </div>
                 )}
               </div>
-
             </div>
           </div>
 
@@ -238,15 +252,29 @@ export default async function SpecialistProfilePage({ params }: Props) {
               <div className="border-t border-gray-800 pt-4 mt-4">
                 <h3 className="text-white font-semibold mb-2">Контакти</h3>
                 <p className="text-gray-400">{specialist.user.email}</p>
+
                 {specialist.phone && (
-                  <p className="text-gray-400 mt-1">{specialist.phone}</p>
+                  <TrackPhoneLink
+                    phone={specialist.phone}
+                    specialistId={specialist.id}
+                    specialistName={specialist.user.name}
+                    city={specialist.city}
+                  />
                 )}
+              </div>
+
+              <div className="mt-6">
+                <Link
+                  href={`/${locale}/specialist/${specialist.id}/inquiry`}
+                  className="block text-center w-full px-4 py-3 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] font-semibold"
+                >
+                  Изпрати запитване
+                </Link>
               </div>
             </div>
           </div>
-
         </div>
       </section>
     </div>
-  )
+  );
 }
