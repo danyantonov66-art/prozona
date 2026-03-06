@@ -1,6 +1,55 @@
 ﻿import Link from "next/link"
-import ProZonaHeader from "@/components/header/ProZonaHeader"
-import ProZonaFooter from "@/components/footer/ProZonaFooter"
+
+const categories = [
+  {
+    id: "stroitelstvo",
+    name: "Строителство и ремонти",
+    description: "Майстори, ВиК, електро, бояджии",
+    image: "/images/categories/stroitelstvo.png",
+  },
+  {
+    id: "auto-transport",
+    name: "Авто услуги и транспорт",
+    description: "Автосервизи, транспорт, хамали",
+    image: "/images/categories/auto-transport.png",
+  },
+  {
+    id: "krasota",
+    name: "Красота и грижа",
+    description: "Фризьори, маникюр, козметика",
+    image: "/images/categories/krasota.png",
+  },
+  {
+    id: "mebeli",
+    name: "Мебели и сглобяване",
+    description: "Сглобяване и ремонт на мебели",
+    image: "/images/categories/mebeli.png",
+  },
+  {
+    id: "pochistvane",
+    name: "Почистване",
+    description: "Домашно и професионално почистване",
+    image: "/images/categories/pochistvane.png",
+  },
+  {
+    id: "gradina",
+    name: "Градина и двор",
+    description: "Поддръжка на двор и озеленяване",
+    image: "/images/categories/gradina.png",
+  },
+  {
+    id: "klimatici",
+    name: "Климатична техника",
+    description: "Монтаж и ремонт на климатици",
+    image: "/images/categories/klimatici.png",
+  },
+  {
+    id: "uroci",
+    name: "Уроци и обучения",
+    description: "Частни уроци и професионални обучения",
+    image: "/images/categories/uroci.png",
+  },
+]
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -9,69 +58,51 @@ interface Props {
 export default async function CategoriesPage({ params }: Props) {
   const { locale } = await params
 
-  const categories = [
-    {
-      title: "Строителство и ремонт",
-      desc: "Майстори за всякакви ремонти",
-      href: `/${locale}/categories/stroitelstvo`,
-    },
-    {
-      title: "Авто услуги и транспорт",
-      desc: "Автосервизи, гуми, транспорт",
-      href: `/${locale}/categories/auto-transport`,
-    },
-    {
-      title: "Красота и грижа",
-      desc: "Фризьори, козметика, маникюр",
-      href: `/${locale}/categories/krasota`,
-    },
-  ]
-
   return (
-    <main className="min-h-screen bg-[#0D0D1A] text-white">
-      <ProZonaHeader locale={locale} />
+    <main className="min-h-screen bg-[#0D0D1A] pt-24">
+      <div className="container mx-auto px-4 py-10">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-white mb-3">
+            Всички категории
+          </h1>
+          <p className="text-gray-400">
+            Избери категория и намери подходящ специалист
+          </p>
+        </div>
 
-      <section className="max-w-6xl mx-auto px-4 py-14">
-        <h1 className="text-4xl md:text-5xl font-bold text-center">
-          Категории услуги
-        </h1>
-        <p className="text-center text-white/70 mt-4">
-          Избери категория и намери най-добрия специалист
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-          {categories.map((c) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {categories.map((category) => (
             <Link
-              key={c.title}
-              href={c.href}
-              className="group bg-[#151528] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition"
+              key={category.id}
+              href={`/${locale}/categories/${category.id}`}
+              className="rounded-2xl overflow-hidden bg-[#1A1A2E] border border-white/5 hover:border-[#1DB954]/40 transition group"
             >
-              <div className="p-8">
-                <h2 className="text-2xl font-semibold">{c.title}</h2>
-                <p className="text-white/70 mt-2">{c.desc}</p>
-                <div className="mt-6 text-[#1DB954] font-semibold">
-                  Виж услугите →
+              <div className="relative h-48 w-full overflow-hidden">
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+                <div className="absolute inset-0 bg-black/40" />
+              </div>
+
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-white mb-2">
+                  {category.name}
+                </h2>
+
+                <p className="text-gray-400 text-sm">
+                  {category.description}
+                </p>
+
+                <div className="mt-4 text-[#1DB954] text-sm font-medium">
+                  Виж категорията →
                 </div>
               </div>
             </Link>
           ))}
         </div>
-
-        <div className="mt-12 bg-[#151528] rounded-2xl p-10 text-center border border-white/5">
-          <h3 className="text-2xl font-bold">Не намираш своята специалност?</h3>
-          <p className="text-white/70 mt-2">
-            Предложи нова категория и ние ще я разгледаме
-          </p>
-          <Link
-            href={`/${locale}/add-service`}
-            className="inline-block mt-6 bg-[#1DB954] text-black font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition"
-          >
-            Предложи категория
-          </Link>
-        </div>
-      </section>
-
-      <ProZonaFooter />
+      </div>
     </main>
   )
 }
