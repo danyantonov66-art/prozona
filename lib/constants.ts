@@ -1,129 +1,69 @@
-export const categories = [
+﻿export const categories = [
   {
-    id: 'stroitelstvo',
-    name: 'Строителство и ремонти',
-    nameEn: 'Construction',
-    description: 'Майстори, ВиК, електро, бояджии',
-    icon: '🔨',
-    color: '#FF6B6B',
+    id: "stroitelstvo",
+    name: "Строителство и ремонти",
+    nameEn: "Construction",
+    description: "Майстори, ВиК, електро, бояджии",
+    icon: "🏗️",
+    color: "#FF6B6B",
     subcategories: [
-      { id: 'maistori', name: 'Майстори', icon: '🔨' },
-      { id: 'remont-banya', name: 'Ремонт на баня', icon: '🚿' },
-      { id: 'elektrotehnik', name: 'Електротехник', icon: '⚡' },
-      { id: 'vik', name: 'ВиК', icon: '🔧' },
-      { id: 'boqdji', name: 'Бояджии', icon: '🎨' },
-      { id: 'gipsokarton', name: 'Гипсокартон', icon: '🧱' }
+      { id: "obshti-remonti", name: "Общи ремонти", icon: "🔨" },
+      { id: "elektrotehnik", name: "Електротехник", icon: "⚡" },
+      { id: "vik", name: "ВиК", icon: "🔧" },
+      { id: "plochki-bani", name: "Плочки и бани", icon: "🚿" },
+      { id: "boqdji", name: "Боядисване", icon: "🎨" },
+      { id: "gipsokarton", name: "Гипсокартон", icon: "🧱" },
+      { id: "pokrivi", name: "Покриви", icon: "🏠" },
+      { id: "izolacii", name: "Изолации", icon: "🧰" },
+      { id: "dograma", name: "Дограма", icon: "🪟" },
+      { id: "drebni-remonti", name: "Майстор за дребни ремонти", icon: "🔨" },
+      { id: "zidariya", name: "Зидария", icon: "🧱" },
+      { id: "kofraj", name: "Кофраж", icon: "🏗️" }
     ]
   },
   {
-    id: 'auto-transport',
-    name: 'Авто услуги и транспорт',
-    nameEn: 'Auto Services',
-    description: 'Автосервизи, тенекеджии, смяна на гуми',
-    icon: '🚗',
-    color: '#E67E22',
+    id: "auto-transport",
+    name: "Авто услуги и транспорт",
+    nameEn: "Auto Services",
+    description: "Автосервизи, транспорт, хамали",
+    icon: "🚗",
+    color: "#E67E22",
     subcategories: [
-      { id: 'avtoserviz', name: 'Автосервиз', icon: '🔧' },
-      { id: 'tenekedjia', name: 'Тенекеджия', icon: '🔨' },
-      { id: 'smyana-na-gumi', name: 'Смяна на гуми', icon: '🛞' },
-      { id: 'gtp', name: 'ГТП', icon: '📋' },
-      { id: 'repatrak', name: 'Репатрак', icon: '🆘' },
-      { id: 'transport', name: 'Транспорт', icon: '🚛' }
+      { id: "avtoserviz", name: "Автосервиз", icon: "🔧" },
+      { id: "smyana-na-gumi", name: "Смяна на гуми", icon: "🔄" },
+      { id: "patna-pomosht", name: "Пътна помощ", icon: "🚨" },
+      { id: "tenekedjia", name: "Автотенекеджия", icon: "🔨" },
+      { id: "avtobojadji", name: "Автобояджия", icon: "🎨" },
+      { id: "gtp", name: "ГТП", icon: "📋" },
+      { id: "repatrak", name: "Репатрак", icon: "🚛" },
+      { id: "prevoz-tovari", name: "Превоз на товари", icon: "🚚" },
+      { id: "hamali", name: "Хамали", icon: "📦" },
+      { id: "premestване", name: "Преместване", icon: "🏠" }
     ]
   },
   {
-    id: 'domashni-uslugi',
-    name: 'Домашни услуги',
-    nameEn: 'Home Services',
-    description: 'Почистване, хамали, градинари',
-    icon: '🏠',
-    color: '#4ECDC4',
+    id: "krasota",
+    name: "Красота и грижа",
+    nameEn: "Beauty & Care",
+    description: "Фризьори, маникюр, козметика, масаж",
+    icon: "💅",
+    color: "#FFA07A",
     subcategories: [
-      { id: 'pochistvane', name: 'Почистване', icon: '🧹' },
-      { id: 'hamali', name: 'Хамали', icon: '📦' },
-      { id: 'gradinar', name: 'Градинар', icon: '🌿' },
-      { id: 'montaji', name: 'Монтажи', icon: '🪑' },
-      { id: 'drebni-remonti', name: 'Дребни ремонти', icon: '🔨' }
-    ]
-  },
-  {
-    id: 'krasota',
-    name: 'Красота и грижа за тялото',
-    nameEn: 'Beauty & Care',
-    description: 'Фризьори, маникюр, масажи, козметика',
-    icon: '💅',
-    color: '#FFA07A',
-    subcategories: [
-      { 
-        id: 'friziorski-uslugi', 
-        name: 'Фризьорски услуги', 
-        icon: '💇',
-        subcategories: [
-          { id: 'dampsko-podstrigvane', name: 'Дамско подстригване', icon: '💇‍♀️' },
-          { id: 'mazhko-podstrigvane', name: 'Мъжко подстригване', icon: '💇‍♂️' },
-          { id: 'boqdisvane', name: 'Боядисване', icon: '🎨' },
-          { id: 'stilizirane', name: 'Стилизиране', icon: '✨' }
-        ]
-      },
-      { 
-        id: 'manikyur', 
-        name: 'Маникюр', 
-        icon: '💅',
-        subcategories: [
-          { id: 'klasicheski-manikyur', name: 'Класически маникюр', icon: '💅' },
-          { id: 'gel-lak', name: 'Гел лак', icon: '💅' },
-          { id: 'noktoplastika', name: 'Ноктопластика', icon: '💅' }
-        ]
-      },
-      { 
-        id: 'pedikyur', 
-        name: 'Педикюр', 
-        icon: '🦶',
-        subcategories: [
-          { id: 'klasicheski-pedikyur', name: 'Класически педикюр', icon: '🦶' },
-          { id: 'medicinski-pedikyur', name: 'Медицински педикюр', icon: '🦶' }
-        ]
-      },
-      { 
-        id: 'masaji', 
-        name: 'Масажи', 
-        icon: '💆',
-        subcategories: [
-          { id: 'relaksirasht-masaj', name: 'Релаксиращ масаж', icon: '💆' },
-          { id: 'sporten-masaj', name: 'Спортен масаж', icon: '💪' },
-          { id: 'lecheben-masaj', name: 'Лечебен масаж', icon: '🏥' }
-        ]
-      },
-      { 
-        id: 'kozmetichni-uslugi', 
-        name: 'Козметични услуги', 
-        icon: '✨',
-        subcategories: [
-          { id: 'pochistvane-na-lice', name: 'Почистване на лице', icon: '🧼' },
-          { id: 'mikroblading', name: 'Микроблейдинг', icon: '✏️' },
-          { id: 'migli', name: 'Мигли', icon: '👁️' }
-        ]
-      },
-      { 
-        id: 'epilacia', 
-        name: 'Епилация', 
-        icon: '🪒',
-        subcategories: [
-          { id: 'kola-maska', name: 'Кола маска', icon: '🍬' },
-          { id: 'laserna-epilacia', name: 'Лазерна епилация', icon: '⚡' }
-        ]
-      }
+      { id: "frizior", name: "Фризьор", icon: "✂️" },
+      { id: "manikyur", name: "Маникюр", icon: "💅" },
+      { id: "pedikyur", name: "Педикюр", icon: "🦶" },
+      { id: "kozmetik", name: "Козметик", icon: "✨" },
+      { id: "masaj", name: "Масаж", icon: "💆" },
+      { id: "migli-vezdi", name: "Мигли и вежди", icon: "👁️" },
+      { id: "brusnar", name: "Бръснар (Barber)", icon: "💈" },
+      { id: "grim", name: "Грим", icon: "💄" }
     ]
   }
 ]
 
 export const cities = [
-  "София",
-  "Пловдив",
-  "Варна",
-  "Бургас",
-  "Русе",
-  "Стара Загора",
-  "Плевен",
-  "Видин"
+  "София", "Пловдив", "Варна", "Бургас", "Русе",
+  "Стара Загора", "Плевен", "Видин", "Велико Търново",
+  "Благоевград", "Перник", "Хасково", "Ямбол", "Пазарджик",
+  "Добрич", "Шумен", "Сливен", "Враца", "Габрово", "Кърджали"
 ]
