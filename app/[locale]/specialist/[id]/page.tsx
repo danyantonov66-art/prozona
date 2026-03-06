@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+п»їimport type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -29,18 +29,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     include: { user: true, categories: { include: { category: true }, take: 1 } },
   });
 
-  if (!specialist) return { title: "Специалист не е намерен" };
+  if (!specialist) return { title: "РЎРїРµС†РёР°Р»РёСЃС‚ РЅРµ Рµ РЅР°РјРµСЂРµРЅ" };
 
-  const name = specialist.businessName || specialist.user.name || "Специалист";
-  const category = specialist.categories[0]?.category?.name || "Специалист";
+  const name = specialist.businessName || specialist.user.name || "РЎРїРµС†РёР°Р»РёСЃС‚";
+  const category = specialist.categories[0]?.category?.name || "РЎРїРµС†РёР°Р»РёСЃС‚";
 
-  // Ако нямаш avatar поле в User, остави само specialist.user.image
+  // РђРєРѕ РЅСЏРјР°С€ avatar РїРѕР»Рµ РІ User, РѕСЃС‚Р°РІРё СЃР°РјРѕ specialist.user.image
   const rawPhoto = specialist.user.image || (specialist.user as any).avatar || undefined;
   const photo = toAbsoluteUrl(rawPhoto);
 
   const desc =
     specialist.description?.slice(0, 160) ||
-    `${name} - ${category} в ${specialist.city || "България"}`;
+    `${name} - ${category} РІ ${specialist.city || "Р‘СЉР»РіР°СЂРёСЏ"}`;
 
   const canonicalUrl = `https://www.prozona.bg/${locale}/specialist/${id}`;
 
@@ -106,7 +106,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
                   {specialist.user.image ? (
                     <Image
                       src={specialist.user.image}
-                      alt={specialist.user.name || "Профил"}
+                      alt={specialist.user.name || "РџСЂРѕС„РёР»"}
                       width={96}
                       height={96}
                       className="rounded-full object-cover"
@@ -130,21 +130,21 @@ export default async function SpecialistProfilePage({ params }: Props) {
                         {averageRating.toFixed(1)}
                       </span>
                       <span className="text-gray-400">
-                        ({specialist.reviews.length} отзива)
+                        ({specialist.reviews.length} РѕС‚Р·РёРІР°)
                       </span>
                     </div>
 
                     {specialist.verified && (
                       <div className="flex items-center gap-1 text-[#1DB954]">
                         <CheckBadgeIcon className="w-5 h-5" />
-                        <span className="text-sm">Проверен</span>
+                        <span className="text-sm">РџСЂРѕРІРµСЂРµРЅ</span>
                       </div>
                     )}
                   </div>
 
                   <div className="flex items-center gap-1 text-gray-400">
                     <MapPinIcon className="w-5 h-5" />
-                    <span>{specialist.city || "Не е посочен"}</span>
+                    <span>{specialist.city || "РќРµ Рµ РїРѕСЃРѕС‡РµРЅ"}</span>
                   </div>
 
                   {isOwner && (
@@ -152,28 +152,28 @@ export default async function SpecialistProfilePage({ params }: Props) {
                       href={`/${locale}/specialist/profile/edit`}
                       className="mt-4 inline-block px-4 py-2 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] text-sm"
                     >
-                      Редактирай профила
+                      Р РµРґР°РєС‚РёСЂР°Р№ РїСЂРѕС„РёР»Р°
                     </Link>
                   )}
                 </div>
               </div>
 
               <div className="border-t border-gray-800 pt-6">
-                <h2 className="text-xl font-semibold text-white mb-4">За мен</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">Р—Р° РјРµРЅ</h2>
                 <p className="text-gray-400 whitespace-pre-line">
-                  {specialist.description || "Няма описание"}
+                  {specialist.description || "РќСЏРјР° РѕРїРёСЃР°РЅРёРµ"}
                 </p>
               </div>
 
               {(specialist as any).gallery?.length > 0 && (
                 <div className="border-t border-gray-800 pt-6 mt-6">
-                  <h2 className="text-xl font-semibold text-white mb-4">Галерия</h2>
+                  <h2 className="text-xl font-semibold text-white mb-4">Р“Р°Р»РµСЂРёСЏ</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {(specialist as any).gallery.map((img: any, i: number) => (
                       <div key={img.id} className="aspect-square overflow-hidden rounded-lg">
                         <Image
                           src={img.imageUrl}
-                          alt={img.title || `Снимка ${i + 1}`}
+                          alt={img.title || `РЎРЅРёРјРєР° ${i + 1}`}
                           width={300}
                           height={300}
                           className="w-full h-full object-cover hover:scale-105 transition-transform"
@@ -185,7 +185,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
               )}
 
               <div className="border-t border-gray-800 pt-6 mt-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Категории</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">РљР°С‚РµРіРѕСЂРёРё</h2>
                 <div className="flex flex-wrap gap-2">
                   {specialist.categories.map((sc) => (
                     <Link
@@ -200,10 +200,10 @@ export default async function SpecialistProfilePage({ params }: Props) {
               </div>
 
               <div className="border-t border-gray-800 pt-6 mt-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Отзиви</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">РћС‚Р·РёРІРё</h2>
 
                 {specialist.reviews.length === 0 ? (
-                  <p className="text-gray-400">Все още няма отзиви</p>
+                  <p className="text-gray-400">Р’СЃРµ РѕС‰Рµ РЅСЏРјР° РѕС‚Р·РёРІРё</p>
                 ) : (
                   <div className="space-y-4">
                     {specialist.reviews.map((review) => (
@@ -213,7 +213,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
                             {review.client?.image ? (
                               <Image
                                 src={review.client.image}
-                                alt={review.client?.name ?? "Клиент"}
+                                alt={review.client?.name ?? "РљР»РёРµРЅС‚"}
                                 width={32}
                                 height={32}
                                 className="object-cover"
@@ -226,7 +226,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
                           </div>
                           <div>
                             <p className="text-white font-medium">
-                              {review.client?.name || "Клиент"}
+                              {review.client?.name || "РљР»РёРµРЅС‚"}
                             </p>
                           </div>
                           <span className="ml-auto text-gray-400 text-sm">
@@ -245,12 +245,12 @@ export default async function SpecialistProfilePage({ params }: Props) {
           <div className="lg:col-span-1">
             <div className="bg-[#1A1A2E] rounded-lg p-6 sticky top-24">
               <div className="text-center mb-6">
-                <p className="text-3xl font-bold text-[#1DB954]">По договаряне</p>
-                <p className="text-gray-400">цена</p>
+                <p className="text-3xl font-bold text-[#1DB954]">РџРѕ РґРѕРіРѕРІР°СЂСЏРЅРµ</p>
+                <p className="text-gray-400">С†РµРЅР°</p>
               </div>
 
               <div className="border-t border-gray-800 pt-4 mt-4">
-                <h3 className="text-white font-semibold mb-2">Контакти</h3>
+                <h3 className="text-white font-semibold mb-2">РљРѕРЅС‚Р°РєС‚Рё</h3>
                 <p className="text-gray-400">{specialist.user.email}</p>
 
                 {specialist.phone && (
@@ -268,7 +268,7 @@ export default async function SpecialistProfilePage({ params }: Props) {
                   href={`/${locale}/specialist/${specialist.id}/inquiry`}
                   className="block text-center w-full px-4 py-3 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] font-semibold"
                 >
-                  Изпрати запитване
+                  РР·РїСЂР°С‚Рё Р·Р°РїРёС‚РІР°РЅРµ
                 </Link>
               </div>
             </div>
