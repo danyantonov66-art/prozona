@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: canonicalUrl,
       images: photo ? [{ url: photo, width: 400, height: 400, alt: name }] : [],
     },
-  }>;
+  };
 }
 
 export default async function SpecialistProfilePage({ params }: Props) {
