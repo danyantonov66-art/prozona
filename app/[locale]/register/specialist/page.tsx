@@ -1,4 +1,4 @@
-// app/register/specialist/page.tsx
+﻿// app/register/specialist/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -24,7 +24,7 @@ export default function SpecialistRegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const selectedCategoryData = categories.find(c => c.slug === selectedCategory)
+  const selectedCategoryData = categories.find(c => c.id === selectedCategory)
   const subcategories = selectedCategoryData?.subcategories || []
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +48,7 @@ export default function SpecialistRegisterPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Грешка при регистрация')
+        throw new Error(data.error || 'Р“СЂРµС€РєР° РїСЂРё СЂРµРіРёСЃС‚СЂР°С†РёСЏ')
       }
 
       const specialistRes = await fetch('/api/specialist/profile', {
@@ -67,7 +67,7 @@ export default function SpecialistRegisterPage() {
       })
 
       if (!specialistRes.ok) {
-        throw new Error('Грешка при създаване на профил')
+        throw new Error('Р“СЂРµС€РєР° РїСЂРё СЃСЉР·РґР°РІР°РЅРµ РЅР° РїСЂРѕС„РёР»')
       }
 
       await signIn('credentials', {
@@ -92,8 +92,8 @@ export default function SpecialistRegisterPage() {
             </div>
             <span className="text-white font-semibold">ProZona</span>
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">Регистрация за специалисти</h1>
-          <p className="text-gray-400">Предложете вашите услуги на хиляди клиенти</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Р РµРіРёСЃС‚СЂР°С†РёСЏ Р·Р° СЃРїРµС†РёР°Р»РёСЃС‚Рё</h1>
+          <p className="text-gray-400">РџСЂРµРґР»РѕР¶РµС‚Рµ РІР°С€РёС‚Рµ СѓСЃР»СѓРіРё РЅР° С…РёР»СЏРґРё РєР»РёРµРЅС‚Рё</p>
         </div>
 
         <div className="bg-[#1A1A2E] rounded-lg p-8">
@@ -105,10 +105,10 @@ export default function SpecialistRegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-white mb-4">Лични данни</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">Р›РёС‡РЅРё РґР°РЅРЅРё</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-300 mb-2">Име *</label>
+                  <label className="block text-gray-300 mb-2">РРјРµ *</label>
                   <input
                     type="text"
                     value={name}
@@ -118,7 +118,7 @@ export default function SpecialistRegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-2">Телефон *</label>
+                  <label className="block text-gray-300 mb-2">РўРµР»РµС„РѕРЅ *</label>
                   <input
                     type="tel"
                     value={phone}
@@ -129,7 +129,7 @@ export default function SpecialistRegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-2">Имейл *</label>
+                  <label className="block text-gray-300 mb-2">РРјРµР№Р» *</label>
                   <input
                     type="email"
                     value={email}
@@ -139,7 +139,7 @@ export default function SpecialistRegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-2">Парола *</label>
+                  <label className="block text-gray-300 mb-2">РџР°СЂРѕР»Р° *</label>
                   <input
                     type="password"
                     value={password}
@@ -153,35 +153,35 @@ export default function SpecialistRegisterPage() {
             </div>
 
             <div className="pt-4 border-t border-gray-700">
-              <h2 className="text-xl font-semibold text-white mb-4">Професионални данни</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">РџСЂРѕС„РµСЃРёРѕРЅР°Р»РЅРё РґР°РЅРЅРё</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-gray-300 mb-2">Име на фирма (ако имате)</label>
+                  <label className="block text-gray-300 mb-2">РРјРµ РЅР° С„РёСЂРјР° (Р°РєРѕ РёРјР°С‚Рµ)</label>
                   <input
                     type="text"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
                     className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                    placeholder="Пример: Иван Иванов ЕТ"
+                    placeholder="РџСЂРёРјРµСЂ: РРІР°РЅ РРІР°РЅРѕРІ Р•Рў"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-300 mb-2">Описание на услугите *</label>
+                  <label className="block text-gray-300 mb-2">РћРїРёСЃР°РЅРёРµ РЅР° СѓСЃР»СѓРіРёС‚Рµ *</label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
                     className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
                     required
-                    placeholder="Опишете какво предлагате, вашия опит, сертификати..."
+                    placeholder="РћРїРёС€РµС‚Рµ РєР°РєРІРѕ РїСЂРµРґР»Р°РіР°С‚Рµ, РІР°С€РёСЏ РѕРїРёС‚, СЃРµСЂС‚РёС„РёРєР°С‚Рё..."
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-gray-300 mb-2">Категория *</label>
+                    <label className="block text-gray-300 mb-2">РљР°С‚РµРіРѕСЂРёСЏ *</label>
                     <select
                       value={selectedCategory}
                       onChange={(e) => {
@@ -191,15 +191,15 @@ export default function SpecialistRegisterPage() {
                       className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
                       required
                     >
-                      <option value="">Избери категория</option>
+                      <option value="">РР·Р±РµСЂРё РєР°С‚РµРіРѕСЂРёСЏ</option>
                       {categories.map(cat => (
-                        <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 mb-2">Подкатегория *</label>
+                    <label className="block text-gray-300 mb-2">РџРѕРґРєР°С‚РµРіРѕСЂРёСЏ *</label>
                     <select
                       value={selectedSubcategory}
                       onChange={(e) => setSelectedSubcategory(e.target.value)}
@@ -207,22 +207,22 @@ export default function SpecialistRegisterPage() {
                       required
                       disabled={!selectedCategory}
                     >
-                      <option value="">Избери подкатегория</option>
-                      {subcategories.map((sub: string) => (
-                        <option key={sub} value={sub}>{sub}</option>
+                      <option value="">РР·Р±РµСЂРё РїРѕРґРєР°С‚РµРіРѕСЂРёСЏ</option>
+                      {subcategories.map((sub: any) => (
+                        <option key={sub.id} value={sub.id}>{sub.name}</option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 mb-2">Град *</label>
+                    <label className="block text-gray-300 mb-2">Р“СЂР°Рґ *</label>
                     <select
                       value={selectedCity}
                       onChange={(e) => setSelectedCity(e.target.value)}
                       className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
                       required
                     >
-                      <option value="">Избери град</option>
+                      <option value="">РР·Р±РµСЂРё РіСЂР°Рґ</option>
                       {cities.map(city => (
                         <option key={city} value={city}>{city}</option>
                       ))}
@@ -230,7 +230,7 @@ export default function SpecialistRegisterPage() {
                   </div>
 
                   <div>
-                    <label className="block text-gray-300 mb-2">Години опит</label>
+                    <label className="block text-gray-300 mb-2">Р“РѕРґРёРЅРё РѕРїРёС‚</label>
                     <input
                       type="number"
                       value={experience}
@@ -244,7 +244,7 @@ export default function SpecialistRegisterPage() {
               </div>
             </div>
 
-            {/* НОВО - Отметка за съгласие */}
+            {/* РќРћР’Рћ - РћС‚РјРµС‚РєР° Р·Р° СЃСЉРіР»Р°СЃРёРµ */}
             <div className="flex items-start gap-2">
               <input
                 type="checkbox"
@@ -253,13 +253,13 @@ export default function SpecialistRegisterPage() {
                 className="mt-1 w-4 h-4 text-[#1DB954] bg-[#0D0D1A] border-gray-700 rounded focus:ring-[#1DB954] focus:ring-2"
               />
               <label htmlFor="terms" className="text-gray-300 text-sm">
-                Съгласявам се с{' '}
+                РЎСЉРіР»Р°СЃСЏРІР°Рј СЃРµ СЃ{' '}
                 <Link href="/terms" className="text-[#1DB954] hover:underline" target="_blank">
-                  Общите условия
+                  РћР±С‰РёС‚Рµ СѓСЃР»РѕРІРёСЏ
                 </Link>{' '}
-                и{' '}
+                Рё{' '}
                 <Link href="/privacy" className="text-[#1DB954] hover:underline" target="_blank">
-                  Политиката за поверителност
+                  РџРѕР»РёС‚РёРєР°С‚Р° Р·Р° РїРѕРІРµСЂРёС‚РµР»РЅРѕСЃС‚
                 </Link>
               </label>
             </div>
@@ -269,13 +269,13 @@ export default function SpecialistRegisterPage() {
               disabled={loading}
               className="w-full py-3 bg-[#1DB954] text-white rounded-lg font-medium hover:bg-[#169b43] disabled:opacity-50 transition-colors"
             >
-              {loading ? 'Регистрация...' : 'Регистрирай се като специалист'}
+              {loading ? 'Р РµРіРёСЃС‚СЂР°С†РёСЏ...' : 'Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ РєР°С‚Рѕ СЃРїРµС†РёР°Р»РёСЃС‚'}
             </button>
 
             <p className="text-center text-gray-400 mt-4">
-              Вече имате профил?{' '}
+              Р’РµС‡Рµ РёРјР°С‚Рµ РїСЂРѕС„РёР»?{' '}
               <Link href="/login" className="text-[#1DB954] hover:underline">
-                Вход
+                Р’С…РѕРґ
               </Link>
             </p>
           </form>
