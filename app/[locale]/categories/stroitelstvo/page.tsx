@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { categories } from '@/lib/constants'
 
@@ -17,7 +17,7 @@ export default async function CategoryPage({ params }: Props) {
       <div className="container mx-auto px-4">
         <div className="mb-4">
           <Link href={`/${locale}/categories`} className="text-[#1DB954] hover:underline">
-            ← Всички категории
+            в†ђ Р’СЃРёС‡РєРё РєР°С‚РµРіРѕСЂРёРё
           </Link>
         </div>
 
