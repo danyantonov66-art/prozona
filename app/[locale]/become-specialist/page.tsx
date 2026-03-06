@@ -127,8 +127,8 @@ export default function BecomeSpecialistPage() {
               disabled={!selectedCategory}
             >
               <option value="">РР·Р±РµСЂРµС‚Рµ РїРѕРґРєР°С‚РµРіРѕСЂРёСЏ</option>
-              {subcategories.map((sub: string) => (
-                <option key={sub} value={sub}>{sub}</option>
+              {subcategories.map((sub: any) => (
+                <option key={sub.id} value={sub.id}>{sub.name}</option>
               ))}
             </select>
           </div>
