@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { categories } from '@/lib/constants'
 
@@ -20,8 +20,8 @@ export default async function SubcategoryPage({ params }: Props) {
       subcategoryData = sub
       break
     }
-    if (sub.subcategories) {
-      for (const nestedSub of sub.subcategories) {
+    if ((sub as any).subcategories) {
+      for (const nestedSub of (sub as any).subcategories) {
         if (nestedSub.id === subcategory) {
           subcategoryData = nestedSub
           parentSubcategory = sub
@@ -38,11 +38,11 @@ export default async function SubcategoryPage({ params }: Props) {
       <div className="container mx-auto px-4">
         <div className="mb-4">
           <Link href={`/${locale}/categories/${slug}`} className="text-[#1DB954] hover:underline">
-            ← Назад към {category.name}
+            в†ђ РќР°Р·Р°Рґ РєСЉРј {category.name}
           </Link>
           {parentSubcategory && (
             <>
-              <span className="text-gray-500 mx-2">•</span>
+              <span className="text-gray-500 mx-2">вЂў</span>
               <Link href={`/${locale}/categories/${slug}/${parentSubcategory.id}`} className="text-[#1DB954] hover:underline">
                 {parentSubcategory.name}
               </Link>
@@ -54,18 +54,18 @@ export default async function SubcategoryPage({ params }: Props) {
           {subcategoryData.icon} {subcategoryData.name}
         </h1>
         <p className="text-gray-400 mb-8">
-          Намерете най-добрите специалисти
+          РќР°РјРµСЂРµС‚Рµ РЅР°Р№-РґРѕР±СЂРёС‚Рµ СЃРїРµС†РёР°Р»РёСЃС‚Рё
         </p>
 
         <div className="bg-[#1A1A2E] rounded-lg p-12 text-center">
           <p className="text-gray-400 text-lg mb-4">
-            Все още няма специалисти в тази категория.
+            Р’СЃРµ РѕС‰Рµ РЅСЏРјР° СЃРїРµС†РёР°Р»РёСЃС‚Рё РІ С‚Р°Р·Рё РєР°С‚РµРіРѕСЂРёСЏ.
           </p>
           <Link 
             href={`/${locale}/register/specialist`}
             className="inline-block px-6 py-3 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] transition-colors"
           >
-            Регистрирай се като специалист
+            Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ РєР°С‚Рѕ СЃРїРµС†РёР°Р»РёСЃС‚
           </Link>
         </div>
       </div>
