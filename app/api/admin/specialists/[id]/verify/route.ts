@@ -20,7 +20,7 @@ export async function POST(
 
     const existing = await prisma.specialist.findUnique({
       where: { id },
-      select: { id: true, verified: true },
+      select: { id: true, isVerified: true },
     })
 
     if (!existing) {
@@ -33,9 +33,7 @@ export async function POST(
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
-        verified,
-        verifiedAt: verified ? new Date() : null,
-        verifiedBy: verified ? ((session.user as any)?.email || 'admin') : null,
+        isVerified: verified,
       },
     })
 
