@@ -19,9 +19,8 @@ export async function POST(
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
-        verified: true,
-        verifiedAt: new Date(),
-        verifiedBy: (session.user as any)?.id || null
+        isVerified: true,
+isApproved: true,
       }
     })
 
