@@ -53,7 +53,7 @@ export default async function InquiryPage({ params }: Props) {
             <InquiryForm
               specialistId={id}
               specialistName={specialist.businessName || specialist.user.name || ''}
-              specialistCity={specialist.city ?? undefined}
+              specialistCity={specialist.city ?? ""}
               categoryId={specialist.categoryId}
               locale={locale}
             />
@@ -63,5 +63,6 @@ export default async function InquiryPage({ params }: Props) {
     </main>
   )
 }
+
 
 
