@@ -1,4 +1,4 @@
-﻿export const categories = [
+export const categories = [
   {
     id: "stroitelstvo",
     name: "Строителство и ремонти",
@@ -16,7 +16,7 @@
       { id: "pokrivi", name: "Покриви", icon: "🏠" },
       { id: "izolacii", name: "Изолации", icon: "🧰" },
       { id: "dograma", name: "Дограма", icon: "🪟" },
-      { id: "drebni-remonti", name: "Майстор за дребни ремонти", icon: "🔨" },
+      { id: "drebni-remonti", name: "Дребни ремонти", icon: "🔨" },
       { id: "zidariya", name: "Зидария", icon: "🧱" },
       { id: "kofraj", name: "Кофраж", icon: "🏗️" }
     ]
@@ -55,15 +55,98 @@
       { id: "kozmetik", name: "Козметик", icon: "✨" },
       { id: "masaj", name: "Масаж", icon: "💆" },
       { id: "migli-vezdi", name: "Мигли и вежди", icon: "👁️" },
-      { id: "brusnar", name: "Бръснар (Barber)", icon: "💈" },
+      { id: "brusnar", name: "Бръснар", icon: "💈" },
       { id: "grim", name: "Грим", icon: "💄" }
+    ]
+  },
+  {
+    id: "mebeli",
+    name: "Мебели и сглобяване",
+    nameEn: "Furniture",
+    description: "Сглобяване и ремонт на мебели",
+    icon: "🛋️",
+    color: "#8E44AD",
+    subcategories: [
+      { id: "sglobqvane", name: "Сглобяване на мебели", icon: "🔨" },
+      { id: "remont-mebeli", name: "Ремонт на мебели", icon: "🛠️" },
+      { id: "vgradeni-mebeli", name: "Вградени мебели", icon: "🪚" }
+    ]
+  },
+  {
+    id: "pochistvane",
+    name: "Почистване",
+    nameEn: "Cleaning",
+    description: "Домашно и професионално почистване",
+    icon: "🧹",
+    color: "#27AE60",
+    subcategories: [
+      { id: "domashno-pochistvane", name: "Домашно почистване", icon: "🏠" },
+      { id: "ofis-pochistvane", name: "Офис почистване", icon: "🏢" },
+      { id: "sled-remont", name: "След ремонт", icon: "🧹" },
+      { id: "peralne", name: "Пералня/химическо", icon: "👕" }
+    ]
+  },
+  {
+    id: "gradina",
+    name: "Градина и двор",
+    nameEn: "Garden",
+    description: "Поддръжка на двор и озеленяване",
+    icon: "🌿",
+    color: "#2ECC71",
+    subcategories: [
+      { id: "kosene-treva", name: "Косене на трева", icon: "🌱" },
+      { id: "ozelenqvane", name: "Озеленяване", icon: "🌳" },
+      { id: "podrqzane", name: "Подрязване на храсти", icon: "✂️" }
+    ]
+  },
+  {
+    id: "klimatici",
+    name: "Климатична техника",
+    nameEn: "HVAC",
+    description: "Монтаж и ремонт на климатици",
+    icon: "❄️",
+    color: "#3498DB",
+    subcategories: [
+      { id: "montaj-klimatik", name: "Монтаж на климатик", icon: "❄️" },
+      { id: "remont-klimatik", name: "Ремонт на климатик", icon: "🔧" },
+      { id: "demontaj-klimatik", name: "Демонтаж на климатик", icon: "🔩" }
+    ]
+  },
+  {
+    id: "uroci",
+    name: "Уроци и обучения",
+    nameEn: "Lessons",
+    description: "Частни уроци и професионални обучения",
+    icon: "📚",
+    color: "#E74C3C",
+    subcategories: [
+      { id: "matematika", name: "Математика", icon: "📐" },
+      { id: "ezici", name: "Езици", icon: "🌍" },
+      { id: "muzika", name: "Музика", icon: "🎵" },
+      { id: "it-uroci", name: "ИТ и програмиране", icon: "💻" }
     ]
   }
 ]
 
 export const cities = [
-  "София", "Пловдив", "Варна", "Бургас", "Русе",
-  "Стара Загора", "Плевен", "Видин", "Велико Търново",
-  "Благоевград", "Перник", "Хасково", "Ямбол", "Пазарджик",
-  "Добрич", "Шумен", "Сливен", "Враца", "Габрово", "Кърджали"
+  "София",
+  "Пловдив",
+  "Варна",
+  "Бургас",
+  "Русе",
+  "Стара Загора",
+  "Плевен",
+  "Видин",
+  "Велико Търново",
+  "Благоевград",
+  "Перник",
+  "Хасково",
+  "Ямбол",
+  "Пазарджик",
+  "Добрич",
+  "Шумен",
+  "Сливен",
+  "Враца",
+  "Габрово",
+  "Кърджали"
 ]
