@@ -8,13 +8,14 @@ export async function GET() {
   if (!session || (session.user as any)?.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const [users, specialists, clients, inquiries, pendingVerifications, pendingSuggestions] = await Promise.all([
+
+  const [users, specialists, inquiries, pendingVerifications, pendingSuggestions] = await Promise.all([
     prisma.user.count(),
     prisma.specialist.count(),
-    prisma.clientProfile.count(),
     prisma.inquiry.count(),
-    prisma.specialist.count({ where: { verified: false } }),
+    prisma.specialist.count({ where: { isVerified: false } }),
     prisma.categorySuggestion.count({ where: { status: 'PENDING' } }),
   ])
-  return NextResponse.json({ users, specialists, clients, inquiries, pendingVerifications, pendingSuggestions })
+
+  return NextResponse.json({ users, specialists, clients: 0, inquiries, pendingVerifications, pendingSuggestions })
 }
