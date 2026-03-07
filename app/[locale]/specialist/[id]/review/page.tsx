@@ -18,7 +18,7 @@ export default async function ReviewPage({ params }: Props) {
       <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
         <div className="max-w-md w-full bg-[#1A1A2E] rounded-lg p-8 text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Нямате достъп</h1>
-          <Link href={/+${locale}/specialist/} className="text-[#1DB954] hover:underline">
+          <Link href={`/${locale}/specialist/${id}`} className="text-[#1DB954] hover:underline">
             Назад към профила
           </Link>
         </div>
@@ -42,7 +42,7 @@ export default async function ReviewPage({ params }: Props) {
       <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
         <div className="max-w-md w-full bg-[#1A1A2E] rounded-lg p-8 text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Вече сте написали отзив</h1>
-          <Link href={/+${locale}/specialist/} className="text-[#1DB954] hover:underline">
+          <Link href={`/${locale}/specialist/${id}`} className="text-[#1DB954] hover:underline">
             Назад към профила
           </Link>
         </div>
@@ -53,8 +53,8 @@ export default async function ReviewPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-[#0D0D1A] py-8 px-4">
       <div className="container mx-auto max-w-2xl">
-        <Link href={/+${locale}/specialist/} className="text-[#1DB954] hover:underline mb-4 inline-block">
-          Назад към профила
+        <Link href={`/${locale}/specialist/${id}`} className="text-[#1DB954] hover:underline mb-4 inline-block">
+          ← Назад към профила
         </Link>
         <div className="bg-[#1A1A2E] rounded-lg p-8">
           <h1 className="text-2xl font-bold text-white mb-2">Напишете отзив за</h1>
@@ -65,4 +65,3 @@ export default async function ReviewPage({ params }: Props) {
     </div>
   )
 }
-
