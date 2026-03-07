@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+﻿import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import InquiryForm from './InquiryForm'
@@ -15,19 +15,10 @@ export default async function InquiryPage({ params }: Props) {
 
   const specialist = await prisma.specialist.findUnique({
     where: { id },
-    include: {
-      user: true,
-      categories: {
-        include: {
-          category: true,
-        },
-      },
-    },
+    include: { user: true },
   })
 
-  if (!specialist) {
-    notFound()
-  }
+  if (!specialist) notFound()
 
   return (
     <main className="min-h-screen bg-[#0D0D1A]">
@@ -41,12 +32,9 @@ export default async function InquiryPage({ params }: Props) {
           </Link>
         </div>
       </header>
-
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center gap-2 text-gray-400 flex-wrap">
-          <Link href={`/${locale}`} className="hover:text-[#1DB954]">
-            Начало
-          </Link>
+          <Link href={`/${locale}`} className="hover:text-[#1DB954]">Начало</Link>
           <span>/</span>
           <Link href={`/${locale}/specialist/${id}`} className="hover:text-[#1DB954]">
             {specialist.businessName || specialist.user.name}
@@ -55,7 +43,6 @@ export default async function InquiryPage({ params }: Props) {
           <span className="text-white">Запитване</span>
         </div>
       </div>
-
       <section className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="bg-[#1A1A2E] rounded-lg p-8">
@@ -63,12 +50,11 @@ export default async function InquiryPage({ params }: Props) {
             <p className="text-xl text-[#1DB954] mb-6">
               {specialist.businessName || specialist.user.name}
             </p>
-
             <InquiryForm
               specialistId={id}
-              specialistName={specialist.businessName || specialist.user.name}
+              specialistName={specialist.businessName || specialist.user.name || ''}
               specialistCity={specialist.city}
-              categoryId={specialist.categories[0]?.category?.id ?? null}
+              categoryId={specialist.categoryId}
               locale={locale}
             />
           </div>
