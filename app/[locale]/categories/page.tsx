@@ -1,55 +1,5 @@
 ﻿import Link from "next/link"
-
-const categories = [
-  {
-    id: "stroitelstvo",
-    name: "Строителство и ремонти",
-    description: "Майстори, ВиК, електро, бояджии",
-    image: "/images/categories/stroitelstvo.png",
-  },
-  {
-    id: "auto-transport",
-    name: "Авто услуги и транспорт",
-    description: "Автосервизи, транспорт, хамали",
-    image: "/images/categories/auto-transport.png",
-  },
-  {
-    id: "krasota",
-    name: "Красота и грижа",
-    description: "Фризьори, маникюр, козметика",
-    image: "/images/categories/krasota.png",
-  },
-  {
-    id: "mebeli",
-    name: "Мебели и сглобяване",
-    description: "Сглобяване и ремонт на мебели",
-    image: "/images/categories/mebeli.png",
-  },
-  {
-    id: "pochistvane",
-    name: "Почистване",
-    description: "Домашно и професионално почистване",
-    image: "/images/categories/pochistvane.png",
-  },
-  {
-    id: "gradina",
-    name: "Градина и двор",
-    description: "Поддръжка на двор и озеленяване",
-    image: "/images/categories/gradina.png",
-  },
-  {
-    id: "klimatici",
-    name: "Климатична техника",
-    description: "Монтаж и ремонт на климатици",
-    image: "/images/categories/klimatici.png",
-  },
-  {
-    id: "uroci",
-    name: "Уроци и обучения",
-    description: "Частни уроци и професионални обучения",
-    image: "/images/categories/uroci.png",
-  },
-]
+import { categories } from "@/lib/constants"
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -62,11 +12,11 @@ export default async function CategoriesPage({ params }: Props) {
     <main className="min-h-screen bg-[#0D0D1A] pt-24">
       <div className="container mx-auto px-4 py-10">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-3">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
             Всички категории
           </h1>
-          <p className="text-gray-400">
-            Избери категория и намери подходящ специалист
+          <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+            Избери категория и намери подходящ специалист за дома, бизнеса или ежедневните услуги
           </p>
         </div>
 
@@ -75,28 +25,33 @@ export default async function CategoriesPage({ params }: Props) {
             <Link
               key={category.id}
               href={`/${locale}/categories/${category.id}`}
-              className="rounded-2xl overflow-hidden bg-[#1A1A2E] border border-white/5 hover:border-[#1DB954]/40 transition group"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] hover:border-[#1DB954]/40 transition duration-300 shadow-lg"
             >
-              <div className="relative h-48 w-full overflow-hidden">
+              <div className="relative h-56 w-full overflow-hidden">
                 <img
-                  src={category.image}
+                  src={`/images/categories/${category.id}.png`}
                   alt={category.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                 />
-                <div className="absolute inset-0 bg-black/40" />
-              </div>
 
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-white mb-2">
-                  {category.name}
-                </h2>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10 group-hover:from-black/85 group-hover:via-black/40 transition duration-300" />
 
-                <p className="text-gray-400 text-sm">
-                  {category.description}
-                </p>
+                <div className="absolute inset-x-0 bottom-0 p-5">
+                  <div className="inline-flex items-center rounded-full bg-[#1DB954]/15 border border-[#1DB954]/30 px-3 py-1 text-xs font-medium text-[#7DFFA8] mb-3">
+                    Категория
+                  </div>
 
-                <div className="mt-4 text-[#1DB954] text-sm font-medium">
-                  Виж категорията →
+                  <h2 className="text-2xl font-bold text-white leading-tight mb-2">
+                    {category.name}
+                  </h2>
+
+                  <p className="text-sm text-gray-200 line-clamp-2">
+                    {category.description}
+                  </p>
+
+                  <div className="mt-4 inline-flex items-center text-[#1DB954] font-medium text-sm">
+                    Разгледай →
+                  </div>
                 </div>
               </div>
             </Link>
