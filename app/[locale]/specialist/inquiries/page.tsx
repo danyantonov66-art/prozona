@@ -1,4 +1,4 @@
-import { getServerSession } from 'next-auth'
+﻿import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
@@ -19,9 +19,6 @@ export default async function SpecialistInquiriesPage() {
   const inquiries = await prisma.inquiry.findMany({
     where: { specialistId: specialist.id },
     orderBy: { createdAt: 'desc' },
-    include: {
-      responses: { orderBy: { createdAt: 'desc' }, take: 1 }
-    }
   })
 
   return (
@@ -30,23 +27,15 @@ export default async function SpecialistInquiriesPage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-white">Получени запитвания</h1>
           <Link href="/specialist/dashboard" className="text-[#1DB954] hover:underline">
-            ← Назад към таблото
+            Назад към таблото
           </Link>
         </div>
 
-        {/* Безплатен период */}
         <div className="bg-[#1DB954]/10 border border-[#1DB954]/30 rounded-lg p-4 mb-6">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">🎉</span>
-            <div>
-              <p className="text-[#1DB954] font-semibold mb-1">ProZona е напълно безплатна за вас!</p>
-              <p className="text-gray-300 text-sm">
-                През първите 3 месеца всички функции са безплатни — виждате контактите на клиентите, 
-                отговаряте на запитвания и използвате всички опции без ограничения. 
-                След това ще има завинаги безплатен план с основни функции.
-              </p>
-            </div>
-          </div>
+          <p className="text-[#1DB954] font-semibold mb-1">ProZona е напълно безплатна за вас!</p>
+          <p className="text-gray-300 text-sm">
+            През първите 3 месеца всички функции са безплатни.
+          </p>
         </div>
 
         {inquiries.length === 0 ? (
@@ -78,22 +67,11 @@ export default async function SpecialistInquiriesPage() {
                      inquiry.status === 'REPLIED' ? 'Отговорено' : inquiry.status}
                   </span>
                 </div>
-
                 <p className="text-gray-300 mb-4 whitespace-pre-line">{inquiry.message}</p>
-
                 <div className="flex gap-4 text-sm text-gray-400 mb-2 flex-wrap">
                   <span>📧 {inquiry.email}</span>
                   {inquiry.phone && <span>📞 {inquiry.phone}</span>}
-                  <span>📍 {inquiry.city}</span>
                 </div>
-
-                {inquiry.responses[0] && (
-                  <div className="mt-3 p-3 bg-[#0D0D1A] rounded-lg border-l-2 border-[#1DB954]">
-                    <p className="text-gray-400 text-xs mb-1">Твоят отговор:</p>
-                    <p className="text-gray-300 text-sm">{inquiry.responses[0].message}</p>
-                  </div>
-                )}
-
                 <InquiryActions inquiryId={inquiry.id} status={inquiry.status} />
               </div>
             ))}
