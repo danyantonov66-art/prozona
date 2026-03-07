@@ -1,213 +1,140 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-
-interface Inquiry {
-  id: string
-  name: string
-  email: string
-  phone: string
-  message: string
-  status: 'PENDING' | 'VIEWED' | 'REPLIED' | 'COMPLETED' | 'CANCELLED'
-  createdAt: string
+generator client {
+  provider = "prisma-client-js"
 }
 
-interface Props {
-  params: Promise<{
-    locale: string
-  }>
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-export default function SpecialistInquiriesPage({ params }: Props) {
-  const router = useRouter()
-  const { data: session, status } = useSession()
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  const [locale, setLocale] = useState('bg')
-  const [inquiries, setInquiries] = useState<Inquiry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  accounts    Account[]
+  sessions    Session[]
+  specialist  Specialist?
+  inquiries   Inquiry[]
+  reviews     Review[]
+  favorites   Favorite[]
+}
 
-  useEffect(() => {
-    async function loadParams() {
-      const resolved = await params
-      setLocale(resolved.locale)
-    }
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
-    loadParams()
-  }, [params])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  useEffect(() => {
-    if (status === 'loading') return
+  @@unique([provider, providerAccountId])
+}
 
-    if (!session?.user?.email) {
-      router.push(`/${locale}/login?callbackUrl=/${locale}/dashboard/inquiries`)
-      return
-    }
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
 
-    async function loadInquiries() {
-      try {
-        const res = await fetch('/api/specialist/inquiries')
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-        const data = await res.json().catch(() => null)
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-        if (!res.ok) {
-          setError(data?.error || 'Грешка при зареждане')
-          return
-        }
+  @@unique([identifier, token])
+}
 
-        setInquiries(data?.inquiries || [])
-      } catch (error) {
-        console.error(error)
-        setError('Възникна грешка при зареждане')
-      } finally {
-        setLoading(false)
-      }
-    }
+model Specialist {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  businessName String?
+  categoryId   String?
+  subcategoryId String?
+  description  String?
+  city         String?
+  phone        String?
+  experience   Int?
+  rating       Float    @default(0)
+  reviewCount  Int      @default(0)
+  isVerified   Boolean  @default(false)
+  isApproved   Boolean  @default(false)
+  isPremium    Boolean  @default(false)
+  credits      Int      @default(0)
+  images       String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-    loadInquiries()
-  }, [session, status, router, locale])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inquiries Inquiry[]
+  reviews   Review[]
+  favorites Favorite[]
+}
 
-  const markAsViewed = async (id: string) => {
-    try {
-      const res = await fetch(`/api/inquiry/${id}/viewed`, {
-        method: 'POST',
-      })
+model Inquiry {
+  id           String   @id @default(cuid())
+  specialistId String
+  userId       String?
+  name         String
+  email        String
+  phone        String?
+  message      String
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-      const data = await res.json().catch(() => null)
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  user       User?      @relation(fields: [userId], references: [id])
+}
 
-      if (!res.ok) {
-        alert(data?.error || 'Грешка при обновяване')
-        return
-      }
+model Review {
+  id           String   @id @default(cuid())
+  specialistId String
+  userId       String
+  rating       Int
+  comment      String?
+  response     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-      setInquiries((prev) =>
-        prev.map((inquiry) =>
-          inquiry.id === id ? { ...inquiry, status: 'VIEWED' } : inquiry
-        )
-      )
-    } catch (error) {
-      console.error(error)
-      alert('Възникна грешка')
-    }
-  }
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+}
 
-  const getStatusLabel = (status: Inquiry['status']) => {
-    switch (status) {
-      case 'PENDING':
-        return 'Ново'
-      case 'VIEWED':
-        return 'Прочетено'
-      case 'REPLIED':
-        return 'Отговорено'
-      case 'COMPLETED':
-        return 'Завършено'
-      case 'CANCELLED':
-        return 'Отказано'
-      default:
-        return status
-    }
-  }
+model Favorite {
+  id           String   @id @default(cuid())
+  userId       String
+  specialistId String
+  createdAt    DateTime @default(now())
 
-  const getStatusColor = (status: Inquiry['status']) => {
-    switch (status) {
-      case 'PENDING':
-        return 'text-yellow-400'
-      case 'VIEWED':
-        return 'text-blue-400'
-      case 'REPLIED':
-        return 'text-green-400'
-      case 'COMPLETED':
-        return 'text-green-500'
-      case 'CANCELLED':
-        return 'text-red-400'
-      default:
-        return 'text-gray-400'
-    }
-  }
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
 
-  if (loading || status === 'loading') {
-    return (
-      <main className="min-h-screen bg-[#0D0D1A] flex items-center justify-center text-white">
-        Зареждане...
-      </main>
-    )
-  }
+  @@unique([userId, specialistId])
+}
 
-  return (
-    <main className="min-h-screen bg-[#0D0D1A]">
-      <header className="border-b border-gray-800">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href={`/${locale}`} className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-[#1DB954] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">PZ</span>
-            </div>
-            <span className="text-white font-semibold text-xl">ProZona</span>
-          </Link>
-
-          <Link href={`/${locale}/dashboard`} className="text-[#1DB954] hover:underline">
-            Към профила
-          </Link>
-        </div>
-      </header>
-
-      <section className="container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold text-white mb-2">Получени запитвания</h1>
-          <p className="text-gray-400 mb-8">Общо: {inquiries.length}</p>
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500 text-red-400 rounded-lg p-3 mb-4">
-              {error}
-            </div>
-          )}
-
-          {inquiries.length === 0 ? (
-            <div className="bg-[#1A1A2E] rounded-lg p-8 text-center text-gray-400">
-              Все още нямате получени запитвания.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {inquiries.map((inquiry) => (
-                <div
-                  key={inquiry.id}
-                  className="bg-[#1A1A2E] rounded-lg p-6 border border-gray-800"
-                >
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                    <div>
-                      <h2 className="text-xl font-semibold text-white">{inquiry.name}</h2>
-                      <p className="text-gray-300">{inquiry.email}</p>
-                      <p className="text-gray-300">{inquiry.phone}</p>
-                      <p className={`text-sm mt-2 ${getStatusColor(inquiry.status)}`}>
-                        Статус: {getStatusLabel(inquiry.status)}
-                      </p>
-                    </div>
-
-                    <div className="text-sm text-gray-400">
-                      {new Date(inquiry.createdAt).toLocaleString('bg-BG')}
-                    </div>
-                  </div>
-
-                  <div className="bg-[#0D0D1A] rounded-lg p-4 border border-gray-800">
-                    <p className="text-gray-200 whitespace-pre-line">{inquiry.message}</p>
-                  </div>
-
-                  {inquiry.status === 'PENDING' && (
-                    <button
-                      onClick={() => markAsViewed(inquiry.id)}
-                      className="mt-3 text-sm text-[#1DB954] hover:underline"
-                    >
-                      Маркирай като прочетено
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-    </main>
-  )
+model CategorySuggestion {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  reason    String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
 }
