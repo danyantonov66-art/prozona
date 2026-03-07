@@ -6,13 +6,12 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const session = await getServerSession(authOptions);
 
-  // @ts-ignore
   if (!session || (session.user as any).role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const specialists = await prisma.specialist.findMany({
-    where: { verified: false },
+    where: { isVerified: false },
     include: { user: true },
     orderBy: { createdAt: "desc" },
   });
