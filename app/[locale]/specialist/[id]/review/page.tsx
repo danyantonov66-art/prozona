@@ -59,9 +59,10 @@ export default async function ReviewPage({ params }: Props) {
         <div className="bg-[#1A1A2E] rounded-lg p-8">
           <h1 className="text-2xl font-bold text-white mb-2">Напишете отзив за</h1>
           <p className="text-xl text-[#1DB954] mb-6">{specialist.user.name}</p>
-          <ReviewForm specialistId={id} specialistName={specialist.user.name} />
+          <ReviewForm specialistId={id} specialistName={specialist.user.name ?? ""} />
         </div>
       </div>
     </div>
   )
 }
+
