@@ -1,36 +1,66 @@
-// app/specialist/[id]/inquiry/InquiryForm.tsx
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
 interface Props {
   specialistId: string
   specialistName: string
+  specialistCity: string
+  categoryId: number | null
+  locale: string
 }
 
-export default function InquiryForm({ specialistId, specialistName }: Props) {
+export default function InquiryForm({
+  specialistId,
+  specialistName,
+  specialistCity,
+  categoryId,
+  locale,
+}: Props) {
   const router = useRouter()
-  const { data: session, status } = useSession()
-  
+  const { data: session } = useSession()
+
   const [formData, setFormData] = useState({
-    name: session?.user?.name || '',
-    email: session?.user?.email || '',
+    name: '',
+    email: '',
     phone: '',
-    message: '',
-    preferredDate: ''  // ← ПРОМЕНЕНО preferredTime -> preferredDate
+    message: `Здравейте,
+
+Интересувам се от вашите услуги.
+
+Име: ________
+Телефон: ________
+Град/адрес: ________
+Кога ви е удобно: ________
+
+Моля, свържете се с мен.
+
+Поздрави,
+________`,
+    preferredDate: '',
   })
-  
+
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      name: session?.user?.name || prev.name,
+      email: session?.user?.email || prev.email,
+    }))
+  }, [session])
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,11 +69,21 @@ export default function InquiryForm({ specialistId, specialistName }: Props) {
     setError('')
 
     if (!session) {
-      router.push(`/login?callbackUrl=/specialist/${specialistId}/inquiry`)
+      router.push(`/${locale}/login?callbackUrl=/${locale}/specialist/${specialistId}/inquiry`)
+      return
+    }
+
+    if (!categoryId) {
+      setError('Специалистът няма зададена категория.')
+      setLoading(false)
       return
     }
 
     try {
+      const finalMessage = formData.preferredDate
+        ? `${formData.message}\n\nПредпочитана дата: ${formData.preferredDate}`
+        : formData.message
+
       const res = await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,19 +92,22 @@ export default function InquiryForm({ specialistId, specialistName }: Props) {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          message: formData.message,
-          preferredDate: formData.preferredDate  // ← ПРОМЕНЕНО
-        })
+          message: finalMessage,
+          city: specialistCity,
+          categoryId,
+        }),
       })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
 
-      if (res.ok) {
-        setSuccess(true)
-      } else {
-        setError(data.error || 'Грешка при изпращане')
+      if (!res.ok) {
+        setError(data?.error || 'Грешка при изпращане')
+        return
       }
+
+      setSuccess(true)
     } catch (error) {
+      console.error(error)
       setError('Възникна грешка. Опитайте отново.')
     } finally {
       setLoading(false)
@@ -73,15 +116,27 @@ export default function InquiryForm({ specialistId, specialistName }: Props) {
 
   if (success) {
     return (
-      <div className="bg-green-500/10 border border-green-500 text-green-500 rounded-lg p-6 text-center">
-        <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div className="bg-green-500/10 border border-green-500 text-green-400 rounded-lg p-6 text-center">
+        <svg
+          className="w-12 h-12 mx-auto mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
-        <h3 className="text-xl font-semibold mb-2">Запитването е изпратено!</h3>
-        <p className="mb-4">{specialistName} ще се свърже с вас скоро.</p>
+
+        <h3 className="text-xl font-semibold mb-2">Запитването е изпратено</h3>
+        <p className="mb-4">{specialistName} ще получи вашето съобщение.</p>
+
         <button
-          onClick={() => router.push(`/specialist/${specialistId}`)}
-          className="text-green-500 hover:underline"
+          onClick={() => router.push(`/${locale}/specialist/${specialistId}`)}
+          className="text-green-400 hover:underline"
         >
           ← Назад към профила
         </button>
@@ -92,14 +147,14 @@ export default function InquiryForm({ specialistId, specialistName }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-3">
+        <div className="bg-red-500/10 border border-red-500 text-red-400 rounded-lg p-3">
           {error}
         </div>
       )}
 
       <div className="bg-[#0D0D1A] rounded-lg p-4 mb-2">
         <p className="text-gray-400 text-sm">
-          ✏️ Попълнете местата с ________ в съобщението по-долу
+          Попълнете местата с ________ в шаблона или го редактирайте свободно.
         </p>
       </div>
 
@@ -158,11 +213,11 @@ export default function InquiryForm({ specialistId, specialistName }: Props) {
           value={formData.message}
           onChange={handleChange}
           required
-          rows={8}
-          className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white font-mono"
+          rows={10}
+          className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white"
         />
         <p className="text-[#1DB954] text-sm mt-1">
-          ⚡ Заменете ________ с вашите данни
+          Може да оставите шаблона или да напишете собствено запитване.
         </p>
       </div>
 

@@ -1,74 +1,107 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { categories } from '@/lib/constants'
+import { prisma } from '@/lib/prisma'
 
 interface Props {
-  params: Promise<{ locale: string; slug: string; subcategory: string }>
+  params: Promise<{
+    locale: string
+    slug: string
+    subcategory: string
+  }>
 }
 
 export default async function SubcategoryPage({ params }: Props) {
   const { locale, slug, subcategory } = await params
-  
-  const category = categories.find(c => c.id === slug)
-  if (!category) return notFound()
 
-  let subcategoryData: any = null
-  let parentSubcategory: any = null
+  const category = await prisma.category.findUnique({
+    where: { slug },
+  })
 
-  for (const sub of category.subcategories || []) {
-    if (sub.id === subcategory) {
-      subcategoryData = sub
-      break
-    }
-    if ((sub as any).subcategories) {
-      for (const nestedSub of (sub as any).subcategories) {
-        if (nestedSub.id === subcategory) {
-          subcategoryData = nestedSub
-          parentSubcategory = sub
-          break
-        }
-      }
-    }
+  if (!category) {
+    notFound()
   }
 
-  if (!subcategoryData) return notFound()
+  const subcategoryData = await prisma.subcategory.findFirst({
+    where: {
+      slug: subcategory,
+      categoryId: category.id,
+    },
+    include: {
+      specialists: {
+        include: {
+          specialist: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
+    },
+  })
+
+  if (!subcategoryData) {
+    notFound()
+  }
+
+  const specialists = subcategoryData.specialists
+    .map((item) => item.specialist)
+    .filter((specialist) => specialist.verified)
 
   return (
-    <main className="min-h-screen bg-[#0D0D1A] pt-24">
-      <div className="container mx-auto px-4">
-        <div className="mb-4">
-          <Link href={`/${locale}/categories/${slug}`} className="text-[#1DB954] hover:underline">
-            в†ђ РќР°Р·Р°Рґ РєСЉРј {category.name}
-          </Link>
-          {parentSubcategory && (
-            <>
-              <span className="text-gray-500 mx-2">вЂў</span>
-              <Link href={`/${locale}/categories/${slug}/${parentSubcategory.id}`} className="text-[#1DB954] hover:underline">
-                {parentSubcategory.name}
-              </Link>
-            </>
-          )}
-        </div>
-
-        <h1 className="text-3xl font-bold text-white mb-2">
-          {subcategoryData.icon} {subcategoryData.name}
-        </h1>
-        <p className="text-gray-400 mb-8">
-          РќР°РјРµСЂРµС‚Рµ РЅР°Р№-РґРѕР±СЂРёС‚Рµ СЃРїРµС†РёР°Р»РёСЃС‚Рё
-        </p>
-
-        <div className="bg-[#1A1A2E] rounded-lg p-12 text-center">
-          <p className="text-gray-400 text-lg mb-4">
-            Р’СЃРµ РѕС‰Рµ РЅСЏРјР° СЃРїРµС†РёР°Р»РёСЃС‚Рё РІ С‚Р°Р·Рё РєР°С‚РµРіРѕСЂРёСЏ.
-          </p>
-          <Link 
-            href={`/${locale}/register/specialist`}
-            className="inline-block px-6 py-3 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] transition-colors"
+    <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <header className="border-b border-gray-800">
+        <div className="container mx-auto px-4 py-4">
+          <Link
+            href={`/${locale}/categories/${slug}`}
+            className="text-[#1DB954] hover:underline"
           >
-            Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ РєР°С‚Рѕ СЃРїРµС†РёР°Р»РёСЃС‚
+            ← Назад към категорията
           </Link>
         </div>
-      </div>
+      </header>
+
+      <section className="container mx-auto px-4 py-10">
+        <p className="text-sm text-gray-400 mb-2">{category.name}</p>
+        <h1 className="text-3xl font-bold mb-3">{subcategoryData.name}</h1>
+
+        {subcategoryData.description && (
+          <p className="text-gray-400 mb-8">{subcategoryData.description}</p>
+        )}
+
+        {specialists.length === 0 ? (
+          <div className="rounded-xl border border-gray-800 bg-[#1A1A2E] p-6 text-gray-400">
+            Все още няма добавени специалисти в тази подкатегория.
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {specialists.map((specialist) => (
+              <Link
+                key={specialist.id}
+                href={`/${locale}/specialist/${specialist.id}`}
+                className="rounded-xl border border-gray-800 bg-[#1A1A2E] p-5 hover:border-[#1DB954] transition"
+              >
+                <h2 className="text-xl font-semibold mb-2">
+                  {specialist.businessName || specialist.user?.name || 'Специалист'}
+                </h2>
+
+                <p className="text-sm text-gray-400 mb-2">
+                  {specialist.city || 'Без посочен град'}
+                </p>
+
+                {specialist.description && (
+                  <p className="text-sm text-gray-300 line-clamp-3">
+                    {specialist.description}
+                  </p>
+                )}
+
+                <div className="mt-4 text-[#1DB954] text-sm">
+                  Виж профил →
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   )
 }

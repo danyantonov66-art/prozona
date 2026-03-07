@@ -1,4 +1,4 @@
-﻿import Link from "next/link"
+import Link from "next/link"
 import { categories } from "@/lib/constants"
 
 interface Props {

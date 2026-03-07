@@ -1,286 +1,245 @@
-﻿// app/register/specialist/page.tsx
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { signIn } from 'next-auth/react'
-import { categories, cities } from '@/lib/constants'
+import Link from "next/link"
+import { useState } from "react"
 
-export default function SpecialistRegisterPage() {
-  const router = useRouter()
-  
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [phone, setPhone] = useState('')
-  const [businessName, setBusinessName] = useState('')
-  const [description, setDescription] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
-  const [selectedSubcategory, setSelectedSubcategory] = useState('')
-  const [selectedCity, setSelectedCity] = useState('')
-  const [experience, setExperience] = useState('')
-  
-  const [error, setError] = useState('')
+export default function RegisterSpecialistPage() {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    city: "",
+    password: "",
+    confirmPassword: "",
+    service: "",
+    description: ""
+  })
+
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState("")
+  const [error, setError] = useState("")
 
-  const selectedCategoryData = categories.find(c => c.id === selectedCategory)
-  const subcategories = selectedCategoryData?.subcategories || []
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setSuccess("")
+    setError("")
+
+    if (form.password !== form.confirmPassword) {
+      setError("Паролите не съвпадат.")
+      return
+    }
+
     setLoading(true)
-    setError('')
 
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          name, 
-          email, 
-          password, 
-          phone,
-          role: 'SPECIALIST'
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          city: form.city,
+          password: form.password,
+          role: "SPECIALIST",
+          service: form.service,
+          description: form.description
         })
       })
-
-      const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Р“СЂРµС€РєР° РїСЂРё СЂРµРіРёСЃС‚СЂР°С†РёСЏ')
+        throw new Error("Неуспешна регистрация")
       }
 
-      const specialistRes = await fetch('/api/specialist/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: data.user.id,
-          businessName,
-          description,
-          city: selectedCity,
-          category: selectedCategory,
-          subcategory: selectedSubcategory,
-          experience: parseInt(experience) || 0,
-          phone
-        })
+      setSuccess("Регистрацията е успешна. Можеш да влезеш в профила си.")
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        city: "",
+        password: "",
+        confirmPassword: "",
+        service: "",
+        description: ""
       })
-
-      if (!specialistRes.ok) {
-        throw new Error('Р“СЂРµС€РєР° РїСЂРё СЃСЉР·РґР°РІР°РЅРµ РЅР° РїСЂРѕС„РёР»')
-      }
-
-      await signIn('credentials', {
-        email,
-        password,
-        callbackUrl: '/specialist/dashboard'
-      })
-    } catch (error: any) {
-      setError(error.message)
+    } catch (err) {
+      setError("Възникна проблем при регистрацията. Провери данните и опитай отново.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-[#1DB954] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">PZ</span>
-            </div>
-            <span className="text-white font-semibold">ProZona</span>
+    <main className="min-h-screen bg-[#0D0D1A] pt-24 text-white">
+      <section className="max-w-3xl mx-auto px-4 py-16">
+        <div className="mb-8">
+          <Link href="/bg" className="text-[#1DB954] hover:underline">
+            ← Начална страница
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">Р РµРіРёСЃС‚СЂР°С†РёСЏ Р·Р° СЃРїРµС†РёР°Р»РёСЃС‚Рё</h1>
-          <p className="text-gray-400">РџСЂРµРґР»РѕР¶РµС‚Рµ РІР°С€РёС‚Рµ СѓСЃР»СѓРіРё РЅР° С…РёР»СЏРґРё РєР»РёРµРЅС‚Рё</p>
         </div>
 
-        <div className="bg-[#1A1A2E] rounded-lg p-8">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-3 mb-4">
-              {error}
-            </div>
-          )}
+        <div className="bg-[#151528] border border-white/10 rounded-2xl p-8 md:p-10">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+            Регистрация на специалист
+          </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <p className="text-gray-400 mb-8">
+            Създай профил в ProZona и започни да получаваш запитвания от клиенти.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Име и фамилия
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Имейл
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Телефон
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Град
+                </label>
+                <input
+                  type="text"
+                  name="city"
+                  value={form.city}
+                  onChange={handleChange}
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  required
+                />
+              </div>
+            </div>
+
             <div>
-              <h2 className="text-xl font-semibold text-white mb-4">Р›РёС‡РЅРё РґР°РЅРЅРё</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-300 mb-2">РРјРµ *</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 mb-2">РўРµР»РµС„РѕРЅ *</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                    required
-                    placeholder="0888 123 456"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 mb-2">РРјРµР№Р» *</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 mb-2">РџР°СЂРѕР»Р° *</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                    required
-                    minLength={6}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-gray-700">
-              <h2 className="text-xl font-semibold text-white mb-4">РџСЂРѕС„РµСЃРёРѕРЅР°Р»РЅРё РґР°РЅРЅРё</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-gray-300 mb-2">РРјРµ РЅР° С„РёСЂРјР° (Р°РєРѕ РёРјР°С‚Рµ)</label>
-                  <input
-                    type="text"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                    placeholder="РџСЂРёРјРµСЂ: РРІР°РЅ РРІР°РЅРѕРІ Р•Рў"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-300 mb-2">РћРїРёСЃР°РЅРёРµ РЅР° СѓСЃР»СѓРіРёС‚Рµ *</label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                    className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                    required
-                    placeholder="РћРїРёС€РµС‚Рµ РєР°РєРІРѕ РїСЂРµРґР»Р°РіР°С‚Рµ, РІР°С€РёСЏ РѕРїРёС‚, СЃРµСЂС‚РёС„РёРєР°С‚Рё..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-300 mb-2">РљР°С‚РµРіРѕСЂРёСЏ *</label>
-                    <select
-                      value={selectedCategory}
-                      onChange={(e) => {
-                        setSelectedCategory(e.target.value)
-                        setSelectedSubcategory('')
-                      }}
-                      className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                      required
-                    >
-                      <option value="">РР·Р±РµСЂРё РєР°С‚РµРіРѕСЂРёСЏ</option>
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-300 mb-2">РџРѕРґРєР°С‚РµРіРѕСЂРёСЏ *</label>
-                    <select
-                      value={selectedSubcategory}
-                      onChange={(e) => setSelectedSubcategory(e.target.value)}
-                      className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                      required
-                      disabled={!selectedCategory}
-                    >
-                      <option value="">РР·Р±РµСЂРё РїРѕРґРєР°С‚РµРіРѕСЂРёСЏ</option>
-                      {subcategories.map((sub: any) => (
-                        <option key={sub.id} value={sub.id}>{sub.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-300 mb-2">Р“СЂР°Рґ *</label>
-                    <select
-                      value={selectedCity}
-                      onChange={(e) => setSelectedCity(e.target.value)}
-                      className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                      required
-                    >
-                      <option value="">РР·Р±РµСЂРё РіСЂР°Рґ</option>
-                      {cities.map(city => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-300 mb-2">Р“РѕРґРёРЅРё РѕРїРёС‚</label>
-                    <input
-                      type="number"
-                      value={experience}
-                      onChange={(e) => setExperience(e.target.value)}
-                      className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#1DB954]"
-                      min="0"
-                      max="50"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* РќРћР’Рћ - РћС‚РјРµС‚РєР° Р·Р° СЃСЉРіР»Р°СЃРёРµ */}
-            <div className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                id="terms"
-                required
-                className="mt-1 w-4 h-4 text-[#1DB954] bg-[#0D0D1A] border-gray-700 rounded focus:ring-[#1DB954] focus:ring-2"
-              />
-              <label htmlFor="terms" className="text-gray-300 text-sm">
-                РЎСЉРіР»Р°СЃСЏРІР°Рј СЃРµ СЃ{' '}
-                <Link href="/terms" className="text-[#1DB954] hover:underline" target="_blank">
-                  РћР±С‰РёС‚Рµ СѓСЃР»РѕРІРёСЏ
-                </Link>{' '}
-                Рё{' '}
-                <Link href="/privacy" className="text-[#1DB954] hover:underline" target="_blank">
-                  РџРѕР»РёС‚РёРєР°С‚Р° Р·Р° РїРѕРІРµСЂРёС‚РµР»РЅРѕСЃС‚
-                </Link>
+              <label className="block text-sm text-gray-300 mb-2">
+                Основна услуга
               </label>
+              <input
+                type="text"
+                name="service"
+                value={form.service}
+                onChange={handleChange}
+                placeholder="Пример: Ел. услуги, Маникюр, Автосервиз"
+                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                required
+              />
             </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Кратко описание
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={4}
+                placeholder="Опиши какво предлагаш"
+                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50 resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Парола
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Повтори паролата
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  required
+                />
+              </div>
+            </div>
+
+            {success && (
+              <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-green-300">
+                {success}
+              </div>
+            )}
+
+            {error && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#1DB954] text-white rounded-lg font-medium hover:bg-[#169b43] disabled:opacity-50 transition-colors"
+              className="w-full rounded-xl bg-[#1DB954] text-black font-semibold px-6 py-3 hover:bg-[#1ed760] transition disabled:opacity-60"
             >
-              {loading ? 'Р РµРіРёСЃС‚СЂР°С†РёСЏ...' : 'Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ РєР°С‚Рѕ СЃРїРµС†РёР°Р»РёСЃС‚'}
+              {loading ? "Регистрация..." : "Регистрирай се като специалист"}
             </button>
-
-            <p className="text-center text-gray-400 mt-4">
-              Р’РµС‡Рµ РёРјР°С‚Рµ РїСЂРѕС„РёР»?{' '}
-              <Link href="/login" className="text-[#1DB954] hover:underline">
-                Р’С…РѕРґ
-              </Link>
-            </p>
           </form>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   )
 }

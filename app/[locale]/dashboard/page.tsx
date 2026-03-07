@@ -1,4 +1,4 @@
-﻿// app/dashboard/page.tsx
+// app/dashboard/page.tsx
 'use client'
 
 import { useSession } from 'next-auth/react'

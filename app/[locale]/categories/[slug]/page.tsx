@@ -1,50 +1,75 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { categories } from '@/lib/constants'
+import { prisma } from '@/lib/prisma'
 
 interface Props {
-  params: Promise<{ locale: string; slug: string }>
+  params: Promise<{
+    locale: string
+    slug: string
+  }>
 }
 
 export default async function CategoryPage({ params }: Props) {
-  // Изчакваме params
-  const resolvedParams = await params
-  const { locale, slug } = resolvedParams
-  
-  // Намираме категорията
-  const category = categories.find(c => c.id === slug)
-  
-  // Ако няма такава категория - 404
+  const { locale, slug } = await params
+
+  const category = await prisma.category.findUnique({
+    where: { slug },
+    include: {
+      subcategories: {
+        orderBy: { name: 'asc' },
+      },
+    },
+  })
+
   if (!category) {
-    return notFound()
+    notFound()
   }
 
   return (
-    <main className="min-h-screen bg-[#0D0D1A] pt-24">
-      <div className="container mx-auto px-4">
-        <div className="mb-4">
-          <Link href={`/${locale}/categories`} className="text-[#1DB954] hover:underline">
-            ← Всички категории
+    <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <header className="border-b border-gray-800">
+        <div className="container mx-auto px-4 py-4">
+          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">
+            ← Назад
           </Link>
         </div>
+      </header>
 
-        <h1 className="text-3xl font-bold text-white mb-8">
-          {category.icon} {category.name}
-        </h1>
+      <section className="container mx-auto px-4 py-10">
+        <h1 className="text-3xl font-bold mb-3">{category.name}</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {category.subcategories?.map((sub: any) => (
-            <Link
-              key={sub.id}
-              href={`/${locale}/categories/${slug}/${sub.id}`}
-              className="bg-[#1A1A2E] p-6 rounded-lg hover:bg-[#25253a] transition-colors"
-            >
-              <div className="text-3xl mb-4">{sub.icon || '📌'}</div>
-              <h2 className="text-lg font-semibold text-white">{sub.name}</h2>
-            </Link>
-          ))}
-        </div>
-      </div>
+        {category.description && (
+          <p className="text-gray-400 mb-8">{category.description}</p>
+        )}
+
+        {category.subcategories.length === 0 ? (
+          <div className="text-gray-400">Няма добавени подкатегории.</div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {category.subcategories.map((subcategory) => (
+              <Link
+                key={subcategory.id}
+                href={`/${locale}/categories/${category.slug}/${subcategory.slug}`}
+                className="rounded-xl border border-gray-800 bg-[#1A1A2E] p-5 hover:border-[#1DB954] hover:bg-[#20203A] transition"
+              >
+                <h2 className="text-xl font-semibold text-white mb-2">
+                  {subcategory.name}
+                </h2>
+
+                {subcategory.description && (
+                  <p className="text-sm text-gray-400 line-clamp-3">
+                    {subcategory.description}
+                  </p>
+                )}
+
+                <div className="mt-4 text-[#1DB954] text-sm">
+                  Разгледай →
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   )
 }

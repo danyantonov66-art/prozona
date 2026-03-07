@@ -1,4 +1,4 @@
-﻿// app/privacy/page.tsx
+// app/privacy/page.tsx
 import Link from 'next/link'
 
 export default function PrivacyPage() {
