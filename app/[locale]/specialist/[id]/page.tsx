@@ -162,7 +162,7 @@ export default async function SpecialistPage({ params }: Props) {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={image.imageUrl}
-                      alt={image.altText || displayName}
+                      alt={image.title || image.description || displayName}
                       className="h-40 w-full object-cover"
                     />
                   </div>
