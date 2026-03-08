@@ -1,9 +1,8 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { getServerSession } from "next-auth"
-
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import Link from "next/link"
 import EditSpecialistProfileForm from "../EditSpecialistProfileForm"
 
 interface Props {
@@ -14,10 +13,10 @@ interface Props {
 
 export default async function ProfileEditPage({ params }: Props) {
   const { locale } = await params
-
   const session = await getServerSession(authOptions)
+
   if (!session) {
-    redirect(`/${locale}/login`)
+    notFound()
   }
 
   const userId = (session.user as any)?.id
@@ -25,48 +24,48 @@ export default async function ProfileEditPage({ params }: Props) {
   const specialist = await prisma.specialist.findUnique({
     where: { userId },
     include: {
-      gallery: true,
-    },
+      user: true,
+      GalleryImage: true
+    }
   })
 
   if (!specialist) {
-    redirect(`/${locale}/dashboard`)
-  }
-
-  const initialData = {
-    businessName: specialist.businessName || "",
-    description: specialist.description || "",
-    phone: specialist.phone || "",
-    experienceYears: specialist.experienceYears || 0,
-    city: specialist.city || "",
-    profileImage: specialist.profileImage || "",
-    galleryImages: specialist.gallery.map((img) => ({
-      id: img.id,
-      imageUrl: img.imageUrl,
-    })),
+    notFound()
   }
 
   return (
-    <main className="min-h-screen bg-[#0B1220] text-white">
-      <div className="mx-auto max-w-5xl px-4 py-8">
-        <div className="mb-8 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Редакция на профила</h1>
-            <p className="mt-2 text-gray-400">
-              Обнови информацията и снимките на специалист профила си.
-            </p>
-          </div>
+    <main className="min-h-screen bg-[#0D0D1A] pt-24">
+      <div className="container mx-auto px-4 py-10 max-w-3xl">
 
-          <Link
-            href={`/${locale}/dashboard`}
-            className="inline-flex items-center rounded-lg border border-gray-600 px-4 py-2 text-gray-300 transition hover:bg-gray-700"
-          >
-            Назад
-          </Link>
-        </div>
+        <Link
+          href={`/${locale}/dashboard`}
+          className="text-[#1DB954] hover:underline mb-6 inline-block"
+        >
+          ← Назад към таблото
+        </Link>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <EditSpecialistProfileForm initialData={initialData} locale={locale} />
+        <div className="bg-[#151528] border border-white/10 rounded-2xl p-8">
+
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Редакция на профила
+          </h1>
+
+          <p className="text-gray-400 mb-8">
+            Промени информацията за твоя специалист профил
+          </p>
+
+          <EditSpecialistProfileForm
+            specialist={{
+              id: specialist.id,
+              businessName: specialist.businessName,
+              description: specialist.description,
+              city: specialist.city,
+              phone: specialist.phone,
+              experienceYears: specialist.experienceYears,
+              images: specialist.GalleryImage
+            }}
+          />
+
         </div>
       </div>
     </main>
