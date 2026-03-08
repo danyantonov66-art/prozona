@@ -35,7 +35,14 @@ export default async function ReviewPage({ params }: Props) {
   if (!specialist) notFound()
 
   const existingReview = await prisma.review.findFirst({
-    where: { specialistId: id, userId: (session.user as any).id }
+    where: {
+      specialistId: id,
+      User: {
+        is: {
+          id: (session.user as any).id,
+        },
+      },
+    },
   })
 
   if (existingReview) {
@@ -69,4 +76,3 @@ export default async function ReviewPage({ params }: Props) {
     </div>
   )
 }
-
