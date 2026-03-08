@@ -1,16 +1,8 @@
 ﻿import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { categories } from "@/lib/constants"
-import {
-  StarIcon,
-  MapPinIcon,
-  CheckBadgeIcon,
-} from "@heroicons/react/24/solid"
 
 interface Props {
   params: Promise<{
@@ -24,15 +16,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const specialist = await prisma.specialist.findUnique({
     where: { id },
-    include: { user: true },
+    include: {
+      user: true,
+      SpecialistCategory: {
+        include: {
+          Category: true,
+          Subcategory: true,
+        },
+        take: 1,
+      },
+    },
   })
 
   if (!specialist) {
     return { title: "Специалист не е намерен" }
   }
 
-  const name = specialist.businessName || specialist.user.name || "Специалист"
-  const category = categories.find((c) => c.id === specialist.categoryId)?.name || "Специалист"
+  const name = specialist.businessName || specialist.user?.name || "Специалист"
+
+  const primaryCategorySlug =
+    specialist.SpecialistCategory?.[0]?.Category?.slug || null
+
+  const category =
+    categories.find((c) => c.slug === primaryCategorySlug)?.name || "Специалист"
+
   const desc =
     specialist.description?.slice(0, 160) ||
     `${name} - ${category} в ${specialist.city || "България"}`
@@ -43,215 +50,137 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function SpecialistProfilePage({ params }: Props) {
+export default async function SpecialistPage({ params }: Props) {
   const { id, locale } = await params
-  const session = await getServerSession(authOptions)
 
   const specialist = await prisma.specialist.findUnique({
     where: { id },
     include: {
       user: true,
-      reviews: {
-        orderBy: { createdAt: "desc" },
+      reviews: true,
+      GalleryImage: true,
+      SpecialistCategory: {
+        include: {
+          Category: true,
+          Subcategory: true,
+        },
       },
     },
   })
 
   if (!specialist) notFound()
 
-  const isOwner = !!session && (session.user as any)?.id === specialist.userId
+  const displayName =
+    specialist.businessName || specialist.user?.name || "Специалист"
 
   const averageRating =
     specialist.reviews.length > 0
-      ? specialist.reviews.reduce((acc, r) => acc + r.rating, 0) / specialist.reviews.length
+      ? specialist.reviews.reduce((acc, r) => acc + r.rating, 0) /
+        specialist.reviews.length
       : 0
 
-  const displayName = specialist.businessName || specialist.user.name || "Специалист"
-  const category = categories.find((c) => c.id === specialist.categoryId)
-  const subcategory = category?.subcategories.find((s) => s.id === specialist.subcategoryId)
-
   return (
-    <div className="min-h-screen bg-[#0D0D1A]">
-      <section className="border-b border-white/5 bg-gradient-to-b from-[#141428] to-[#0D0D1A]">
-        <div className="container mx-auto px-4 pb-10 pt-28">
-          <div className="mb-6">
-            <Link href={`/${locale}/categories`} className="text-[#1DB954] hover:underline">
-              ← Обратно към специалистите
-            </Link>
-          </div>
+    <main className="min-h-screen bg-[#0D0D1A] pt-24">
+      <div className="container mx-auto px-4 py-10">
+        <Link
+          href={`/${locale}/categories`}
+          className="mb-6 inline-block text-[#1DB954] hover:underline"
+        >
+          ← Назад към категориите
+        </Link>
 
-          <div className="rounded-2xl border border-white/5 bg-[#1A1A2E] p-6 md:p-8">
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-              <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-                <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-[#25253a] sm:h-28 sm:w-28">
-                  {specialist.user.image ? (
-                    <Image
-                      src={specialist.user.image}
-                      alt={displayName}
-                      width={112}
-                      height={112}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-4xl font-bold text-[#1DB954]">
-                      {displayName.charAt(0)}
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <div className="mb-3 flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl font-bold text-white md:text-4xl">{displayName}</h1>
-
-                    {specialist.isVerified && (
-                      <div className="inline-flex items-center gap-1 rounded-full bg-[#1DB954]/10 px-3 py-1 text-sm text-[#1DB954]">
-                        <CheckBadgeIcon className="h-5 w-5" />
-                        Верифициран профил
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm md:text-base">
-                    <div className="flex items-center gap-2 text-white">
-                      <StarIcon className="h-5 w-5 text-yellow-400" />
-                      <span className="font-semibold">
-                        {averageRating > 0 ? averageRating.toFixed(1) : "Няма"}
-                      </span>
-                      <span className="text-gray-400">
-                        ({specialist.reviews.length} отзива)
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <MapPinIcon className="h-5 w-5 text-[#1DB954]" />
-                      <span>{specialist.city || "Не е посочен град"}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {category && (
-                      <Link
-                        href={`/${locale}/categories/${category.slug}`}
-                        className="rounded-full bg-white/5 px-3 py-1.5 text-sm text-gray-200 hover:bg-white/10"
-                      >
-                        {category.icon} {category.name}
-                      </Link>
-                    )}
-
-                    {subcategory && (
-                      <span className="rounded-full bg-white/5 px-3 py-1.5 text-sm text-gray-400">
-                        {subcategory.icon} {subcategory.name}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {isOwner && (
-                <div className="shrink-0">
-                  <Link
-                    href={`/${locale}/dashboard/profile-edit`}
-                    className="inline-flex items-center rounded-xl bg-[#1DB954] px-5 py-3 text-sm font-semibold text-white hover:bg-[#169b43]"
-                  >
-                    Редактирай профила
-                  </Link>
+        <div className="rounded-2xl border border-white/10 bg-[#151528] p-8">
+          <div className="mb-6 flex flex-col gap-6 md:flex-row">
+            <div className="flex-shrink-0">
+              {specialist.GalleryImage?.[0]?.imageUrl || specialist.user?.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={specialist.GalleryImage?.[0]?.imageUrl || specialist.user?.image || ""}
+                  alt={displayName}
+                  className="h-28 w-28 rounded-2xl object-cover"
+                />
+              ) : (
+                <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-[#25253a] text-4xl font-bold text-[#1DB954]">
+                  {displayName.charAt(0)}
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </section>
 
-      <section className="container mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="space-y-8 lg:col-span-2">
-            {specialist.description && (
-              <div className="rounded-2xl border border-white/5 bg-[#1A1A2E] p-6">
-                <h2 className="mb-4 text-xl font-semibold text-white">За мен</h2>
-                <p className="whitespace-pre-line text-gray-300">{specialist.description}</p>
-              </div>
-            )}
+            <div className="min-w-0 flex-1">
+              <h1 className="mb-2 text-3xl font-bold text-white">
+                {displayName}
+              </h1>
 
-            <div className="rounded-2xl border border-white/5 bg-[#1A1A2E] p-6">
-              <h2 className="mb-4 text-xl font-semibold text-white">
-                Отзиви ({specialist.reviews.length})
-              </h2>
+              <p className="mb-3 text-gray-400">
+                {specialist.city || "Не е посочен град"}
+              </p>
 
-              {specialist.reviews.length === 0 ? (
-                <p className="text-gray-400">Все още няма отзиви.</p>
-              ) : (
-                <div className="space-y-4">
-                  {specialist.reviews.map((review) => (
-                    <div key={review.id} className="border-b border-white/5 pb-4 last:border-0">
-                      <div className="mb-2 flex items-center gap-2">
-                        <div className="flex text-yellow-400">
-                          {Array.from({ length: review.rating }).map((_, i) => (
-                            <StarIcon key={i} className="h-4 w-4" />
-                          ))}
-                        </div>
-
-                        <span className="text-sm text-gray-400">
-                          {new Date(review.createdAt).toLocaleDateString("bg-BG")}
-                        </span>
-                      </div>
-
-                      {review.comment && <p className="text-gray-300">{review.comment}</p>}
-                    </div>
+              {specialist.SpecialistCategory.length > 0 && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {specialist.SpecialistCategory.map((item) => (
+                    <span
+                      key={item.id}
+                      className="rounded-full bg-[#1DB954]/15 px-3 py-1 text-sm text-[#1DB954]"
+                    >
+                      {item.Subcategory?.name || item.Category?.name || "Услуга"}
+                    </span>
                   ))}
                 </div>
               )}
-            </div>
-          </div>
 
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/5 bg-[#1A1A2E] p-6">
-              <Link
-                href={`/${locale}/specialist/${id}/inquiry`}
-                className="block w-full rounded-xl bg-[#1DB954] px-6 py-3 text-center font-semibold text-white transition hover:bg-[#169b43]"
-              >
-                Изпрати запитване
-              </Link>
-            </div>
-
-            <div className="rounded-2xl border border-white/5 bg-[#1A1A2E] p-6">
-              <h3 className="mb-4 text-lg font-semibold text-white">Бърза информация</h3>
-
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between gap-4">
-                  <span className="text-gray-400">Име</span>
-                  <span className="text-right text-white">{displayName}</span>
-                </div>
-
-                <div className="flex justify-between gap-4">
-                  <span className="text-gray-400">Град</span>
-                  <span className="text-right text-white">
-                    {specialist.city || "Не е посочен"}
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-4">
-                  <span className="text-gray-400">Статус</span>
-                  <span className={specialist.isVerified ? "text-[#1DB954]" : "text-gray-300"}>
-                    {specialist.isVerified ? "Верифициран" : "Неверифициран"}
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-4">
-                  <span className="text-gray-400">Отзиви</span>
-                  <span className="text-white">{specialist.reviews.length}</span>
-                </div>
-
-                {specialist.experience && (
-                  <div className="flex justify-between gap-4">
-                    <span className="text-gray-400">Опит</span>
-                    <span className="text-white">{specialist.experience} год.</span>
-                  </div>
-                )}
+              <div className="text-sm text-yellow-400">
+                {averageRating > 0
+                  ? `★ ${averageRating.toFixed(1)} (${specialist.reviews.length} отзива)`
+                  : "★ Няма рейтинг"}
               </div>
             </div>
           </div>
+
+          <div className="mb-8">
+            <h2 className="mb-3 text-xl font-semibold text-white">Описание</h2>
+            <p className="leading-7 text-gray-300">
+              {specialist.description || "Все още няма описание."}
+            </p>
+          </div>
+
+          {specialist.phone && (
+            <div className="mb-8">
+              <h2 className="mb-3 text-xl font-semibold text-white">Контакт</h2>
+              <p className="text-gray-300">{specialist.phone}</p>
+            </div>
+          )}
+
+          {specialist.GalleryImage.length > 0 && (
+            <div className="mb-8">
+              <h2 className="mb-4 text-xl font-semibold text-white">Галерия</h2>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                {specialist.GalleryImage.map((image) => (
+                  <div
+                    key={image.id}
+                    className="overflow-hidden rounded-xl border border-white/10"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image.imageUrl}
+                      alt={image.altText || displayName}
+                      className="h-40 w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href={`/${locale}/specialist/${specialist.id}/review`}
+              className="rounded-lg bg-[#1DB954] px-5 py-3 font-medium text-white transition hover:bg-[#169b43]"
+            >
+              Остави отзив
+            </Link>
+          </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </main>
   )
 }
