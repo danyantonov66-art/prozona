@@ -1,50 +1,25 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-import { UTApi } from "uploadthing/server"
+import { NextResponse } from "next/server"
+import { writeFile } from "fs/promises"
+import path from "path"
 
-const utapi = new UTApi()
-
-export const config = {
-  api: { bodyParser: false }
-}
-
-export async function GET() { return new Response(null, { status: 405 }) }
-
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const data = await req.formData()
+    const file = data.get("file") as File
 
-    const userId = (session.user as any)?.id
-    const formData = await request.formData()
-    const file = formData.get("file") as File
-    const type = formData.get("type") as string
-
-    if (!file) return NextResponse.json({ error: "No file" }, { status: 400 })
+    if (!file) {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
+    }
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    const uploadFile = new File([buffer], file.name, { type: file.type })
 
-    const response = await utapi.uploadFiles(uploadFile)
-    if (response.error) return NextResponse.json({ error: response.error.message }, { status: 500 })
+    const fileName = `${Date.now()}-${file.name}`
+    const filePath = path.join(process.cwd(), "public", "uploads", fileName)
 
-    const url = response.data.url
+    await writeFile(filePath, buffer)
 
-    if (type === "profile") {
-      await prisma.user.update({ where: { id: userId }, data: { image: url } })
-    } else if (type === "gallery") {
-      const specialist = await prisma.specialist.findUnique({ where: { userId } })
-      if (specialist) {
-        const count = await prisma.galleryImage.count({ where: { specialistId: specialist.id } })
-        if (count >= 5) return NextResponse.json({ error: "Max 5 images" }, { status: 400 })
-        await prisma.galleryImage.create({
-          data: { specialistId: specialist.id, imageUrl: url, sortOrder: count }
-        })
-      }
-    }
+    const url = `/uploads/${fileName}`
 
     return NextResponse.json({ url })
   } catch (error) {

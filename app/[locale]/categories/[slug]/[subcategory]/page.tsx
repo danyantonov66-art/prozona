@@ -1,7 +1,7 @@
-﻿import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
-import { categories } from '@/lib/constants'
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { prisma } from "@/lib/prisma"
+import { categories } from "@/lib/constants"
 
 interface Props {
   params: Promise<{
@@ -14,57 +14,136 @@ interface Props {
 export default async function SubcategoryPage({ params }: Props) {
   const { locale, slug, subcategory } = await params
 
-  const category = categories.find(c => c.id === slug)
+  const category = categories.find((c) => c.slug === slug)
   if (!category) notFound()
 
-  const subcategoryData = category.subcategories.find(s => s.id === subcategory)
-  if (!subcategoryData) notFound()
+  const sub = category.subcategories.find((s) => s.id === subcategory)
+  if (!sub) notFound()
 
-  const specialists = await prisma.specialist.findMany({
-    where: { categoryId: slug, subcategoryId: subcategory, isApproved: true },
-    include: { user: true },
-    orderBy: { rating: 'desc' },
+    const specialists = await prisma.specialist.findMany({
+    where: {
+      verified: true,
+      SpecialistCategory: {
+        some: {
+          Category: {
+            slug: category.slug,
+          },
+          Subcategory: {
+            is: {
+              slug: sub.id,
+            },
+          },
+        },
+      },
+    },
+    include: {
+      user: true,
+      reviews: true,
+      GalleryImage: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
   })
 
   return (
-    <main className="min-h-screen bg-[#0D0D1A] text-white">
-      <header className="border-b border-gray-800">
-        <div className="container mx-auto px-4 py-4">
-          <Link href={`/${locale}/categories/${slug}`} className="text-[#1DB954] hover:underline">
+    <main className="min-h-screen bg-[#0D0D1A] pt-24">
+      <div className="container mx-auto px-4 py-10">
+        <div className="mb-6">
+          <Link
+            href={`/${locale}/categories/${category.slug}`}
+            className="text-[#1DB954] hover:underline"
+          >
             ← Назад към {category.name}
           </Link>
         </div>
-      </header>
-      <section className="container mx-auto px-4 py-10">
-        <p className="text-sm text-gray-400 mb-2">{category.name}</p>
-        <h1 className="text-3xl font-bold mb-8">{subcategoryData.icon} {subcategoryData.name}</h1>
+
+        <div className="mb-8 rounded-2xl border border-white/10 bg-[#151528] p-6">
+          <div className="mb-3 text-4xl">{sub.icon}</div>
+          <h1 className="mb-2 text-4xl font-bold text-white">{sub.name}</h1>
+          <p className="text-gray-400">Категория: {category.name}</p>
+        </div>
+
         {specialists.length === 0 ? (
-          <div className="rounded-xl border border-gray-800 bg-[#1A1A2E] p-6 text-gray-400">
-            Все още няма добавени специалисти в тази подкатегория.
-            <div className="mt-4">
-              <Link href={`/${locale}/become-specialist`} className="text-[#1DB954] hover:underline">
-                Регистрирай се като специалист
-              </Link>
-            </div>
+          <div className="rounded-2xl border border-white/10 bg-[#151528] p-6">
+            <h2 className="mb-3 text-2xl font-semibold text-white">
+              Все още няма специалисти
+            </h2>
+            <p className="text-gray-400">
+              В тази подкатегория все още няма верифицирани специалисти.
+            </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {specialists.map((specialist) => (
-              <Link key={specialist.id} href={`/${locale}/specialist/${specialist.id}`}
-                className="rounded-xl border border-gray-800 bg-[#1A1A2E] p-5 hover:border-[#1DB954] transition">
-                <h2 className="text-xl font-semibold mb-2">
-                  {specialist.businessName || specialist.user?.name || 'Специалист'}
-                </h2>
-                <p className="text-sm text-gray-400 mb-2">{specialist.city || 'Без посочен град'}</p>
-                {specialist.description && (
-                  <p className="text-sm text-gray-300 line-clamp-3">{specialist.description}</p>
-                )}
-                <div className="mt-4 text-[#1DB954] text-sm">Виж профил →</div>
-              </Link>
-            ))}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {specialists.map((specialist) => {
+              const displayName =
+                specialist.businessName || specialist.user?.name || "Специалист"
+
+              const averageRating =
+                specialist.reviews.length > 0
+                  ? specialist.reviews.reduce((acc, r) => acc + r.rating, 0) /
+                    specialist.reviews.length
+                  : 0
+
+              const profileImage =
+                specialist.GalleryImage.length > 0
+                  ? specialist.GalleryImage[0].imageUrl
+                  : specialist.user?.image || null
+
+              return (
+                <Link
+                  key={specialist.id}
+                  href={`/${locale}/specialist/${specialist.id}`}
+                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40 hover:bg-[#1b1b31]"
+                >
+                  <div className="mb-4 flex items-center gap-4">
+                    {profileImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={profileImage}
+                        alt={displayName}
+                        className="h-16 w-16 rounded-xl object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#25253a] text-2xl font-bold text-[#1DB954]">
+                        {displayName.charAt(0)}
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      <h2 className="truncate text-xl font-semibold text-white">
+                        {displayName}
+                      </h2>
+                      <p className="text-sm text-gray-400">
+                        {specialist.city || "Не е посочен град"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="mb-4 line-clamp-3 text-sm text-gray-300">
+                    {specialist.description || "Все още няма описание."}
+                  </p>
+
+                  <div className="mb-4 flex items-center justify-between text-sm">
+                    <span className="text-yellow-400">
+                      {averageRating > 0
+                        ? `★ ${averageRating.toFixed(1)}`
+                        : "★ Няма рейтинг"}
+                    </span>
+                    <span className="text-gray-400">
+                      {specialist.reviews.length} отзива
+                    </span>
+                  </div>
+
+                  <div className="inline-flex items-center text-sm font-medium text-[#1DB954]">
+                    Виж профила →
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         )}
-      </section>
+      </div>
     </main>
   )
 }

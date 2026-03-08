@@ -1,4 +1,5 @@
-﻿import { notFound } from 'next/navigation'
+﻿$content = @'
+import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -15,11 +16,12 @@ export default async function ReviewPage({ params }: Props) {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full bg-[#1A1A2E] rounded-lg p-8 text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Нямате достъп</h1>
+          <p className="text-gray-400 mb-6">Трябва да сте влезли в профила си.</p>
           <Link href={`/${locale}/specialist/${id}`} className="text-[#1DB954] hover:underline">
-            Назад към профила
+            ← Назад към профила
           </Link>
         </div>
       </div>
@@ -39,11 +41,14 @@ export default async function ReviewPage({ params }: Props) {
 
   if (existingReview) {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full bg-[#1A1A2E] rounded-lg p-8 text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Вече сте написали отзив</h1>
+          <p className="text-gray-400 mb-6">
+            Може да напишете само един отзив за {specialist.user.name}.
+          </p>
           <Link href={`/${locale}/specialist/${id}`} className="text-[#1DB954] hover:underline">
-            Назад към профила
+            ← Назад към профила
           </Link>
         </div>
       </div>
@@ -59,10 +64,10 @@ export default async function ReviewPage({ params }: Props) {
         <div className="bg-[#1A1A2E] rounded-lg p-8">
           <h1 className="text-2xl font-bold text-white mb-2">Напишете отзив за</h1>
           <p className="text-xl text-[#1DB954] mb-6">{specialist.user.name}</p>
-          <ReviewForm specialistId={id} specialistName={specialist.user.name ?? ""} />
+          <ReviewForm specialistId={id} specialistName={specialist.user.name} />
         </div>
       </div>
     </div>
   )
 }
-
+'@

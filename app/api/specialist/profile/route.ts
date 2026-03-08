@@ -83,24 +83,25 @@ export async function POST(request: Request) {
       )
     }
 
-    // 1) Търсим категория първо по slug
+    const categorySlug = selectedCategory.slug
+    const subcategorySlug = selectedSubcategory.id
+
     let categoryRecord = await prisma.category.findUnique({
-      where: { slug: selectedCategory.id }
+      where: { slug: categorySlug }
     })
 
-    // 2) Ако няма по slug, търсим по name
     if (!categoryRecord) {
       categoryRecord = await prisma.category.findUnique({
         where: { name: selectedCategory.name }
       })
     }
 
-    // 3) Ако я намерим по name, но slug е различен/липсващ, синхронизираме slug
-    if (categoryRecord && categoryRecord.slug !== selectedCategory.id) {
+    if (categoryRecord && categoryRecord.slug !== categorySlug) {
       categoryRecord = await prisma.category.update({
         where: { id: categoryRecord.id },
         data: {
-          slug: selectedCategory.id,
+          slug: categorySlug,
+          name: selectedCategory.name,
           description:
             categoryRecord.description ||
             selectedCategory.description ||
@@ -111,12 +112,11 @@ export async function POST(request: Request) {
       })
     }
 
-    // 4) Ако изобщо няма категория, създаваме нова
     if (!categoryRecord) {
       categoryRecord = await prisma.category.create({
         data: {
           name: selectedCategory.name,
-          slug: selectedCategory.id,
+          slug: categorySlug,
           description: selectedCategory.description || selectedCategory.name,
           icon: selectedCategory.icon || null,
           sortOrder: 0,
@@ -125,11 +125,10 @@ export async function POST(request: Request) {
       })
     }
 
-    // Подкатегория
     let subcategoryRecord = await prisma.subcategory.findFirst({
       where: {
         categoryId: categoryRecord.id,
-        slug: selectedSubcategory.id
+        slug: subcategorySlug
       }
     })
 
@@ -142,12 +141,23 @@ export async function POST(request: Request) {
       })
     }
 
+    if (subcategoryRecord && subcategoryRecord.slug !== subcategorySlug) {
+      subcategoryRecord = await prisma.subcategory.update({
+        where: { id: subcategoryRecord.id },
+        data: {
+          slug: subcategorySlug,
+          name: selectedSubcategory.name,
+          isActive: true
+        }
+      })
+    }
+
     if (!subcategoryRecord) {
       subcategoryRecord = await prisma.subcategory.create({
         data: {
           categoryId: categoryRecord.id,
           name: selectedSubcategory.name,
-          slug: selectedSubcategory.id,
+          slug: subcategorySlug,
           description: selectedSubcategory.name,
           sortOrder: 0,
           isActive: true

@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  specialist  Specialist?
+  inquiries   Inquiry[]
+  reviews     Review[]
+  favorites   Favorite[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Specialist {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  businessName String?
+  categoryId   String?
+  subcategoryId String?
+  description  String?
+  city         String?
+  phone        String?
+  experience   Int?
+  rating       Float    @default(0)
+  reviewCount  Int      @default(0)
+  isVerified   Boolean  @default(false)
+  isApproved   Boolean  @default(false)
+  isPremium    Boolean  @default(false)
+  credits      Int      @default(0)
+  images       String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inquiries Inquiry[]
+  reviews   Review[]
+  favorites Favorite[]
+}
+
+model Inquiry {
+  id           String   @id @default(cuid())
+  specialistId String
+  userId       String?
+  name         String
+  email        String
+  phone        String?
+  message      String
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  user       User?      @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  specialistId String
+  userId       String
+  rating       Int
+  comment      String?
+  response     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+}
+
+model Favorite {
+  id           String   @id @default(cuid())
+  userId       String
+  specialistId String
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, specialistId])
+}
+
+model CategorySuggestion {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  reason    String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+}

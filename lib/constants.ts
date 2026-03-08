@@ -1,6 +1,7 @@
 export const categories = [
   {
     id: "stroitelstvo",
+    slug: "stroitelstvo-i-remonti",
     name: "Строителство и ремонти",
     nameEn: "Construction",
     description: "Майстори, ВиК, електро, бояджии",
@@ -23,6 +24,7 @@ export const categories = [
   },
   {
     id: "auto-transport",
+    slug: "avto-uslugi-i-transport",
     name: "Авто услуги и транспорт",
     nameEn: "Auto Services",
     description: "Автосервизи, транспорт, хамали",
@@ -38,11 +40,12 @@ export const categories = [
       { id: "repatrak", name: "Репатрак", icon: "🚛" },
       { id: "prevoz-tovari", name: "Превоз на товари", icon: "🚚" },
       { id: "hamali", name: "Хамали", icon: "📦" },
-      { id: "premestване", name: "Преместване", icon: "🏠" }
+      { id: "premestvane", name: "Преместване", icon: "🏠" }
     ]
   },
   {
     id: "krasota",
+    slug: "krasota-i-grizha",
     name: "Красота и грижа",
     nameEn: "Beauty & Care",
     description: "Фризьори, маникюр, козметика, масаж",
@@ -58,22 +61,25 @@ export const categories = [
       { id: "brusnar", name: "Бръснар", icon: "💈" },
       { id: "grim", name: "Грим", icon: "💄" }
     ]
-  },
-  {
-    id: "mebeli",
-    name: "Мебели и сглобяване",
-    nameEn: "Furniture",
-    description: "Сглобяване и ремонт на мебели",
-    icon: "🛋️",
-    color: "#8E44AD",
-    subcategories: [
-      { id: "sglobqvane", name: "Сглобяване на мебели", icon: "🔨" },
-      { id: "remont-mebeli", name: "Ремонт на мебели", icon: "🛠️" },
-      { id: "vgradeni-mebeli", name: "Вградени мебели", icon: "🪚" }
-    ]
-  },
+ },
+ {
+  id: "mebeli",
+  slug: "mebeli",
+  name: "Мебели и сглобяване",
+  nameEn: "Furniture",
+  description: "Сглобяване, ремонт и изработка на мебели",
+  icon: "🛋️",
+  color: "#8E44AD",
+  subcategories: [
+    { id: "sglobqvane-mebeli", name: "Сглобяване на мебели", icon: "🔨" },
+    { id: "remont-mebeli", name: "Ремонт на мебели", icon: "🛠️" },
+    { id: "izrabotka-mebeli-po-porachka", name: "Мебели по индивидуална поръчка", icon: "🪚" },
+    { id: "kuhni-po-porachka", name: "Кухни по индивидуална поръчка", icon: "🍽️" }
+  ]
+ },
   {
     id: "pochistvane",
+    slug: "pochistvane",
     name: "Почистване",
     nameEn: "Cleaning",
     description: "Домашно и професионално почистване",
@@ -83,37 +89,58 @@ export const categories = [
       { id: "domashno-pochistvane", name: "Домашно почистване", icon: "🏠" },
       { id: "ofis-pochistvane", name: "Офис почистване", icon: "🏢" },
       { id: "sled-remont", name: "След ремонт", icon: "🧹" },
-      { id: "peralne", name: "Пералня/химическо", icon: "👕" }
+      { id: "peralne", name: "Пране и химическо чистене", icon: "👕" }
     ]
   },
   {
-    id: "gradina",
-    name: "Градина и двор",
-    nameEn: "Garden",
-    description: "Поддръжка на двор и озеленяване",
-    icon: "🌿",
-    color: "#2ECC71",
+    id: "dom-i-grizhi",
+    slug: "dom-i-grizhi",
+    name: "Дом и грижи",
+    nameEn: "Home Care",
+    description: "Грижи за деца, възрастни и домашни любимци",
+    icon: "🏡",
+    color: "#F39C12",
     subcategories: [
-      { id: "kosene-treva", name: "Косене на трева", icon: "🌱" },
-      { id: "ozelenqvane", name: "Озеленяване", icon: "🌳" },
-      { id: "podrqzane", name: "Подрязване на храсти", icon: "✂️" }
+      { id: "gledane-deca", name: "Гледане на деца", icon: "👶" },
+      { id: "gledane-vazrastni", name: "Гледане на възрастни хора", icon: "👵" },
+      { id: "domashen-pomoshtnik", name: "Домашен помощник", icon: "🧹" },
+      { id: "razhojdane-kucheta", name: "Разхождане на кучета", icon: "🐕" },
+      { id: "grooming", name: "Груминг за домашни любимци", icon: "✂️" },
+      { id: "pet-sitting", name: "Гледане на домашни любимци", icon: "🐾" },
+      { id: "dostavki-pazaruvane", name: "Пазаруване и доставки", icon: "🛒" }
     ]
+  },
+  {
+  id: "gradina",
+  slug: "gradina",
+  name: "Градина и двор",
+  nameEn: "Garden",
+  description: "Поддръжка на двор и озеленяване",
+  icon: "🌿",
+  color: "#2ECC71",
+  subcategories: [
+    { id: "kosene-treva", name: "Косене на трева", icon: "🌱" },
+    { id: "ozelenqvane", name: "Озеленяване", icon: "🌳" },
+    { id: "podrqzane", name: "Подрязване на храсти", icon: "✂️" }
+  ]
   },
   {
     id: "klimatici",
+    slug: "klimatichna-tehnika",
     name: "Климатична техника",
     nameEn: "HVAC",
-    description: "Монтаж и ремонт на климатици",
+    description: "Монтаж, демонтаж, профилактика и ремонт на климатици",
     icon: "❄️",
     color: "#3498DB",
     subcategories: [
-      { id: "montaj-klimatik", name: "Монтаж на климатик", icon: "❄️" },
-      { id: "remont-klimatik", name: "Ремонт на климатик", icon: "🔧" },
-      { id: "demontaj-klimatik", name: "Демонтаж на климатик", icon: "🔩" }
+      { id: "montaj-demontaj-klimatik", name: "Монтаж и демонтаж на климатик", icon: "❄️" },
+      { id: "profilaktika-klimatik", name: "Профилактика на климатик", icon: "🧼" },
+      { id: "remont-klimatik", name: "Ремонт на климатик", icon: "🔧" }
     ]
   },
   {
     id: "uroci",
+    slug: "uroci-i-obucheniya",
     name: "Уроци и обучения",
     nameEn: "Lessons",
     description: "Частни уроци и професионални обучения",
