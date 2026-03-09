@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -33,14 +34,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!inquiry) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     await prisma.$transaction([
-      prisma.inquiryResponse.create({
-        data: {
-          inquiryId: id,
-          specialistId: specialist.id,
-          message,
-          creditsSpent: 1,
-        }
-      }),
+     prisma.inquiryResponse.create({
+    data: {
+    id: crypto.randomUUID(),
+    inquiryId: id,
+    specialistId: specialist.id,
+    message,
+    creditsSpent: 1,
+    }
+    })      
       prisma.specialist.update({
         where: { id: specialist.id },
         data: { credits: { decrement: 1 }, totalCreditsUsed: { increment: 1 } }
