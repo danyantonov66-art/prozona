@@ -18,7 +18,7 @@ export default async function SpecialistsPage({ params }: Props) {
     },
     include: {
       user: true,
-      categories: {
+      SpecialistCategory: {
         include: {
           Category: true,
           Subcategory: true,
@@ -62,6 +62,7 @@ export default async function SpecialistsPage({ params }: Props) {
             <h2 className="mb-3 text-2xl font-bold text-white">
               Все още няма публикувани специалисти
             </h2>
+
             <p className="mx-auto max-w-2xl text-gray-400">
               Скоро тук ще се появят първите верифицирани специалисти. Ако
               предлагаш услуги, създай профил и кандидатствай.
@@ -79,8 +80,8 @@ export default async function SpecialistsPage({ params }: Props) {
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {specialists.map((specialist) => {
-              const mainCategory = specialist.categories[0]?.Category?.name
-              const subcategory = specialist.categories[0]?.Subcategory?.name
+              const mainCategory = specialist.SpecialistCategory[0]?.Category?.name
+              const subcategory = specialist.SpecialistCategory[0]?.Subcategory?.name
               const image = specialist.gallery[0]?.imageUrl
               const displayName =
                 specialist.businessName || specialist.user?.name || "Специалист"
@@ -145,9 +146,7 @@ export default async function SpecialistsPage({ params }: Props) {
                       </Link>
 
                       <Link
-                        href={`/${locale}/search?q=${encodeURIComponent(
-                          displayName
-                        )}`}
+                        href={`/${locale}/search?q=${encodeURIComponent(displayName)}`}
                         className="inline-flex items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-white transition hover:bg-white/10"
                       >
                         Подобни услуги
