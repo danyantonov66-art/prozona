@@ -31,6 +31,13 @@ const featuredPosts = [
   },
 ]
 
+const categoryGradients: Record<string, string> = {
+  remonti: "from-[#2B1F1F] via-[#1A1A2E] to-[#101522]",
+  pochistvane: "from-[#13232A] via-[#1A1A2E] to-[#101522]",
+  montaj: "from-[#24182B] via-[#1A1A2E] to-[#101522]",
+  gradina: "from-[#132616] via-[#1A1A2E] to-[#101522]",
+}
+
 export default async function Home({ params }: Props) {
   const { locale } = await params
 
@@ -93,28 +100,33 @@ export default async function Home({ params }: Props) {
             <Link
               key={category.slug}
               href={`/${locale}/categories/${category.slug}`}
-              className="group relative h-64 overflow-hidden rounded-2xl border border-white/10"
+              className={`group relative h-64 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${
+                categoryGradients[category.slug] || "from-[#1A1A2E] to-[#101522]"
+              } p-6 transition hover:border-[#1DB954]/40 hover:-translate-y-1`}
             >
-              <img
-                src={category.icon}
-                alt={category.name}
-                className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
-              />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(29,185,84,0.18),transparent_35%)] opacity-80" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10 transition group-hover:from-black/75" />
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                <div>
+                  <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-[#86efac]">
+                    Категория
+                  </span>
+                </div>
 
-              <div className="relative z-10 flex h-full flex-col justify-end p-5">
-                <h3 className="mb-2 text-xl font-bold text-white">
-                  {category.name}
-                </h3>
+                <div>
+                  <h3 className="mb-2 text-2xl font-bold text-white">
+                    {category.name}
+                  </h3>
 
-                <p className="line-clamp-2 text-sm text-gray-200">
-                  {category.description}
-                </p>
+                  <p className="line-clamp-3 text-sm text-gray-200">
+                    {category.description}
+                  </p>
 
-                <span className="mt-3 inline-flex items-center text-sm font-medium text-[#1DB954]">
-                  Разгледай →
-                </span>
+                  <span className="mt-4 inline-flex items-center text-sm font-medium text-[#1DB954]">
+                    Разгледай →
+                  </span>
+                </div>
               </div>
             </Link>
           ))}
@@ -250,7 +262,7 @@ export default async function Home({ params }: Props) {
         </div>
       </section>
 
-      <ProZonaFooter />
+      <ProZonaFooter locale={locale} />
     </main>
   )
 }
