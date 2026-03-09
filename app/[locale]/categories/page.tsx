@@ -44,39 +44,41 @@ export default async function CategoriesPage({ params }: Props) {
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {categories.map((category) => (
-            <Link
-              key={category.slug}
-              href={`/${locale}/categories/${category.slug}`}
-              className={`group relative min-h-[260px] overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br ${
-                categoryGradients[category.slug] || "from-[#1A1A2E] to-[#101522]"
-              } p-6 transition hover:-translate-y-1 hover:border-[#1DB954]/40`}
-            >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(29,185,84,0.16),transparent_35%)] opacity-80" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+  <Link
+  key={category.slug}
+  href={`/${locale}/categories/${category.slug}`}
+  className="group relative min-h-[260px] overflow-hidden rounded-3xl border border-white/10"
+>
+  <img
+    src={category.icon}
+    alt={category.name}
+    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
+  />
 
-              <div className="relative z-10 flex h-full flex-col justify-between">
-                <div>
-                  <span className="inline-flex rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
-                    Категория
-                  </span>
-                </div>
+  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
 
-                <div>
-                  <h2 className="mb-3 text-3xl font-bold leading-tight text-white">
-                    {category.name}
-                  </h2>
+  <div className="relative z-10 flex h-full flex-col justify-between p-6">
+    <div>
+      <span className="inline-flex rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
+        Категория
+      </span>
+    </div>
 
-                  <p className="mb-6 max-w-md text-base text-gray-200">
-                    {category.description}
-                  </p>
+    <div>
+      <h2 className="mb-3 text-3xl font-bold leading-tight text-white">
+        {category.name}
+      </h2>
 
-                  <span className="inline-flex items-center text-base font-medium text-[#1DB954]">
-                    Разгледай →
-                  </span>
-                </div>
-              </div>
-            </Link>
+      <p className="mb-6 max-w-md text-base text-gray-200">
+        {category.description}
+      </p>
+
+      <span className="inline-flex items-center text-base font-medium text-[#1DB954]">
+        Разгледай →
+      </span>
+    </div>
+  </div>
+</Link>
           ))}
         </div>
       </section>
