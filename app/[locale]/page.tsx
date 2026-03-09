@@ -10,6 +10,27 @@ interface Props {
   }>
 }
 
+const featuredPosts = [
+  {
+    slug: "kak-da-izberesh-maistor-za-remont",
+    title: "Как да избереш майстор за ремонт без излишен риск",
+    excerpt:
+      "Най-важните неща, които да провериш преди да наемеш майстор за дома си.",
+  },
+  {
+    slug: "kolko-struva-domashnoto-pochistvane-v-sofia",
+    title: "Колко струва домашното почистване в София",
+    excerpt:
+      "Ориентировъчни цени и какво влияе върху крайната стойност на услугата.",
+  },
+  {
+    slug: "hamalski-uslugi-koga-si-zasluzhava",
+    title: "Хамалски услуги: кога си заслужава да наемеш професионален екип",
+    excerpt:
+      "Кога професионалните хамали спестяват време, риск и излишни разходи.",
+  },
+]
+
 export default async function Home({ params }: Props) {
   const { locale } = await params
 
@@ -29,6 +50,7 @@ export default async function Home({ params }: Props) {
         </p>
       </div>
 
+      {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#16162A] to-[#0D0D1A]" />
 
@@ -56,33 +78,44 @@ export default async function Home({ params }: Props) {
         </div>
       </section>
 
+      {/* CATEGORIES */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="mb-10 text-center text-3xl font-bold">
+        <h2 className="mb-3 text-center text-3xl font-bold">
           Популярни категории
         </h2>
+
+        <p className="mx-auto mb-10 max-w-2xl text-center text-gray-400">
+          Избери услуга и разгледай верифицирани специалисти близо до теб.
+        </p>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {categories.map((category) => (
             <Link
               key={category.slug}
               href={`/${locale}/categories/${category.slug}`}
-              className="rounded-xl bg-[#1A1A2E] p-6 text-center transition hover:bg-[#25253a]"
+              className="group relative h-64 overflow-hidden rounded-2xl border border-white/10"
             >
-              <div className="mb-3 text-2xl">
-                {typeof category.icon === "string" &&
-                category.icon.startsWith("/") ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={category.icon}
-                    alt={category.name}
-                    className="mx-auto h-14 w-14 rounded-lg object-cover"
-                  />
-                ) : (
-                  category.icon
-                )}
-              </div>
+              <img
+                src={category.icon}
+                alt={category.name}
+                className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
+              />
 
-              <div className="font-semibold text-white">{category.name}</div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10 transition group-hover:from-black/75" />
+
+              <div className="relative z-10 flex h-full flex-col justify-end p-5">
+                <h3 className="mb-2 text-xl font-bold text-white">
+                  {category.name}
+                </h3>
+
+                <p className="line-clamp-2 text-sm text-gray-200">
+                  {category.description}
+                </p>
+
+                <span className="mt-3 inline-flex items-center text-sm font-medium text-[#1DB954]">
+                  Разгледай →
+                </span>
+              </div>
             </Link>
           ))}
         </div>
@@ -97,14 +130,107 @@ export default async function Home({ params }: Props) {
         </div>
       </section>
 
+      {/* BANNERS */}
+      <section className="mx-auto max-w-6xl px-4 py-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Link
+            href={`/${locale}/specialists`}
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] p-8 transition hover:border-[#1DB954]/40"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#1DB954]/10 to-transparent opacity-80 transition group-hover:opacity-100" />
+            <div className="relative z-10">
+              <span className="mb-3 inline-flex rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#1DB954]">
+                За клиенти
+              </span>
+              <h3 className="mb-3 text-2xl font-bold text-white">
+                Провери профили на специалисти в твоя район
+              </h3>
+              <p className="mb-5 max-w-md text-sm text-gray-300">
+                Разгледай верифицирани майстори и услуги близо до теб.
+              </p>
+              <span className="inline-flex items-center text-sm font-medium text-[#1DB954]">
+                Виж специалисти →
+              </span>
+            </div>
+          </Link>
+
+          <Link
+            href={`/${locale}/become-specialist`}
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] p-8 transition hover:border-[#1DB954]/40"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-80 transition group-hover:opacity-100" />
+            <div className="relative z-10">
+              <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
+                За специалисти
+              </span>
+              <h3 className="mb-3 text-2xl font-bold text-white">
+                Стани специалист в ProZona
+              </h3>
+              <p className="mb-5 max-w-md text-sm text-gray-300">
+                Създай профил и започни да получаваш запитвания от клиенти близо до теб.
+              </p>
+              <span className="inline-flex items-center text-sm font-medium text-[#1DB954]">
+                Създай профил →
+              </span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* BLOG TEASER */}
+      <section className="mx-auto max-w-6xl px-4 py-16">
+        <div className="mb-10 text-center">
+          <h2 className="mb-3 text-3xl font-bold">Полезно от блога</h2>
+          <p className="mx-auto max-w-2xl text-gray-400">
+            Съвети за ремонт, почистване, монтаж и поддръжка на дома.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {featuredPosts.map((post) => (
+            <Link
+              key={post.slug}
+              href={`/${locale}/blog/${post.slug}`}
+              className="rounded-2xl border border-white/10 bg-[#151528] p-6 transition hover:border-[#1DB954]/40 hover:bg-[#1b1b31]"
+            >
+              <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gray-200">
+                Блог
+              </span>
+
+              <h3 className="mb-3 line-clamp-2 text-xl font-bold text-white">
+                {post.title}
+              </h3>
+
+              <p className="mb-4 line-clamp-3 text-sm text-gray-300">
+                {post.excerpt}
+              </p>
+
+              <span className="inline-flex items-center text-sm font-medium text-[#1DB954]">
+                Прочети →
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-8 text-center">
+          <Link
+            href={`/${locale}/blog`}
+            className="font-semibold text-[#1DB954] hover:underline"
+          >
+            Виж всички статии →
+          </Link>
+        </div>
+      </section>
+
+      {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 py-20 text-center">
         <h2 className="mb-4 text-3xl font-bold md:text-4xl">
           Ти си професионалист?
         </h2>
 
         <p className="mx-auto mb-10 max-w-2xl text-gray-400">
-          Започни да получаваш клиенти още днес чрез ProZona или предложи нова услуга,
-          която все още не присъства в платформата.
+          Започни да получаваш клиенти още днес чрез ProZona или предложи нова
+          услуга, която все още не присъства в платформата.
         </p>
 
         <div className="flex flex-col justify-center gap-4 md:flex-row">
