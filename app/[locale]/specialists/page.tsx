@@ -1,77 +1,140 @@
-﻿import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
-import { prisma } from "@/lib/prisma";
-import { categories as allCategories } from "@/lib/constants";
-
-export const metadata: Metadata = {
-  title: "Всички специалисти",
-  description: "Разгледай всички специалисти в ProZona.",
-};
-
-const PER_PAGE = 12;
+﻿import Link from "next/link"
+import { prisma } from "@/lib/prisma"
 
 interface Props {
-  params: Promise<{ locale: string }>;
-  searchParams: Promise<{ category?: string; city?: string; page?: string }>;
+  params: Promise<{
+    locale: string
+  }>
 }
 
-export default async function SpecialistsPage({ params, searchParams }: Props) {
-  const { locale } = await params;
-  const { category, city, page } = await searchParams;
-  const currentPage = Math.max(1, parseInt(page || "1"));
-
-  const where = {
-    isApproved: true,
-    ...(city ? { city: { contains: city, mode: "insensitive" as const } } : {}),
-    ...(category ? { categoryId: category } : {}),
-  };
+export default async function SpecialistsPage({ params }: Props) {
+  const { locale } = await params
 
   const specialists = await prisma.specialist.findMany({
-    where,
-    include: { user: true },
-    orderBy: { rating: "desc" },
-    take: PER_PAGE,
-    skip: (currentPage - 1) * PER_PAGE,
-  });
+    where: {
+      verified: true,
+    },
+    include: {
+      user: true,
+      reviews: true,
+      GalleryImage: true,
+      SpecialistCategory: {
+        include: {
+          Category: true,
+          Subcategory: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  })
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] py-16 px-4">
-      <div className="container mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-8 text-center">
+    <main className="min-h-screen bg-[#0D0D1A] pt-24">
+      <div className="container mx-auto px-4 py-10">
+        <div className="mb-6 text-sm text-gray-400">
+          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">
+            Начало
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="text-white">Специалисти</span>
+        </div>
+
+        <h1 className="mb-8 text-4xl font-bold text-white">
           Всички специалисти
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {specialists.map((specialist) => {
-            const photo = specialist.user.image || null;
-            const categoryName = allCategories.find(c => c.id === specialist.categoryId)?.name || null;
-            return (
-              <Link
-                key={specialist.id}
-                href={`/${locale}/specialist/${specialist.id}`}
-                className="bg-[#1A1A2E] rounded-lg p-6 hover:bg-[#25253a] transition-colors group"
-              >
-                <div className="text-center">
-                  <div className="w-24 h-24 rounded-full mx-auto mb-4 relative overflow-hidden bg-[#0D0D1A] flex items-center justify-center">
+
+        {specialists.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-[#151528] p-6">
+            <h2 className="mb-3 text-2xl font-semibold text-white">
+              Все още няма специалисти
+            </h2>
+            <p className="text-gray-400">
+              В момента няма верифицирани специалисти.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {specialists.map((specialist) => {
+              const displayName =
+                specialist.businessName || specialist.user?.name || "Специалист"
+
+              const photo =
+                specialist.GalleryImage?.[0]?.imageUrl ||
+                specialist.user?.image ||
+                null
+
+              const averageRating =
+                specialist.reviews.length > 0
+                  ? specialist.reviews.reduce((acc, r) => acc + r.rating, 0) /
+                    specialist.reviews.length
+                  : 0
+
+              const primaryRelation = specialist.SpecialistCategory[0]
+              const categoryName = primaryRelation?.Category?.name || null
+              const subcategoryName = primaryRelation?.Subcategory?.name || null
+
+              return (
+                <Link
+                  key={specialist.id}
+                  href={`/${locale}/specialist/${specialist.id}`}
+                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40 hover:bg-[#1b1b31]"
+                >
+                  <div className="mb-4 flex items-center gap-4">
                     {photo ? (
-                      <Image src={photo} alt={specialist.user.name || ""} fill className="object-cover" />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={photo}
+                        alt={displayName}
+                        className="h-16 w-16 rounded-xl object-cover"
+                      />
                     ) : (
-                      <span className="text-4xl text-gray-600">
-                        {specialist.user.name?.[0] || "?"}
-                      </span>
+                      <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#25253a] text-2xl font-bold text-[#1DB954]">
+                        {displayName.charAt(0)}
+                      </div>
                     )}
+
+                    <div className="min-w-0">
+                      <h2 className="truncate text-xl font-semibold text-white">
+                        {displayName}
+                      </h2>
+                      <p className="text-sm text-gray-400">
+                        {specialist.city || "Не е посочен град"}
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-1 group-hover:text-[#1DB954] transition-colors">
-                    {specialist.user.name}
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-2">{categoryName || "Специалист"}</p>
-                  <p className="text-gray-400 text-sm">{specialist.city}</p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+
+                  {(subcategoryName || categoryName) && (
+                    <p className="mb-3 text-sm text-[#1DB954]">
+                      {subcategoryName || categoryName}
+                    </p>
+                  )}
+
+                  <p className="mb-4 line-clamp-3 text-sm text-gray-300">
+                    {specialist.description || "Все още няма описание."}
+                  </p>
+
+                  <div className="mb-4 flex items-center justify-between text-sm">
+                    <span className="text-yellow-400">
+                      {averageRating > 0
+                        ? `★ ${averageRating.toFixed(1)}`
+                        : "★ Няма рейтинг"}
+                    </span>
+                    <span className="text-gray-400">
+                      {specialist.reviews.length} отзива
+                    </span>
+                  </div>
+
+                  <div className="inline-flex items-center text-sm font-medium text-[#1DB954]">
+                    Виж профила →
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
       </div>
-    </div>
-  );
+    </main>
+  )
 }
