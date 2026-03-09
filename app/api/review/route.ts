@@ -59,13 +59,11 @@ export async function POST(request: Request) {
     }
 
     // Провери дали вече има отзив
-    const existingReview = await prisma.review.findUnique({
-      where: {
-        specialistId_clientId: {
-          specialistId,
-          clientId: session.user.id
-        }
-      }
+  const existingReview = await prisma.review.findFirst({
+  where: {
+    specialistId,
+    clientId: session.user.id
+    }
     })
 
     if (existingReview) {
