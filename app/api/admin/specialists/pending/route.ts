@@ -1,20 +1,30 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
+  try {
+    const specialists = await prisma.specialist.findMany({
+      where: { verified: false },
+      include: {
+        user: true,
+        SpecialistCategory: {
+          include: {
+            Category: true,
+            Subcategory: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
 
-  if (!session || (session.user as any).role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(specialists)
+  } catch (error) {
+    console.error("Pending specialists error:", error)
+    return NextResponse.json(
+      { error: "Failed to fetch pending specialists" },
+      { status: 500 }
+    )
   }
-
-  const specialists = await prisma.specialist.findMany({
-    where: { isVerified: false },
-    include: { user: true },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return NextResponse.json({ specialists });
 }

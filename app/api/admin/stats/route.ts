@@ -13,7 +13,7 @@ export async function GET() {
     prisma.user.count(),
     prisma.specialist.count(),
     prisma.inquiry.count(),
-    prisma.specialist.count({ where: { isVerified: false } }),
+    prisma.specialist.count({ where: { verified: false } }),
     prisma.categorySuggestion.count({ where: { status: 'PENDING' } }),
   ])
 
