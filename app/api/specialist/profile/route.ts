@@ -65,6 +65,7 @@ export async function POST(request: Request) {
     }
 
     const selectedCategory = categories.find((c) => c.id === categoryId)
+
     if (!selectedCategory) {
       return NextResponse.json(
         { error: "Невалидна категория" },
@@ -167,6 +168,7 @@ export async function POST(request: Request) {
 
     const specialist = await prisma.specialist.create({
       data: {
+        id: userId,
         userId,
         businessName: businessName || null,
         description,
@@ -174,7 +176,7 @@ export async function POST(request: Request) {
         serviceAreas: [city],
         phone: phone || null,
         verified: false,
-        categories: {
+        SpecialistCategory: {
           create: {
             categoryId: categoryRecord.id,
             subcategoryId: subcategoryRecord.id
@@ -183,10 +185,10 @@ export async function POST(request: Request) {
       },
       include: {
         user: true,
-        categories: {
+        SpecialistCategory: {
           include: {
-            category: true,
-            subcategory: true
+            Category: true,
+            Subcategory: true
           }
         }
       }
