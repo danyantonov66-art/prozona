@@ -38,25 +38,42 @@ export default async function CategoriesPage({ params }: Props) {
             <Link
               key={category.slug}
               href={`/${locale}/categories/${category.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] p-6 transition hover:border-[#1DB954]/40"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] transition hover:border-[#1DB954]/40"
             >
-              <span className="mb-3 inline-block rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#1DB954]">
-                Категория
-              </span>
+              <div className="relative h-56">
+                {typeof category.icon === "string" && category.icon.startsWith("/") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={category.icon}
+                    alt={category.name}
+                    className="h-full w-full object-cover opacity-30 transition duration-300 group-hover:opacity-40"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-6xl opacity-30">
+                    {category.icon}
+                  </div>
+                )}
 
-              <div className="mb-3 text-4xl">{category.icon}</div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#151528] via-[#151528]/90 to-transparent" />
 
-              <h2 className="mb-2 text-2xl font-bold text-white">
-                {category.name}
-              </h2>
+                <div className="absolute inset-x-0 bottom-0 p-6">
+                  <span className="mb-3 inline-block rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#1DB954]">
+                    Категория
+                  </span>
 
-              <p className="mb-4 text-sm text-gray-300">
-                {category.description}
-              </p>
+                  <h2 className="mb-2 text-2xl font-bold text-white">
+                    {category.name}
+                  </h2>
 
-              <span className="text-sm font-medium text-[#1DB954]">
-                Разгледай →
-              </span>
+                  <p className="mb-4 text-sm text-gray-300">
+                    {category.description}
+                  </p>
+
+                  <span className="text-sm font-medium text-[#1DB954]">
+                    Разгледай →
+                  </span>
+                </div>
+              </div>
             </Link>
           ))}
         </div>

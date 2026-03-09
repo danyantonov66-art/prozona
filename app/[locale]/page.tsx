@@ -2,6 +2,7 @@ import SearchBar from "@/components/SearchBar"
 import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
+import { categories } from "@/lib/constants"
 
 interface Props {
   params: Promise<{
@@ -37,13 +38,12 @@ export default async function Home({ params }: Props) {
           </div>
 
           <h1 className="mb-6 text-4xl font-bold leading-tight md:text-6xl">
-            Намери специалист
-            <span className="block text-[#1DB954]">за всяка услуга</span>
+            Намери верифициран специалист
+            <span className="block text-[#1DB954]">близо до теб</span>
           </h1>
 
           <p className="mx-auto mb-8 max-w-2xl text-base text-gray-300 md:text-lg">
-            Строителство, ремонти, авто услуги, красота, почистване,
-            климатична техника и още много категории на едно място.
+            Ремонти, почистване, монтаж и градински услуги на едно място.
           </p>
 
           <div className="flex justify-center">
@@ -51,7 +51,7 @@ export default async function Home({ params }: Props) {
           </div>
 
           <div className="mt-6 text-sm text-gray-400">
-            Пример: строителство, климатици, София, Видин, красота
+            Пример: ВиК, почистване, хамали, косене, София
           </div>
         </div>
       </section>
@@ -61,27 +61,30 @@ export default async function Home({ params }: Props) {
           Популярни категории
         </h2>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Link
-            href={`/${locale}/categories/stroitelstvo-i-remonti`}
-            className="rounded-xl bg-[#1A1A2E] p-6 text-center transition hover:bg-[#25253a]"
-          >
-            🏗 Строителство и ремонти
-          </Link>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {categories.map((category) => (
+            <Link
+              key={category.slug}
+              href={`/${locale}/categories/${category.slug}`}
+              className="rounded-xl bg-[#1A1A2E] p-6 text-center transition hover:bg-[#25253a]"
+            >
+              <div className="mb-3 text-2xl">
+                {typeof category.icon === "string" &&
+                category.icon.startsWith("/") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={category.icon}
+                    alt={category.name}
+                    className="mx-auto h-14 w-14 rounded-lg object-cover"
+                  />
+                ) : (
+                  category.icon
+                )}
+              </div>
 
-          <Link
-            href={`/${locale}/categories/avto-uslugi-i-transport`}
-            className="rounded-xl bg-[#1A1A2E] p-6 text-center transition hover:bg-[#25253a]"
-          >
-            🚗 Авто услуги и транспорт
-          </Link>
-
-          <Link
-            href={`/${locale}/categories/krasota-i-grizha`}
-            className="rounded-xl bg-[#1A1A2E] p-6 text-center transition hover:bg-[#25253a]"
-          >
-            💄 Красота и грижа
-          </Link>
+              <div className="font-semibold text-white">{category.name}</div>
+            </Link>
+          ))}
         </div>
 
         <div className="mt-8 text-center">
