@@ -31,13 +31,6 @@ const featuredPosts = [
   },
 ]
 
-const categoryGradients: Record<string, string> = {
-  remonti: "from-[#2B1F1F] via-[#1A1A2E] to-[#101522]",
-  pochistvane: "from-[#13232A] via-[#1A1A2E] to-[#101522]",
-  montaj: "from-[#24182B] via-[#1A1A2E] to-[#101522]",
-  gradina: "from-[#132616] via-[#1A1A2E] to-[#101522]",
-}
-
 export default async function Home({ params }: Props) {
   const { locale } = await params
 
@@ -96,37 +89,38 @@ export default async function Home({ params }: Props) {
         </p>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-   <Link
-  key={category.slug}
-  href={`/${locale}/categories/${category.slug}`}
-  className="group relative h-64 overflow-hidden rounded-2xl border border-white/10"
->
-  <img
-    src={category.icon}
-    alt={category.name}
-    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
-  />
+          {categories.map((category) => (
+            <Link
+              key={category.slug}
+              href={`/${locale}/categories/${category.slug}`}
+              className="group relative h-64 overflow-hidden rounded-2xl border border-white/10"
+            >
+              <img
+                src={category.icon}
+                alt={category.name}
+                className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
+              />
 
-  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
 
-  <div className="relative z-10 flex h-full flex-col justify-end p-5">
-    <span className="mb-3 inline-flex w-fit rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
-      Категория
-    </span>
+              <div className="relative z-10 flex h-full flex-col justify-end p-5">
+                <span className="mb-3 inline-flex w-fit rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
+                  Категория
+                </span>
 
-    <h3 className="mb-2 text-xl font-bold text-white">
-      {category.name}
-    </h3>
+                <h3 className="mb-2 text-xl font-bold text-white">
+                  {category.name}
+                </h3>
 
-    <p className="line-clamp-2 text-sm text-gray-200">
-      {category.description}
-    </p>
+                <p className="line-clamp-2 text-sm text-gray-200">
+                  {category.description}
+                </p>
 
-    <span className="mt-3 inline-flex items-center text-sm font-medium text-[#1DB954]">
-      Разгледай →
-    </span>
-  </div>
-</Link>
+                <span className="mt-3 inline-flex items-center text-sm font-medium text-[#1DB954]">
+                  Разгледай →
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
 
@@ -177,7 +171,8 @@ export default async function Home({ params }: Props) {
                 Стани специалист в ProZona
               </h3>
               <p className="mb-5 max-w-md text-sm text-gray-300">
-                Създай профил и започни да получаваш запитвания от клиенти близо до теб.
+                Създай профил и започни да получаваш запитвания от клиенти близо
+                до теб.
               </p>
               <span className="inline-flex items-center text-sm font-medium text-[#1DB954]">
                 Създай профил →
