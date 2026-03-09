@@ -1,4 +1,6 @@
 import Link from "next/link"
+import ProZonaHeader from "@/components/header/ProZonaHeader"
+import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import { categories } from "@/lib/constants"
 
 interface Props {
@@ -7,69 +9,69 @@ interface Props {
   }>
 }
 
+const categoryGradients: Record<string, string> = {
+  remonti: "from-[#2B1F1F] via-[#1A1A2E] to-[#101522]",
+  pochistvane: "from-[#13232A] via-[#1A1A2E] to-[#101522]",
+  montaj: "from-[#24182B] via-[#1A1A2E] to-[#101522]",
+  gradina: "from-[#132616] via-[#1A1A2E] to-[#101522]",
+}
+
 export default async function CategoriesPage({ params }: Props) {
   const { locale } = await params
 
   return (
-    <main className="min-h-screen bg-[#0D0D1A] pt-24">
-      <div className="container mx-auto px-4 py-10">
+    <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <ProZonaHeader locale={locale} />
+
+      <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div className="mb-6 text-sm text-gray-400">
-          <Link
-            href={`/${locale}`}
-            className="text-[#1DB954] hover:underline"
-          >
+          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">
             Начало
           </Link>
-          <span className="mx-2">/</span>
+          <span className="mx-2 text-gray-500">/</span>
           <span className="text-white">Категории</span>
         </div>
 
-        <h1 className="mb-2 text-4xl font-bold text-white">
-          Всички категории
-        </h1>
+        <div className="mb-12">
+          <h1 className="mb-4 text-4xl font-bold md:text-5xl">
+            Всички категории
+          </h1>
 
-        <p className="mb-10 text-gray-400">
-          Избери категория и намери подходящ специалист за дома, бизнеса
-          или ежедневните услуги
-        </p>
+          <p className="max-w-3xl text-lg text-gray-400">
+            Избери категория и намери подходящ специалист за дома, бизнеса или
+            ежедневните услуги.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {categories.map((category) => (
             <Link
               key={category.slug}
               href={`/${locale}/categories/${category.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] transition hover:border-[#1DB954]/40"
+              className={`group relative min-h-[260px] overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br ${
+                categoryGradients[category.slug] || "from-[#1A1A2E] to-[#101522]"
+              } p-6 transition hover:-translate-y-1 hover:border-[#1DB954]/40`}
             >
-              <div className="relative h-56">
-                {typeof category.icon === "string" && category.icon.startsWith("/") ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={category.icon}
-                    alt={category.name}
-                    className="h-full w-full object-cover opacity-30 transition duration-300 group-hover:opacity-40"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-6xl opacity-30">
-                    {category.icon}
-                  </div>
-                )}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(29,185,84,0.16),transparent_35%)] opacity-80" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-[#151528] via-[#151528]/90 to-transparent" />
-
-                <div className="absolute inset-x-0 bottom-0 p-6">
-                  <span className="mb-3 inline-block rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#1DB954]">
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                <div>
+                  <span className="inline-flex rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
                     Категория
                   </span>
+                </div>
 
-                  <h2 className="mb-2 text-2xl font-bold text-white">
+                <div>
+                  <h2 className="mb-3 text-3xl font-bold leading-tight text-white">
                     {category.name}
                   </h2>
 
-                  <p className="mb-4 text-sm text-gray-300">
+                  <p className="mb-6 max-w-md text-base text-gray-200">
                     {category.description}
                   </p>
 
-                  <span className="text-sm font-medium text-[#1DB954]">
+                  <span className="inline-flex items-center text-base font-medium text-[#1DB954]">
                     Разгледай →
                   </span>
                 </div>
@@ -77,7 +79,9 @@ export default async function CategoriesPage({ params }: Props) {
             </Link>
           ))}
         </div>
-      </div>
+      </section>
+
+      <ProZonaFooter locale={locale} />
     </main>
   )
 }
