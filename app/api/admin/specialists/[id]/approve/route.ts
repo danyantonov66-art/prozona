@@ -1,12 +1,15 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+﻿import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+interface Props {
+  params: Promise<{
+    id: string
+  }>
+}
+
+export async function PATCH(request: NextRequest, { params }: Props) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -19,14 +22,19 @@ export async function POST(
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
-        isVerified: true,
-isApproved: true,
-      }
+        verified: true,
+      },
     })
 
-    return NextResponse.json(specialist)
+    return NextResponse.json({
+      success: true,
+      specialist,
+    })
   } catch (error) {
-    console.error("Approve error:", error)
-    return NextResponse.json({ error: "Approve failed" }, { status: 500 })
+    console.error("Approve specialist error:", error)
+    return NextResponse.json(
+      { error: "Failed to approve specialist" },
+      { status: 500 }
+    )
   }
 }
