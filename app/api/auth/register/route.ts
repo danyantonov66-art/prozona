@@ -15,7 +15,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Проверка дали потребителят вече съществува
     const existingUser = await prisma.user.findUnique({
       where: { email }
     })
@@ -27,10 +26,8 @@ export async function POST(request: Request) {
       )
     }
 
-    // Криптиране на паролата
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Създаване на потребител
     const user = await prisma.user.create({
       data: {
         email,
@@ -40,10 +37,10 @@ export async function POST(request: Request) {
       }
     })
 
-    // Ако е клиент, създаваме клиентски профил
     if (role === 'CLIENT' || !role) {
       await prisma.clientProfile.create({
         data: {
+          id: user.id,
           userId: user.id,
         }
       })
