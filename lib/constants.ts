@@ -14,8 +14,8 @@ export const categories = [
       { id: "shpaklovka-zidariya", name: "Шпакловка и зидария", slug: "shpaklovka-zidariya", icon: "🧱" },
       { id: "remont-banya", name: "Ремонт на баня", slug: "remont-banya", icon: "🚿" },
       { id: "gipsokarton", name: "Гипсокартон", slug: "gipsokarton", icon: "🪚" },
-      { id: "dovarshitelni-remonti", name: "Довършителни ремонти", slug: "dovarshitelni-remonti", icon: "🛠️" }
-    ]
+      { id: "dovarshitelni-remonti", name: "Довършителни ремонти", slug: "dovarshitelni-remonti", icon: "🏠" },
+    ],
   },
   {
     id: "pochistvane",
@@ -26,12 +26,12 @@ export const categories = [
     icon: "/images/categories/pochistvane.png",
     color: "#27AE60",
     subcategories: [
-      { id: "domashno", name: "Домашно почистване", slug: "domashno", icon: "🏠" },
+      { id: "domashno", name: "Домашно почистване", slug: "domashno", icon: "🧼" },
       { id: "osnovno", name: "Основно почистване", slug: "osnovno", icon: "✨" },
       { id: "sled-remont", name: "Почистване след ремонт", slug: "sled-remont", icon: "🧹" },
       { id: "ofis", name: "Офис почистване", slug: "ofis", icon: "🏢" },
-      { id: "naem", name: "Почистване при смяна на наематели", slug: "naem", icon: "📦" }
-    ]
+      { id: "naem", name: "Почистване при смяна на наематели", slug: "naem", icon: "📦" },
+    ],
   },
   {
     id: "montaj",
@@ -43,13 +43,13 @@ export const categories = [
     color: "#8E44AD",
     subcategories: [
       { id: "mebeli", name: "Монтаж на мебели", slug: "mebeli", icon: "🪑" },
-      { id: "klimatici", name: "Монтаж на климатик", slug: "klimatici", icon: "❄️" },
+      { id: "klimatici", name: "Монтаж на климатици", slug: "klimatici", icon: "❄️" },
       { id: "osvetlenie", name: "Монтаж на осветление", slug: "osvetlenie", icon: "💡" },
       { id: "elektrouredi", name: "Монтаж на електроуреди", slug: "elektrouredi", icon: "🔌" },
       { id: "drebni-remonti", name: "Дребни домашни ремонти", slug: "drebni-remonti", icon: "🔨" },
       { id: "hamali", name: "Хамалски услуги", slug: "hamali", icon: "📦" },
-      { id: "premestvane-mebeli", name: "Преместване на мебели", slug: "premestvane-mebeli", icon: "🚚" }
-    ]
+      { id: "premestvane-mebeli", name: "Преместване на мебели", slug: "premestvane-mebeli", icon: "🚚" },
+    ],
   },
   {
     id: "gradina",
@@ -63,10 +63,10 @@ export const categories = [
       { id: "kosene", name: "Косене на трева", slug: "kosene", icon: "🌱" },
       { id: "poddrazhka-dvor", name: "Поддръжка на двор", slug: "poddrazhka-dvor", icon: "🏡" },
       { id: "podryazvane", name: "Подрязване на дървета", slug: "podryazvane", icon: "✂️" },
-      { id: "ozelenyavane", name: "Озеленяване", slug: "ozelenyavane", icon: "🌳" },
-      { id: "pochistvane-dvor", name: "Почистване на двор", slug: "pochistvane-dvor", icon: "🍂" }
-    ]
-  }
+      { id: "ozelenyavane", name: "Озеленяване", slug: "ozelenyavane", icon: "🌿" },
+      { id: "pochistvane-dvor", name: "Почистване на двор", slug: "pochistvane-dvor", icon: "🍂" },
+    ],
+  },
 ]
 
 export const homepageBanners = [
@@ -75,22 +75,22 @@ export const homepageBanners = [
     description: "Разгледай верифицирани майстори и услуги близо до теб.",
     cta: "Виж специалисти",
     href: "/bg/specialists",
-    image: "/images/banners/specialists.jpg"
+    image: "/images/banners/specialists.jpg",
   },
   {
     title: "Стани специалист в ProZona",
-    description: "Създай профил и получавай заявки от клиенти.",
+    description: "Създай профил и получавай запитвания от клиенти.",
     cta: "Създай профил",
     href: "/bg/become-specialist",
-    image: "/images/banners/become-specialist.jpg"
-  }
+    image: "/images/banners/become-specialist.jpg",
+  },
 ]
 
 export const homepageHero = {
   title: "Намери верифициран специалист близо до теб",
   subtitle: "Ремонти, почистване, монтаж и градински услуги на едно място.",
   searchPlaceholder: "Каква услуга търсите?",
-  cta: "Намери специалист"
+  cta: "Намери специалист",
 }
 
 export const cities = [
@@ -113,5 +113,5 @@ export const cities = [
   "Сливен",
   "Враца",
   "Габрово",
-  "Кърджали"
+  "Кърджали",
 ]
