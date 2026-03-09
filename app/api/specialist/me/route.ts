@@ -6,21 +6,40 @@ import { prisma } from "@/lib/prisma"
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: "Неоторизиран" }, { status: 401 })
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const userId = (session.user as any)?.id
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     const specialist = await prisma.specialist.findUnique({
-      where: { userId: (session.user as any).id },
+      where: { userId },
       include: {
         user: true,
-        gallery: { orderBy: { sortOrder: "asc" } }
+        GalleryImage: {
+          orderBy: { sortOrder: "asc" }
+        },
+        SpecialistCategory: {
+          include: {
+            Category: true,
+            Subcategory: true
+          }
+        }
       }
     })
 
-    if (!specialist) return NextResponse.json({ error: "Специалистът не е намерен" }, { status: 404 })
+    if (!specialist) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
 
     return NextResponse.json(specialist)
   } catch (error) {
-    console.error("Error fetching specialist:", error)
-    return NextResponse.json({ error: "Грешка при зареждане" }, { status: 500 })
+    console.error("Specialist me error:", error)
+    return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }
