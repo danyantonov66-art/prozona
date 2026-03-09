@@ -24,9 +24,6 @@ export default async function SpecialistsPage({ params }: Props) {
           Subcategory: true,
         },
       },
-      gallery: {
-        take: 1,
-      },
     },
     orderBy: {
       createdAt: "desc",
@@ -82,7 +79,6 @@ export default async function SpecialistsPage({ params }: Props) {
             {specialists.map((specialist) => {
               const mainCategory = specialist.SpecialistCategory[0]?.Category?.name
               const subcategory = specialist.SpecialistCategory[0]?.Subcategory?.name
-              const image = specialist.gallery[0]?.imageUrl
               const displayName =
                 specialist.businessName || specialist.user?.name || "Специалист"
 
@@ -91,20 +87,12 @@ export default async function SpecialistsPage({ params }: Props) {
                   key={specialist.id}
                   className="overflow-hidden rounded-3xl border border-white/10 bg-[#151528]"
                 >
-                  <div className="relative h-52 bg-[#1A1A2E]">
-                    {image ? (
-                      <img
-                        src={image}
-                        alt={displayName}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1A1A2E] to-[#101522] text-gray-500">
-                        Без снимка
-                      </div>
-                    )}
-
+                  <div className="relative h-52 bg-gradient-to-br from-[#1A1A2E] to-[#101522]">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+                    <div className="flex h-full items-center justify-center">
+                      <span className="text-gray-500">ProZona</span>
+                    </div>
 
                     <div className="absolute bottom-4 left-4">
                       <span className="inline-flex rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
