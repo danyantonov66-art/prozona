@@ -5,7 +5,7 @@ export const categories = [
     name: "Ремонти и майстори",
     nameEn: "Repairs & Handymen",
     description: "ВиК, електро, боядисване и довършителни ремонти",
-    icon: "/images/categories/remonti.jpg",
+    icon: "/images/categories/stroitelstvo.png",
     color: "#FF6B6B",
     subcategories: [
       { id: "vik", name: "ВиК услуги", slug: "vik", icon: "🔧" },
@@ -23,7 +23,7 @@ export const categories = [
     name: "Почистване",
     nameEn: "Cleaning",
     description: "Домашно, основно и офис почистване",
-    icon: "/images/categories/pochistvane.jpg",
+    icon: "/images/categories/pochistvane.png",
     color: "#27AE60",
     subcategories: [
       { id: "domashno", name: "Домашно почистване", slug: "domashno", icon: "🏠" },
@@ -39,7 +39,7 @@ export const categories = [
     name: "Монтаж и дребни услуги",
     nameEn: "Assembly & Small Jobs",
     description: "Мебели, техника, хамали и дребни ремонти",
-    icon: "/images/categories/montaj.jpg",
+    icon: "/images/categories/mebeli.png",
     color: "#8E44AD",
     subcategories: [
       { id: "mebeli", name: "Монтаж на мебели", slug: "mebeli", icon: "🪑" },
@@ -57,7 +57,7 @@ export const categories = [
     name: "Градина и двор",
     nameEn: "Garden & Yard",
     description: "Косене, поддръжка и озеленяване",
-    icon: "/images/categories/gradina.jpg",
+    icon: "/images/categories/gradina.png",
     color: "#2ECC71",
     subcategories: [
       { id: "kosene", name: "Косене на трева", slug: "kosene", icon: "🌱" },
