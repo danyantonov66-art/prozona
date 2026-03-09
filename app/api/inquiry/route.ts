@@ -12,20 +12,37 @@ export async function POST(req: Request) {
     if (!specialistId || typeof specialistId !== 'string') {
       return NextResponse.json({ error: 'Missing specialistId' }, { status: 400 })
     }
+
     if (!name || !email || !message) {
       return NextResponse.json({ error: 'Липсват задължителни полета' }, { status: 400 })
     }
 
     const specialist = await prisma.specialist.findUnique({
       where: { id: specialistId },
-      include: { user: true, categories: { include: { category: true }, take: 1 } }
+      include: {
+        user: true,
+        SpecialistCategory: {
+          include: {
+            Category: true,
+            Subcategory: true,
+          },
+          take: 1,
+        },
+      },
     })
 
     if (!specialist) {
       return NextResponse.json({ error: 'Specialist not found' }, { status: 404 })
     }
 
-    const categoryId = specialist.categories[0]?.categoryId ?? 1
+    const categoryId = specialist.SpecialistCategory[0]?.categoryId
+
+    if (!categoryId) {
+      return NextResponse.json(
+        { error: 'Специалистът няма свързана категория' },
+        { status: 400 }
+      )
+    }
 
     const inquiry = await prisma.inquiry.create({
       data: {
@@ -37,7 +54,7 @@ export async function POST(req: Request) {
         categoryId,
         city: specialist.city,
         status: 'PENDING',
-      }
+      },
     })
 
     if (specialist.user?.email && process.env.RESEND_API_KEY) {
@@ -61,7 +78,7 @@ export async function POST(req: Request) {
               Виж запитването
             </a>
           </div>
-        `
+        `,
       })
     }
 
