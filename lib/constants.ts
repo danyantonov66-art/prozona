@@ -43,12 +43,11 @@ export const categories = [
     color: "#8E44AD",
     subcategories: [
       { id: "mebeli", name: "Монтаж на мебели", slug: "mebeli", icon: "🪑" },
-      { id: "klimatici", name: "Монтаж на климатици", slug: "klimatici", icon: "❄️" },
+      { id: "klimatici", name: "Монтаж, профилактика и ремонт на климатици", slug: "klimatici", icon: "❄️" },
       { id: "osvetlenie", name: "Монтаж на осветление", slug: "osvetlenie", icon: "💡" },
       { id: "elektrouredi", name: "Монтаж на електроуреди", slug: "elektrouredi", icon: "🔌" },
       { id: "drebni-remonti", name: "Дребни домашни ремонти", slug: "drebni-remonti", icon: "🔨" },
-      { id: "hamali", name: "Хамалски услуги", slug: "hamali", icon: "📦" },
-      { id: "premestvane-mebeli", name: "Преместване на мебели", slug: "premestvane-mebeli", icon: "🚚" },
+      { id: "premestvane-hamali", name: "Преместване на мебели и хамалски услуги", slug: "premestvane-hamali", icon: "🚚" },
     ],
   },
   {
