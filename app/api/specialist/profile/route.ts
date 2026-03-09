@@ -108,7 +108,8 @@ export async function POST(request: Request) {
             selectedCategory.description ||
             selectedCategory.name,
           icon: categoryRecord.icon || selectedCategory.icon || null,
-          isActive: true
+          isActive: true,
+          updatedAt: new Date()
         }
       })
     }
@@ -121,7 +122,8 @@ export async function POST(request: Request) {
           description: selectedCategory.description || selectedCategory.name,
           icon: selectedCategory.icon || null,
           sortOrder: 0,
-          isActive: true
+          isActive: true,
+          updatedAt: new Date()
         }
       })
     }
@@ -148,7 +150,8 @@ export async function POST(request: Request) {
         data: {
           slug: subcategorySlug,
           name: selectedSubcategory.name,
-          isActive: true
+          isActive: true,
+          updatedAt: new Date()
         }
       })
     }
@@ -161,7 +164,8 @@ export async function POST(request: Request) {
           slug: subcategorySlug,
           description: selectedSubcategory.name,
           sortOrder: 0,
-          isActive: true
+          isActive: true,
+          updatedAt: new Date()
         }
       })
     }
