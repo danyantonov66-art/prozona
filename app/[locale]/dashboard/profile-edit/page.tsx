@@ -61,7 +61,7 @@ export default async function ProfileEditPage({ params }: Props) {
               city: specialist.city,
               phone: specialist.phone,
               experienceYears: specialist.experience,
-              images: specialist.images
+              images: specialist.images             
             }}
           />
 
