@@ -70,7 +70,7 @@ export default async function Home({ params }: Props) {
           </p>
 
           <div className="flex justify-center">
-            <SearchBar locale={locale} />
+            {/* <SearchBar locale={locale} /> */}
           </div>
 
           <div className="mt-6 text-sm text-gray-400">
