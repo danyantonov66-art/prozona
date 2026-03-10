@@ -29,8 +29,16 @@ export default async function SpecialistPage({ params }: Props) {
 
   if (!specialist) return notFound()
 
-  const displayName = specialist.businessName || specialist.user?.name || "Специалист"
+  const displayName =
+    specialist.businessName || specialist.user?.name || "Специалист"
+
   const initials = displayName.charAt(0).toUpperCase()
+
+  const profileImage =
+    (specialist as any).profileImage ||
+    (specialist as any).image ||
+    specialist.user?.image ||
+    ""
 
   const schema = {
     "@context": "https://schema.org",
@@ -54,7 +62,10 @@ export default async function SpecialistPage({ params }: Props) {
       ).filter(Boolean) || [],
     provider: {
       "@type": "Person",
-      name: specialist.user?.name || specialist.businessName || "Специалист",
+      name:
+        specialist.user?.name ||
+        specialist.businessName ||
+        "Специалист",
     },
   }
 
@@ -75,19 +86,33 @@ export default async function SpecialistPage({ params }: Props) {
           ← Назад към специалистите
         </Link>
 
-        <div className="rounded-3xl border border-white/10 bg-[#151528] p-8 shadow-[0_0_40px_rgba(0,0,0,0.25)]">
+        <div className="rounded-3xl border border-white/10 bg-[#151528] p-8">
           <div className="flex flex-col gap-8 md:flex-row">
+            
+            {/* PROFILE IMAGE */}
             <div className="flex-shrink-0">
-              <div className="flex h-28 w-28 items-center justify-center rounded-3xl bg-[#23233A] text-5xl font-bold text-[#1DB954]">
-                {initials}
-              </div>
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt={displayName}
+                  className="h-28 w-28 rounded-3xl object-cover border border-white/10 bg-[#23233A]"
+                />
+              ) : (
+                <div className="flex h-28 w-28 items-center justify-center rounded-3xl bg-[#23233A] text-5xl font-bold text-[#1DB954]">
+                  {initials}
+                </div>
+              )}
             </div>
 
             <div className="flex-1">
-              <h1 className="text-3xl font-bold md:text-5xl">{displayName}</h1>
+              <h1 className="text-3xl font-bold md:text-5xl">
+                {displayName}
+              </h1>
 
               {specialist.city && (
-                <p className="mt-2 text-lg text-gray-300">{specialist.city}</p>
+                <p className="mt-2 text-lg text-gray-300">
+                  {specialist.city}
+                </p>
               )}
 
               {specialist.SpecialistCategory?.[0] && (
@@ -99,35 +124,53 @@ export default async function SpecialistPage({ params }: Props) {
                 </div>
               )}
 
-              <div className="mt-6 text-yellow-400">★ Няма рейтинг</div>
+              <div className="mt-6 text-yellow-400">
+                ★ Няма рейтинг
+              </div>
 
+              {/* DESCRIPTION */}
               <div className="mt-10">
-                <h2 className="mb-4 text-3xl font-bold">Описание</h2>
-                <p className="max-w-3xl whitespace-pre-line text-lg leading-8 text-gray-200">
-                  {specialist.description || "Няма добавено описание."}
+                <h2 className="mb-4 text-2xl font-bold">
+                  Описание
+                </h2>
+
+                <p className="text-gray-200 whitespace-pre-line">
+                  {specialist.description ||
+                    "Няма добавено описание."}
                 </p>
               </div>
 
+              {/* CONTACT */}
               <div className="mt-10">
-                <h2 className="mb-4 text-3xl font-bold">Контакт</h2>
-                <div className="space-y-3 text-xl text-gray-200">
-                  {specialist.phone ? (
-                    <p>{specialist.phone}</p>
-                  ) : (
-                    <p className="text-gray-400">Няма добавен телефон.</p>
-                  )}
-                </div>
+                <h2 className="mb-4 text-2xl font-bold">
+                  Контакт
+                </h2>
+
+                {specialist.phone ? (
+                  <p className="text-gray-200">
+                    {specialist.phone}
+                  </p>
+                ) : (
+                  <p className="text-gray-400">
+                    Няма добавен телефон.
+                  </p>
+                )}
               </div>
 
+              {/* SERVICES */}
               {specialist.SpecialistCategory?.length > 0 && (
                 <div className="mt-10">
-                  <h2 className="mb-4 text-3xl font-bold">Услуги</h2>
+                  <h2 className="mb-4 text-2xl font-bold">
+                    Услуги
+                  </h2>
 
-                  <ul className="space-y-3 text-lg text-gray-200">
+                  <ul className="space-y-2 text-gray-200">
                     {specialist.SpecialistCategory.map((item) => (
                       <li key={item.id}>
                         • {item.Category?.name}
-                        {item.Subcategory?.name ? ` • ${item.Subcategory.name}` : ""}
+                        {item.Subcategory?.name
+                          ? ` • ${item.Subcategory.name}`
+                          : ""}
                       </li>
                     ))}
                   </ul>
@@ -135,7 +178,7 @@ export default async function SpecialistPage({ params }: Props) {
               )}
 
               <div className="mt-10">
-                <button className="rounded-xl bg-[#1DB954] px-8 py-4 font-semibold text-white transition hover:bg-[#169c45]">
+                <button className="rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black hover:bg-[#1ed760] transition">
                   Остави отзив
                 </button>
               </div>
