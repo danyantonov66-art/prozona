@@ -14,7 +14,7 @@ export default async function SpecialistsPage({ params }: Props) {
 
   const specialists = await prisma.specialist.findMany({
     where: {
-      verified: true,
+      isVerified: true,
     },
     include: {
       user: true,
