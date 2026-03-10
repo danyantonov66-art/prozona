@@ -60,8 +60,8 @@ export default async function ProfileEditPage({ params }: Props) {
               description: specialist.description,
               city: specialist.city,
               phone: specialist.phone,
-              experienceYears: specialist.experienceYears,
-              images: specialist.GalleryImage
+              experienceYears: specialist.experience,
+              images: specialist.images
             }}
           />
 
