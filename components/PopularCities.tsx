@@ -13,11 +13,11 @@ export default function PopularCities({ locale }: Props) {
       </h2>
 
       <p className="mx-auto mb-10 max-w-2xl text-center text-gray-400">
-        Избери град и разгледай специалисти близо до теб.
+        Избери областен град и разгледай специалисти близо до теб.
       </p>
 
       <div className="flex flex-wrap justify-center gap-4">
-        {cities.slice(0, 10).map((city) => (
+        {cities.map((city) => (
           <Link
             key={city}
             href={`/${locale}/search?city=${encodeURIComponent(city)}`}
