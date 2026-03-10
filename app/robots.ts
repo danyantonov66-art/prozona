@@ -1,21 +1,18 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next"
+
+const baseUrl = "https://prozona.bg"
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [
-      {
-        userAgent: '*',
-        allow: '/',
-        disallow: [
-          '/api/',
-          '/bg/admin',
-          '/bg/specialist/dashboard',
-          '/bg/specialist/profile',
-          '/bg/specialist/inquiries',
-          '/bg/dashboard',
-        ],
-      },
-    ],
-    sitemap: 'https://www.prozona.bg/sitemap.xml',
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: [
+        "/api/",
+        "/admin/",
+        "/_next/",
+      ],
+    },
+    sitemap: `${baseUrl}/sitemap.xml`,
   }
 }
