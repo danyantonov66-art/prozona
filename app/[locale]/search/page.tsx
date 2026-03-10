@@ -1,166 +1,135 @@
-'use client'
+import Link from "next/link"
+import { prisma } from "@/lib/prisma"
+import ProZonaHeader from "@/components/header/ProZonaHeader"
+import ProZonaFooter from "@/components/footer/ProZonaFooter"
 
-import { use, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import ProZonaHeader from '@/components/header/ProZonaHeader'
-import ProZonaFooter from '@/components/footer/ProZonaFooter'
-
-type SearchResult = {
-  type: 'specialist' | 'category' | 'page'
-  id?: string
-  name: string
-  icon: string
-  matchType: string
-  city?: string | null
-  verified?: boolean
-  description?: string | null
+interface Props {
+  params: Promise<{
+    locale: string
+  }>
+  searchParams: Promise<{
+    q?: string
+    city?: string
+  }>
 }
 
-type Props = {
-  params: Promise<{ locale: string }>
-}
+export default async function SearchPage({ params, searchParams }: Props) {
+  const { locale } = await params
+  const { q, city } = await searchParams
 
-export default function SearchPage({ params }: Props) {
-  const { locale } = use(params)
-  const searchParams = useSearchParams()
-
-  const query = searchParams.get('q') || ''
-  const city = searchParams.get('city') || ''
-
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    const performSearch = async () => {
-      if (!query.trim()) {
-        setResults([])
-        setLoading(false)
-        return
-      }
-
-      setLoading(true)
-      setError('')
-
-      try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(query)}&city=${encodeURIComponent(city)}`,
-          { cache: 'no-store' }
-        )
-
-        const data = await res.json().catch(() => null)
-
-        if (!res.ok) {
-          setError(data?.error || 'Грешка при търсене')
-          setResults([])
-          return
-        }
-
-        setResults(Array.isArray(data?.results) ? data.results : [])
-      } catch (err) {
-        console.error(err)
-        setError('Възникна грешка при зареждане на резултатите')
-        setResults([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    performSearch()
-  }, [query, city])
+  const specialists = await prisma.specialist.findMany({
+    where: {
+      verified: true,
+      OR: [
+        { businessName: { contains: q || "", mode: "insensitive" } },
+        { description: { contains: q || "", mode: "insensitive" } },
+        {
+          SpecialistCategory: {
+            some: {
+              OR: [
+                {
+                  Category: {
+                    name: { contains: q || "", mode: "insensitive" },
+                  },
+                },
+                {
+                  Subcategory: {
+                    name: { contains: q || "", mode: "insensitive" },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
+      city: city || undefined,
+    },
+    include: {
+      user: true,
+      SpecialistCategory: {
+        include: {
+          Category: true,
+          Subcategory: true,
+        },
+      },
+    },
+  })
 
   return (
-    <>
+    <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
 
-      <main className="min-h-screen bg-[#0D0D1A] pt-24">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-white mb-3">
-            Резултати за: "{query}"
-          </h1>
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <h1 className="mb-10 text-4xl font-bold">
+          Резултати от търсене
+        </h1>
 
-          {city && (
-            <p className="text-gray-400 mb-8">
-              Град: <span className="text-white">{city}</span>
+        {specialists.length === 0 ? (
+          <div className="rounded-3xl border border-white/10 bg-[#151528] p-10 text-center">
+            <h2 className="text-2xl font-bold mb-3">
+              Няма намерени специалисти
+            </h2>
+
+            <p className="text-gray-400">
+              Опитай с друга услуга или град.
             </p>
-          )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {specialists.map((specialist) => {
+              const displayName =
+                specialist.businessName ||
+                specialist.user?.name ||
+                "Специалист"
 
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="text-[#1DB954] text-xl">Търсене...</div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-red-400 text-lg">{error}</p>
-              <Link
-                href={`/${locale}`}
-                className="inline-block mt-6 text-[#1DB954] hover:underline"
-              >
-                ← Начало
-              </Link>
-            </div>
-          ) : results.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">
-                Няма намерени резултати за "{query}"
-                {city ? ` в ${city}` : ''}
-              </p>
-              <Link
-                href={`/${locale}`}
-                className="inline-block mt-6 text-[#1DB954] hover:underline"
-              >
-                ← Начало
-              </Link>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {results.map((result, index) => (
-                <Link
-                  key={result.id || `${result.type}-${index}`}
-                  href={
-                    result.type === 'specialist' && result.id
-                      ? `/${locale}/specialist/${result.id}`
-                      : `/${locale}/search?q=${encodeURIComponent(result.name)}`
-                  }
-                  className="bg-[#1A1A2E] p-6 rounded-lg hover:bg-[#25253a] transition-colors group border border-white/5"
+              const category =
+                specialist.SpecialistCategory[0]?.Category?.name
+
+              const subcategory =
+                specialist.SpecialistCategory[0]?.Subcategory?.name
+
+              return (
+                <div
+                  key={specialist.id}
+                  className="rounded-3xl border border-white/10 bg-[#151528] p-6"
                 >
-                  <div className="flex items-start gap-4">
-                    <span className="text-3xl">{result.icon || '👤'}</span>
+                  <h2 className="text-2xl font-bold mb-2">
+                    {displayName}
+                  </h2>
 
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <h3 className="text-white text-lg font-semibold group-hover:text-[#1DB954] transition-colors">
-                          {result.name}
-                        </h3>
+                  {category && (
+                    <p className="text-[#86efac] text-sm mb-1">
+                      {category}
+                      {subcategory ? ` • ${subcategory}` : ""}
+                    </p>
+                  )}
 
-                        {result.verified && (
-                          <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
-                            Верифициран
-                          </span>
-                        )}
-                      </div>
+                  {specialist.city && (
+                    <p className="text-gray-400 text-sm mb-4">
+                      {specialist.city}
+                    </p>
+                  )}
 
-                      <p className="text-gray-400 text-sm mb-2">
-                        {result.type === 'specialist' ? 'Специалист' : 'Резултат'}
-                        {result.city ? ` • ${result.city}` : ''}
-                      </p>
+                  {specialist.description && (
+                    <p className="text-gray-300 text-sm mb-6 line-clamp-3">
+                      {specialist.description}
+                    </p>
+                  )}
 
-                      {result.description && (
-                        <p className="text-gray-300 text-sm line-clamp-2">
-                          {result.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                  <Link
+                    href={`/${locale}/specialists/${specialist.id}`}
+                    className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-4 py-2 font-semibold text-black hover:bg-[#1ed760]"
+                  >
+                    Виж профил
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
 
-      <ProZonaFooter />
-    </>
+      <ProZonaFooter locale={locale} />
+    </main>
   )
 }
