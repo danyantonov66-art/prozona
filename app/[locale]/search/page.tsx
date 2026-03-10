@@ -4,15 +4,20 @@ import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 
 interface Props {
+  params: Promise<{
+    locale: string
+  }>
   searchParams: Promise<{
     q?: string
     city?: string
-    locale?: string
   }>
 }
 
-export default async function SearchPage({ searchParams }: Props) {
-  const { q, city, locale } = await searchParams
+export default async function SearchPage({ params, searchParams }: Props) {
+  const { locale } = await params
+  const { q, city } = await searchParams
+
+  const query = q?.trim() || ""
 
   const specialists = await prisma.specialist.findMany({
     where: {
@@ -21,37 +26,23 @@ export default async function SearchPage({ searchParams }: Props) {
       OR: [
         {
           businessName: {
-            contains: q || "",
+            contains: query,
             mode: "insensitive",
           },
         },
         {
           description: {
-            contains: q || "",
+            contains: query,
             mode: "insensitive",
           },
         },
         {
-          categories: {
-            some: {
-              OR: [
-                {
-                  category: {
-                    name: {
-                      contains: q || "",
-                      mode: "insensitive",
-                    },
-                  },
-                },
-                {
-                  subcategory: {
-                    name: {
-                      contains: q || "",
-                      mode: "insensitive",
-                    },
-                  },
-                },
-              ],
+          user: {
+            is: {
+              name: {
+                contains: query,
+                mode: "insensitive",
+              },
             },
           },
         },
@@ -67,12 +58,10 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
-      <ProZonaHeader locale={locale || "bg"} />
+      <ProZonaHeader locale={locale} />
 
       <section className="mx-auto max-w-6xl px-4 py-10">
-        <h1 className="mb-8 text-3xl font-bold">
-          Резултати от търсенето
-        </h1>
+        <h1 className="mb-8 text-3xl font-bold">Резултати от търсенето</h1>
 
         {specialists.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-6 text-gray-300">
@@ -92,7 +81,7 @@ export default async function SearchPage({ searchParams }: Props) {
               return (
                 <Link
                   key={specialist.id}
-                  href={`/${locale || "bg"}/specialists/${specialist.id}`}
+                  href={`/${locale}/specialists/${specialist.id}`}
                   className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
                 >
                   <div className="mb-4">
@@ -118,8 +107,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   )}
 
                   <p className="line-clamp-3 text-sm text-gray-300">
-                    {specialist.description ||
-                      "Няма добавено описание."}
+                    {specialist.description || "Няма добавено описание."}
                   </p>
                 </Link>
               )
@@ -128,7 +116,7 @@ export default async function SearchPage({ searchParams }: Props) {
         )}
       </section>
 
-      <ProZonaFooter locale={locale || "bg"} />
+      <ProZonaFooter locale={locale} />
     </main>
   )
 }
