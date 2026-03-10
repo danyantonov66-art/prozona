@@ -2,6 +2,7 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
+import { cities } from "@/lib/constants"
 
 interface Props {
   params: Promise<{
@@ -60,13 +61,46 @@ export default async function SearchPage({ params, searchParams }: Props) {
       <ProZonaHeader locale={locale} />
 
       <section className="mx-auto max-w-6xl px-4 py-12">
-        <h1 className="mb-10 text-4xl font-bold">
-          Резултати от търсене
-        </h1>
+        <h1 className="mb-6 text-4xl font-bold">Резултати от търсене</h1>
+
+        {/* SEARCH FILTER */}
+        <form
+          method="GET"
+          className="mb-10 flex flex-wrap gap-4"
+        >
+          <input
+            type="text"
+            name="q"
+            defaultValue={q || ""}
+            placeholder="Каква услуга търсите?"
+            className="rounded-xl border border-white/10 bg-[#151528] px-4 py-2 text-white"
+          />
+
+          <select
+            name="city"
+            defaultValue={city || ""}
+            className="rounded-xl border border-white/10 bg-[#151528] px-4 py-2 text-white"
+          >
+            <option value="">Всички градове</option>
+
+            {cities.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="submit"
+            className="rounded-xl bg-[#1DB954] px-6 py-2 font-semibold text-black hover:bg-[#1ed760]"
+          >
+            Търси
+          </button>
+        </form>
 
         {specialists.length === 0 ? (
           <div className="rounded-3xl border border-white/10 bg-[#151528] p-10 text-center">
-            <h2 className="text-2xl font-bold mb-3">
+            <h2 className="mb-3 text-2xl font-bold">
               Няма намерени специалисти
             </h2>
 
@@ -93,25 +127,25 @@ export default async function SearchPage({ params, searchParams }: Props) {
                   key={specialist.id}
                   className="rounded-3xl border border-white/10 bg-[#151528] p-6"
                 >
-                  <h2 className="text-2xl font-bold mb-2">
+                  <h2 className="mb-2 text-2xl font-bold">
                     {displayName}
                   </h2>
 
                   {category && (
-                    <p className="text-[#86efac] text-sm mb-1">
+                    <p className="mb-1 text-sm text-[#86efac]">
                       {category}
                       {subcategory ? ` • ${subcategory}` : ""}
                     </p>
                   )}
 
                   {specialist.city && (
-                    <p className="text-gray-400 text-sm mb-4">
+                    <p className="mb-4 text-sm text-gray-400">
                       {specialist.city}
                     </p>
                   )}
 
                   {specialist.description && (
-                    <p className="text-gray-300 text-sm mb-6 line-clamp-3">
+                    <p className="mb-6 line-clamp-3 text-sm text-gray-300">
                       {specialist.description}
                     </p>
                   )}
