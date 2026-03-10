@@ -1,139 +1,102 @@
 import Link from "next/link"
+import { prisma } from "@/lib/prisma"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
-import { prisma } from "@/lib/prisma"
-import { categories } from "@/lib/constants"
 
 interface Props {
-  params: Promise<{
-    locale: string
-    categorySlug: string
-    subcategorySlug: string
-  }>
+params: Promise<{
+locale: string
+categorySlug: string
+subcategorySlug: string
+}>
 }
 
 export default async function SubcategoryPage({ params }: Props) {
-  const { locale, categorySlug, subcategorySlug } = await params
+const { locale, categorySlug, subcategorySlug } = await params
 
-  const category = categories.find((c) => c.slug === categorySlug)
-  const subcategory = category?.subcategories.find(
-    (s) => s.slug === subcategorySlug
-  )
+const specialists = await prisma.specialist.findMany({
+where: {
+isVerified: true,
+categoryId: categorySlug,
+subcategoryId: subcategorySlug,
+},
+include: {
+user: true,
+},
+orderBy: {
+createdAt: "desc",
+},
+})
 
-  const specialists = await prisma.specialist.findMany({
-    where: {
-      verified: true,
-      SpecialistCategory: {
-        some: {
-          Subcategory: {
-            slug: subcategorySlug,
-          },
-        },
-      },
-    },
-    include: {
-      user: true,
-      SpecialistCategory: {
-        include: {
-          Category: true,
-          Subcategory: true,
-        },
-      },
-    },
-  })
+return ( <main className="min-h-screen bg-[#0D0D1A] text-white"> <ProZonaHeader locale={locale} />
 
-  return (
-    <main className="min-h-screen bg-[#0D0D1A] text-white">
-      <ProZonaHeader locale={locale} />
+```
+  <section className="mx-auto max-w-6xl px-4 py-10">
+    <Link
+      href={`/${locale}/categories/${categorySlug}`}
+      className="mb-6 inline-flex text-sm text-[#1DB954] hover:underline"
+    >
+      ← Назад към категорията
+    </Link>
 
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <div className="mb-6 text-sm text-gray-400">
-          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">
-            Начало
-          </Link>
+    <h1 className="mb-8 text-3xl font-bold">
+      Специалисти в {subcategorySlug}
+    </h1>
 
-          <span className="mx-2">/</span>
+    {specialists.length === 0 ? (
+      <div className="rounded-2xl border border-white/10 bg-[#151528] p-6 text-gray-300">
+        Няма намерени специалисти.
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {specialists.map((specialist) => {
+          const image =
+            specialist.images?.[0] || specialist.user?.image || null
 
-          <Link
-            href={`/${locale}/categories/${categorySlug}`}
-            className="text-[#1DB954] hover:underline"
-          >
-            {category?.name}
-          </Link>
+          const name =
+            specialist.businessName || specialist.user?.name || "Специалист"
 
-          <span className="mx-2">/</span>
+          return (
+            <Link
+              key={specialist.id}
+              href={`/${locale}/specialists/${specialist.id}`}
+              className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
+            >
+              <div className="mb-4">
+                {image ? (
+                  <img
+                    src={image}
+                    alt={name}
+                    className="h-40 w-full rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className="flex h-40 w-full items-center justify-center rounded-xl bg-[#23233A] text-4xl font-bold text-[#1DB954]">
+                    {name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
 
-          <span className="text-white">{subcategory?.name}</span>
-        </div>
+              <h2 className="mb-2 text-xl font-semibold">{name}</h2>
 
-        <h1 className="mb-10 text-4xl font-bold">
-          {subcategory?.name}
-        </h1>
+              {specialist.city && (
+                <p className="mb-2 text-sm text-gray-400">
+                  {specialist.city}
+                </p>
+              )}
 
-        {specialists.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-[#151528] p-10 text-center">
-            <h2 className="mb-3 text-2xl font-bold">
-              Все още няма специалисти
-            </h2>
+              <p className="line-clamp-3 text-sm text-gray-300">
+                {specialist.description || "Няма добавено описание."}
+              </p>
+            </Link>
+          )
+        })}
+      </div>
+    )}
+  </section>
 
-            <p className="text-gray-400">
-              Скоро тук ще се появят специалисти за тази услуга.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {specialists.map((specialist) => {
-              const mainCategory =
-                specialist.SpecialistCategory[0]?.Category?.name
+  <ProZonaFooter locale={locale} />
+</main>
+```
 
-              const subCategory =
-                specialist.SpecialistCategory[0]?.Subcategory?.name
-
-              const displayName =
-                specialist.businessName ||
-                specialist.user?.name ||
-                "Специалист"
-
-              return (
-                <div
-                  key={specialist.id}
-                  className="rounded-3xl border border-white/10 bg-[#151528] p-6"
-                >
-                  <h2 className="mb-2 text-2xl font-bold">{displayName}</h2>
-
-                  {mainCategory && (
-                    <p className="text-sm text-[#86efac] mb-1">
-                      {mainCategory}
-                      {subCategory ? ` • ${subCategory}` : ""}
-                    </p>
-                  )}
-
-                  {specialist.city && (
-                    <p className="text-sm text-gray-400 mb-4">
-                      {specialist.city}
-                    </p>
-                  )}
-
-                  {specialist.description && (
-                    <p className="text-sm text-gray-300 mb-6 line-clamp-3">
-                      {specialist.description}
-                    </p>
-                  )}
-
-                  <Link
-                    href={`/${locale}/specialists/${specialist.id}`}
-                    className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-4 py-2 font-semibold text-black hover:bg-[#1ed760]"
-                  >
-                    Виж профил
-                  </Link>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </section>
-
-      <ProZonaFooter locale={locale} />
-    </main>
-  )
+)
 }

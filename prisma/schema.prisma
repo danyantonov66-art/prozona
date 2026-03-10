@@ -1,125 +1,140 @@
-import Image from "next/image"
-import { prisma } from "@/lib/prisma"
-import { notFound } from "next/navigation"
-
-interface Props {
-  params: Promise<{
-    id: string
-    locale: string
-  }>
+generator client {
+  provider = "prisma-client-js"
 }
 
-export default async function SpecialistPage({ params }: Props) {
-  const { id, locale } = await params
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-  const specialist = await prisma.specialist.findUnique({
-    where: { id },
-    include: {
-      user: true,
-      SpecialistCategory: {
-        include: {
-          Category: true,
-        },
-      },
-      GalleryImage: {
-        orderBy: {
-          isPrimary: "desc",
-        },
-        take: 1,
-      },
-    },
-  })
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  if (!specialist) return notFound()
+  accounts    Account[]
+  sessions    Session[]
+  specialist  Specialist?
+  inquiries   Inquiry[]
+  reviews     Review[]
+  favorites   Favorite[]
+}
 
-  const profileImage =
-    specialist.user?.image ||
-    specialist.user?.avatar ||
-    specialist.GalleryImage?.[0]?.imageUrl ||
-    null
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: specialist.businessName || specialist.user?.name || "Специалист",
-    description: specialist.description || "",
-    url: `https://prozona.bg/${locale}/specialists/${specialist.id}`,
-    telephone: specialist.phone || specialist.user?.phone || "",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: specialist.city || "",
-      addressCountry: "BG",
-    },
-    areaServed: {
-      "@type": "City",
-      name: specialist.city || "",
-    },
-    image: profileImage || undefined,
-    serviceType:
-      specialist.SpecialistCategory?.map((item) => item.Category?.name).filter(Boolean) || [],
-    provider: {
-      "@type": "Person",
-      name: specialist.user?.name || specialist.businessName || "Специалист",
-    },
-  }
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  return (
-    <main className="mx-auto max-w-5xl px-4 py-10 text-white">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+  @@unique([provider, providerAccountId])
+}
 
-      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-start">
-        <div className="shrink-0">
-          {profileImage ? (
-            <Image
-              src={profileImage}
-              alt={specialist.businessName || specialist.user?.name || "Специалист"}
-              width={160}
-              height={160}
-              className="h-40 w-40 rounded-2xl object-cover border border-white/10"
-              unoptimized
-            />
-          ) : (
-            <div className="flex h-40 w-40 items-center justify-center rounded-2xl border border-white/10 bg-[#1A1A2E] text-4xl font-bold text-[#1DB954]">
-              {(specialist.businessName || specialist.user?.name || "С")
-                .charAt(0)
-                .toUpperCase()}
-            </div>
-          )}
-        </div>
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
 
-        <div className="flex-1">
-          <h1 className="mb-4 text-3xl font-bold">
-            {specialist.businessName || specialist.user?.name}
-          </h1>
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-          <p className="mb-6 text-gray-300">
-            {specialist.description || "Няма добавено описание."}
-          </p>
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-          <div className="space-y-2 text-gray-400">
-            {specialist.city && <p>Град: {specialist.city}</p>}
-            {(specialist.phone || specialist.user?.phone) && (
-              <p>Телефон: {specialist.phone || specialist.user?.phone}</p>
-            )}
-            {specialist.user?.name && <p>Име: {specialist.user.name}</p>}
-          </div>
-        </div>
-      </div>
+  @@unique([identifier, token])
+}
 
-      {specialist.SpecialistCategory?.length > 0 && (
-        <div className="mt-6">
-          <h2 className="mb-2 text-xl font-semibold">Услуги</h2>
+model Specialist {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  businessName String?
+  categoryId   String?
+  subcategoryId String?
+  description  String?
+  city         String?
+  phone        String?
+  experience   Int?
+  rating       Float    @default(0)
+  reviewCount  Int      @default(0)
+  isVerified   Boolean  @default(false)
+  isApproved   Boolean  @default(false)
+  isPremium    Boolean  @default(false)
+  credits      Int      @default(0)
+  images       String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-          <ul className="ml-5 list-disc space-y-1 text-gray-300">
-            {specialist.SpecialistCategory.map((item) => (
-              <li key={item.id}>{item.Category?.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </main>
-  )
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inquiries Inquiry[]
+  reviews   Review[]
+  favorites Favorite[]
+}
+
+model Inquiry {
+  id           String   @id @default(cuid())
+  specialistId String
+  userId       String?
+  name         String
+  email        String
+  phone        String?
+  message      String
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  user       User?      @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  specialistId String
+  userId       String
+  rating       Int
+  comment      String?
+  response     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+}
+
+model Favorite {
+  id           String   @id @default(cuid())
+  userId       String
+  specialistId String
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, specialistId])
+}
+
+model CategorySuggestion {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  reason    String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
 }

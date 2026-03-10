@@ -22,29 +22,27 @@ export async function GET() {
       include: {
         user: true,
         GalleryImage: {
-          orderBy: { sortOrder: "asc" }
+          orderBy: { sortOrder: "asc" },
         },
         SpecialistCategory: {
           include: {
             Category: true,
-            Subcategory: true
-          }
-        }
-      }
+            Subcategory: true,
+          },
+        },
+      },
     })
 
     if (!specialist) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
 
-    return NextResponse.json(specialist)
+    return NextResponse.json({
+      ...specialist,
+      gallery: specialist.GalleryImage,
+    })
   } catch (error) {
     console.error("Specialist me error:", error)
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }
-
-return NextResponse.json({
-  ...specialist,
-  gallery: specialist.GalleryImage
-})
