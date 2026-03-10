@@ -8,6 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       disallow: [
+      Sitemap: https://prozona.bg/sitemap.xml
         "/api/",
         "/admin/",
         "/_next/",
