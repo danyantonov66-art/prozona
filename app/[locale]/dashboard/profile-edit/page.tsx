@@ -25,7 +25,7 @@ export default async function ProfileEditPage({ params }: Props) {
     where: { userId },
     include: {
       user: true,
-      GalleryImage: true
+      galleryImages: true
     }
   })
 
