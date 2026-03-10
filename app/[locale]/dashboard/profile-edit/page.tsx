@@ -23,10 +23,9 @@ export default async function ProfileEditPage({ params }: Props) {
 
   const specialist = await prisma.specialist.findUnique({
     where: { userId },
-    include: {
-      user: true,
-      galleryImages: true
-    }
+   include: {
+  user: true,
+  }
   })
 
   if (!specialist) {
