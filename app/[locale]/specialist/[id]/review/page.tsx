@@ -5,7 +5,6 @@ import { redirect, notFound } from "next/navigation"
 
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
-import ReviewForm from "@/components/reviews/ReviewForm"
 
 interface Props {
   params: Promise<{
@@ -50,9 +49,7 @@ export default async function ReviewPage({ params }: Props) {
   }
 
   const specialistName =
-    specialist.businessName ||
-    specialist.user?.name ||
-    "Специалист"
+    specialist.businessName || specialist.user?.name || "Специалист"
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
@@ -60,20 +57,15 @@ export default async function ReviewPage({ params }: Props) {
 
       <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="rounded-2xl border border-white/10 bg-[#151528] p-8">
-
-          <h1 className="text-2xl font-bold text-white mb-2">
+          <h1 className="mb-2 text-2xl font-bold text-white">
             Напишете отзив за
           </h1>
 
-          <p className="text-xl text-[#1DB954] mb-6">
-            {specialistName}
-          </p>
+          <p className="mb-6 text-xl text-[#1DB954]">{specialistName}</p>
 
-          <ReviewForm
-            specialistId={id}
-            specialistName={specialistName}
-          />
-
+          <div className="rounded-xl border border-white/10 bg-[#0D0D1A] p-6 text-gray-300">
+            Формата за отзив временно не е налична.
+          </div>
         </div>
       </div>
 
