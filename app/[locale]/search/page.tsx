@@ -25,25 +25,23 @@ export default async function SearchPage({ params, searchParams }: Props) {
         { businessName: { contains: q || "", mode: "insensitive" } },
         { description: { contains: q || "", mode: "insensitive" } },
         {
-          SpecialistCategory: {
-            some: {
-              OR: [
-                {
-                  Category: {
-                    name: { contains: q || "", mode: "insensitive" },
-                  },
-                },
-                {
-                  Subcategory: {
-                    name: { contains: q || "", mode: "insensitive" },
-                  },
-                },
-              ],
-            },
-          },
+         categories: {
+          some: {
+         OR: [
+           {
+          category: {
+            name: { contains: q || "", mode: "insensitive" }
+          }
         },
-      ],
-      city: city || undefined,
+        {
+              subcategory: {
+               name: { contains: q || "", mode: "insensitive" }
+          }
+        }
+      ]
+    }
+  }
+}      city: city || undefined,
     },
     include: {
       user: true,
