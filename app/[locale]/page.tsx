@@ -1,3 +1,4 @@
+import PopularCities from "@/components/PopularCities"
 import SearchBar from "@/components/SearchBar"
 import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
@@ -123,6 +124,7 @@ export default async function Home({ params }: Props) {
             </Link>
           ))}
         </div>
+       <PopularCities locale={locale} />
 
         <div className="mt-8 text-center">
           <Link
