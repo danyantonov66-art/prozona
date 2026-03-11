@@ -1,7 +1,7 @@
 import Link from "next/link"
-import { prisma } from "@/lib/prisma"
-import ProZonaHeader from "@/components/header/ProZonaHeader"
-import ProZonaFooter from "@/components/footer/ProZonaFooter"
+import { prisma } from "../../../../../lib/prisma"
+import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
+import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 
 interface Props {
   params: Promise<{
