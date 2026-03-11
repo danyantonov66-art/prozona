@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
-        isVerified: !existing.verified,
+        isVerified: !existing.isVerified,
       },
     })
 
