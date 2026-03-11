@@ -1,4 +1,4 @@
-﻿import Link from "next/link"
+import Link from "next/link"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../components/footer/ProZonaFooter"
 import { prisma } from "../../../lib/prisma"
@@ -14,7 +14,7 @@ export default async function SpecialistsPage({ params }: Props) {
 
   const specialists = await prisma.specialist.findMany({
     where: {
-      isVerified: true,
+      verified: true,
     },
     include: {
       user: true,
@@ -39,7 +39,7 @@ export default async function SpecialistsPage({ params }: Props) {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {specialists.map((specialist) => {
               const image =
-                specialist.images?.[0] || specialist.user?.image || null
+                specialist.user?.image || null
 
               const name =
                 specialist.businessName ||

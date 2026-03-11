@@ -6,7 +6,6 @@ import { prisma } from "../../../../lib/prisma"
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -20,39 +19,34 @@ export async function POST(request: NextRequest) {
 
     const specialist = await prisma.specialist.findUnique({
       where: { userId },
+      include: { GalleryImage: true },
     })
 
     if (!specialist) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
 
-    if (type === "gallery" && (specialist.images?.length || 0) >= 5) {
+    if (type === "gallery" && (specialist.GalleryImage?.length || 0) >= 5) {
       return NextResponse.json(
         { error: "Gallery limit reached" },
         { status: 400 }
       )
     }
 
-    if (type === "gallery") {
-      const updated = await prisma.specialist.update({
-        where: { userId },
-        data: {
-          images: {
-            set: [...(specialist.images || []), imageUrl],
-          },
-        },
-      })
+    const isPrimary = type !== "gallery" || specialist.GalleryImage.length === 0
 
-      return NextResponse.json({ success: true, specialist: updated })
-    }
-
-    const updated = await prisma.specialist.update({
-      where: { userId },
+    await prisma.galleryImage.create({
       data: {
-        images: {
-          set: [imageUrl, ...(specialist.images || [])],
-        },
+        specialistId: specialist.id,
+        imageUrl,
+        isPrimary,
+        sortOrder: specialist.GalleryImage.length,
       },
+    })
+
+    const updated = await prisma.specialist.findUnique({
+      where: { userId },
+      include: { GalleryImage: true },
     })
 
     return NextResponse.json({ success: true, specialist: updated })

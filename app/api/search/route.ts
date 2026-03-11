@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     const specialists = await prisma.specialist.findMany({
       where: {
-        isVerified: true,
+        verified: true,
         city: city || undefined,
         OR: [
           {
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         name: specialist.businessName || specialist.user?.name || "Специалист",
         city: specialist.city,
         description: specialist.description,
-        image: specialist.images?.[0] || specialist.user?.image || null,
+        image: specialist.user?.image || null,
       }))
     )
   } catch (error) {

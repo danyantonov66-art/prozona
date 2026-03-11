@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 export async function GET() {
   try {
     const specialists = await prisma.specialist.findMany({
-      where: { isVerified: false },
+      where: { verified: false },
       include: {
         user: true,
       },

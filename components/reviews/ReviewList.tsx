@@ -11,7 +11,7 @@ interface Review {
   response: string | null
   responseAt: string | null
   createdAt: string
-  isVerified: boolean
+  verified: boolean
   client: {
     name: string
     avatar?: string
@@ -67,7 +67,7 @@ export default function ReviewList({ reviews, specialistId, specialistUserId }: 
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-white font-semibold">{review.client.name}</span>
-                {review.isVerified && (
+                {review.verified && (
                   <span className="bg-green-500/20 text-green-500 text-xs px-2 py-0.5 rounded-full">
                     ✓ Верифициран клиент
                   </span>

@@ -28,7 +28,7 @@ export default async function SpecialistPage({ params }: Props) {
     specialist.businessName || specialist.user?.name || "Специалист"
 
   const image =
-    specialist.images?.[0] || specialist.user?.image || null
+    specialist.user?.image || null
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
@@ -69,10 +69,10 @@ export default async function SpecialistPage({ params }: Props) {
                   </p>
                 )}
 
-                {specialist.experience && (
+                {specialist.experienceYears && (
                   <p className="mb-2 text-gray-300">
                     <span className="font-semibold text-white">Опит:</span>{" "}
-                    {specialist.experience}
+                    {specialist.experienceYears}
                   </p>
                 )}
 

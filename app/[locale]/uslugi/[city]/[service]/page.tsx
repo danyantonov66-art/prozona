@@ -20,7 +20,7 @@ export default async function ServiceCityPage({ params }: Props) {
 
   const specialists = await prisma.specialist.findMany({
     where: {
-      isVerified: true,
+      verified: true,
       city: decodedCity,
       OR: [
         {
@@ -85,7 +85,7 @@ export default async function ServiceCityPage({ params }: Props) {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {specialists.map((specialist) => {
               const image =
-                specialist.images?.[0] || specialist.user?.image || null
+                specialist.user?.image || null
 
               const name =
                 specialist.businessName ||

@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
 
     const existing = await prisma.specialist.findUnique({
       where: { id },
-      select: { id: true, isVerified: true },
+      select: { id: true, verified: true },
     })
 
     if (!existing) {
@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
-        isVerified: !existing.isVerified,
+        verified: !existing.verified,
       },
     })
 

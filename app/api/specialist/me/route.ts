@@ -6,7 +6,6 @@ import { prisma } from "../../../../lib/prisma"
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -17,6 +16,7 @@ export async function GET() {
       where: { userId },
       include: {
         user: true,
+        GalleryImage: true,
       },
     })
 
@@ -26,7 +26,7 @@ export async function GET() {
 
     return NextResponse.json({
       ...specialist,
-      gallery: specialist.images || [],
+      gallery: specialist.GalleryImage || [],
     })
   } catch (error) {
     console.error("Specialist me error:", error)

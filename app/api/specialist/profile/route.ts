@@ -7,14 +7,12 @@ import { categories } from "../../../../lib/constants"
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const userId = (session.user as any)?.id
     const body = await request.json()
-
     const {
       businessName,
       description,
@@ -33,35 +31,26 @@ export async function POST(request: NextRequest) {
     }
 
     const selectedCategory = categories.find((c: any) => c.id === categoryId)
-
     if (!selectedCategory) {
-      return NextResponse.json(
-        { error: "Invalid category" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Invalid category" }, { status: 400 })
     }
 
     const selectedSubcategory = selectedCategory.subcategories?.find(
       (s: any) => s.id === subcategoryId
     )
-
     if (!selectedSubcategory) {
-      return NextResponse.json(
-        { error: "Invalid subcategory" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Invalid subcategory" }, { status: 400 })
     }
 
+    // Find or create category
     let categoryRecord = await prisma.category.findUnique({
       where: { slug: selectedCategory.slug },
     })
-
     if (!categoryRecord) {
       categoryRecord = await prisma.category.findUnique({
         where: { name: selectedCategory.name },
       })
     }
-
     if (!categoryRecord) {
       categoryRecord = await prisma.category.create({
         data: {
@@ -69,26 +58,20 @@ export async function POST(request: NextRequest) {
           slug: selectedCategory.slug,
           description: selectedCategory.description || selectedCategory.name,
           icon: selectedCategory.icon || null,
+          updatedAt: new Date(),
         },
       })
     }
 
+    // Find or create subcategory
     let subcategoryRecord = await prisma.subcategory.findFirst({
-      where: {
-        categoryId: categoryRecord.id,
-        slug: selectedSubcategory.id,
-      },
+      where: { categoryId: categoryRecord.id, slug: selectedSubcategory.id },
     })
-
     if (!subcategoryRecord) {
       subcategoryRecord = await prisma.subcategory.findFirst({
-        where: {
-          categoryId: categoryRecord.id,
-          name: selectedSubcategory.name,
-        },
+        where: { categoryId: categoryRecord.id, name: selectedSubcategory.name },
       })
     }
-
     if (!subcategoryRecord) {
       subcategoryRecord = await prisma.subcategory.create({
         data: {
@@ -96,47 +79,49 @@ export async function POST(request: NextRequest) {
           name: selectedSubcategory.name,
           slug: selectedSubcategory.id,
           description: selectedSubcategory.name,
+          updatedAt: new Date(),
         },
       })
     }
 
-    const existing = await prisma.specialist.findUnique({
-      where: { userId },
-    })
+    const specialistData = {
+      businessName: businessName || null,
+      description,
+      city,
+      phone,
+      experienceYears: experience || null,
+      verified: false,
+    }
+
+    const existing = await prisma.specialist.findUnique({ where: { userId } })
 
     const specialist = existing
       ? await prisma.specialist.update({
           where: { userId },
-          data: {
-            businessName: businessName || null,
-            description,
-            city,
-            phone,
-            experience: experience || null,
-            categoryId: categoryRecord.id,
-            subcategoryId: subcategoryRecord.id,
-            isVerified: false,
-          },
-          include: {
-            user: true,
-          },
+          data: specialistData,
+          include: { user: true },
         })
       : await prisma.specialist.create({
-          data: {
-            userId,
-            businessName: businessName || null,
-            description,
-            city,
-            phone,
-            experience: experience || null,
-            categoryId: categoryRecord.id,
-            subcategoryId: subcategoryRecord.id,
-            isVerified: false,
-          },
-          include: {
-            user: true,
-          },
+          data: { userId, ...specialistData },
+          include: { user: true },
         })
+
+    // Upsert SpecialistCategory relation
+    await prisma.specialistCategory.upsert({
+      where: {
+        specialistId_categoryId_subcategoryId: {
+          specialistId: specialist.id,
+          categoryId: categoryRecord.id,
+          subcategoryId: subcategoryRecord.id,
+        },
+      },
+      update: {},
+      create: {
+        specialistId: specialist.id,
+        categoryId: categoryRecord.id,
+        subcategoryId: subcategoryRecord.id,
+      },
+    })
 
     return NextResponse.json({ success: true, specialist })
   } catch (error) {

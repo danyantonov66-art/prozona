@@ -4,13 +4,14 @@ import { prisma } from "../../../lib/prisma"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-
     const {
       specialistId,
       name,
       email,
       phone,
       message,
+      city,
+      categoryId,
     } = body
 
     if (!specialistId || !name || !email || !message) {
@@ -24,6 +25,10 @@ export async function POST(request: NextRequest) {
       where: { id: specialistId },
       include: {
         user: true,
+        SpecialistCategory: {
+          include: { Category: true },
+          take: 1,
+        },
       },
     })
 
@@ -34,14 +39,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const resolvedCategoryId =
+      categoryId ??
+      specialist.SpecialistCategory?.[0]?.categoryId ??
+      1
+
+    const resolvedCity = city ?? specialist.city ?? ""
+
     const inquiry = await prisma.inquiry.create({
       data: {
         specialistId: specialist.id,
-        categoryId: specialist.categoryId ?? null,
-        clientName: name,
-        clientEmail: email,
-        clientPhone: phone || null,
+        name,
+        email,
+        phone: phone || null,
         message,
+        city: resolvedCity,
+        categoryId: resolvedCategoryId,
         status: "PENDING",
       },
     })

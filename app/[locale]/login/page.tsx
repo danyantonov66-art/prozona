@@ -28,7 +28,7 @@ export default function LoginPage() {
         setError('Грешен email или парола')
       } else {
         const session = await getSession()
-        const role = session?.user?.role
+        const role = (session?.user as any)?.role
         if (role === 'SPECIALIST') {
           router.push('/bg/specialist/dashboard')
         } else if (role === 'ADMIN') {

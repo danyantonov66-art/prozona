@@ -16,9 +16,17 @@ export default async function SubcategoryPage({ params }: Props) {
 
   const specialists = await prisma.specialist.findMany({
     where: {
-      isVerified: true,
-      categoryId: categorySlug,
-      subcategoryId: subcategorySlug,
+      verified: true,
+      SpecialistCategory: {
+        some: {
+          Category: {
+            slug: categorySlug,
+          },
+          Subcategory: {
+            slug: subcategorySlug,
+          },
+        },
+      },
     },
     include: {
       user: true,
@@ -31,7 +39,6 @@ export default async function SubcategoryPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
-
       <section className="mx-auto max-w-6xl px-4 py-10">
         <Link
           href={`/${locale}/categories/${categorySlug}`}
@@ -39,11 +46,9 @@ export default async function SubcategoryPage({ params }: Props) {
         >
           ← Назад към категорията
         </Link>
-
         <h1 className="mb-8 text-3xl font-bold">
           Специалисти в {subcategorySlug}
         </h1>
-
         {specialists.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-6 text-gray-300">
             Няма намерени специалисти.
@@ -51,14 +56,11 @@ export default async function SubcategoryPage({ params }: Props) {
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {specialists.map((specialist) => {
-              const image =
-                specialist.images?.[0] || specialist.user?.image || null
-
-              const name =
+              const image =specialist.user?.image || null
+                const name =
                 specialist.businessName ||
                 specialist.user?.name ||
                 "Специалист"
-
               return (
                 <Link
                   key={specialist.id}
@@ -78,18 +80,14 @@ export default async function SubcategoryPage({ params }: Props) {
                       </div>
                     )}
                   </div>
-
                   <h2 className="mb-2 text-xl font-semibold">{name}</h2>
-
                   {specialist.city && (
                     <p className="mb-2 text-sm text-gray-400">
                       {specialist.city}
                     </p>
                   )}
-
                   <p className="line-clamp-3 text-sm text-gray-300">
-                    {specialist.description ||
-                      "Няма добавено описание."}
+                    {specialist.description || "Няма добавено описание."}
                   </p>
                 </Link>
               )
@@ -97,7 +95,6 @@ export default async function SubcategoryPage({ params }: Props) {
           </div>
         )}
       </section>
-
       <ProZonaFooter locale={locale} />
     </main>
   )

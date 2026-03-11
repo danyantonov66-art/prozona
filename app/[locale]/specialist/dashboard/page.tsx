@@ -51,7 +51,7 @@ export default async function SpecialistDashboardPage({ params }: Props) {
               </p>
               <p>
                 <span className="font-semibold text-white">Статус:</span>{" "}
-                {specialist.isVerified ? "Верифициран" : "Чака одобрение"}
+                {specialist.verified ? "Верифициран" : "Чака одобрение"}
               </p>
             </div>
           )}
