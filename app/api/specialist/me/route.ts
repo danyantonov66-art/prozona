@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { authOptions } from "../../../../lib/auth"
+import { prisma } from "../../../../lib/prisma"
 
 export async function GET() {
   try {
@@ -13,23 +13,10 @@ export async function GET() {
 
     const userId = (session.user as any)?.id
 
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
     const specialist = await prisma.specialist.findUnique({
       where: { userId },
       include: {
         user: true,
-        GalleryImage: {
-          orderBy: { sortOrder: "asc" },
-        },
-        SpecialistCategory: {
-          include: {
-            Category: true,
-            Subcategory: true,
-          },
-        },
       },
     })
 
@@ -39,10 +26,10 @@ export async function GET() {
 
     return NextResponse.json({
       ...specialist,
-      gallery: specialist.GalleryImage,
+      gallery: specialist.images || [],
     })
   } catch (error) {
     console.error("Specialist me error:", error)
-    return NextResponse.json({ error: "Server error" }, { status: 500 })
+    return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }

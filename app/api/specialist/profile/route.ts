@@ -179,7 +179,7 @@ export async function POST(request: Request) {
         city,
         serviceAreas: [city],
         phone: phone || null,
-        verified: false,
+        isVerified: false,
         SpecialistCategory: {
           create: {
             categoryId: categoryRecord.id,
