@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
 
     const existing = await prisma.specialist.findUnique({
       where: { id },
-      select: { id: true, verified: true },
+      select: { id: true, isVerified: true },
     })
 
     if (!existing) {
@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
-        verified: !existing.verified,
+        isVerified: !existing.verified,
       },
     })
 
