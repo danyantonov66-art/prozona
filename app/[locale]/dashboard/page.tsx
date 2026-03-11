@@ -1,8 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
 import { getServerSession } from "next-auth"
-
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -12,7 +10,7 @@ interface Props {
   }>
 }
 
-export default async function ProfileEditPage({ params }: Props) {
+export default async function DashboardPage({ params }: Props) {
   const { locale } = await params
 
   const session = await getServerSession(authOptions)
@@ -21,161 +19,93 @@ export default async function ProfileEditPage({ params }: Props) {
   }
 
   const userId = (session.user as any)?.id
+  const role = (session.user as any)?.role
 
-  const specialist = await prisma.specialist.findUnique({
-    where: { userId },
-    include: {
-      user: true,
-    },
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { specialist: true },
   })
 
-  if (!specialist) {
-    redirect(`/${locale}/dashboard`)
+  if (!user) {
+    redirect(`/${locale}/login`)
   }
 
-  async function updateProfile(formData: FormData) {
-    "use server"
-
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      redirect(`/${locale}/login`)
-    }
-
-    const userId = (session.user as any)?.id
-
-    const name = String(formData.get("name") || "").trim()
-    const businessName = String(formData.get("businessName") || "").trim()
-    const city = String(formData.get("city") || "").trim()
-    const phone = String(formData.get("phone") || "").trim()
-    const description = String(formData.get("description") || "").trim()
-
-    const currentSpecialist = await prisma.specialist.findUnique({
-      where: { userId },
-    })
-
-    if (!currentSpecialist) {
-      redirect(`/${locale}/dashboard`)
-    }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        name,
-      },
-    })
-
-    await prisma.specialist.update({
-      where: { userId },
-      data: {
-        businessName,
-        city,
-        phone,
-        description,
-      },
-    })
-
-    revalidatePath(`/${locale}/dashboard`)
-    revalidatePath(`/${locale}/dashboard/profile-edit`)
-    revalidatePath(`/${locale}/specialist/${currentSpecialist.id}`)
-
-    redirect(`/${locale}/dashboard`)
-  }
+  const specialist = user.specialist
 
   return (
     <main className="min-h-screen bg-[#0B1220] text-white">
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Редакция на профила</h1>
-          <p className="mt-2 text-gray-400">
-            Обнови основната информация за публичния си профил.
-          </p>
-        </div>
+      <div className="mx-auto max-w-5xl px-4 py-10">
+        <h1 className="mb-2 text-3xl font-bold">Моето табло</h1>
+        <p className="mb-8 text-gray-400">
+          Добре дошъл, {user.name || user.email}!
+        </p>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <form action={updateProfile} className="space-y-5">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-300">
-                Име
-              </label>
-              <input
-                type="text"
-                name="name"
-                defaultValue={specialist.user?.name || ""}
-                className="w-full rounded-xl border border-white/10 bg-[#0F172A] px-4 py-3 text-white outline-none transition focus:border-[#1DB954]"
-              />
-            </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Profile */}
+          <Link
+            href={`/${locale}/dashboard/profile-edit`}
+            className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-[#1DB954]/40 hover:bg-white/10"
+          >
+            <div className="mb-3 text-2xl">👤</div>
+            <h2 className="text-lg font-semibold">Профил</h2>
+            <p className="mt-1 text-sm text-gray-400">Редактирай личната си информация</p>
+          </Link>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-300">
-                Име на бизнес / профил
-              </label>
-              <input
-                type="text"
-                name="businessName"
-                defaultValue={specialist.businessName || ""}
-                className="w-full rounded-xl border border-white/10 bg-[#0F172A] px-4 py-3 text-white outline-none transition focus:border-[#1DB954]"
-              />
-            </div>
+          {/* Inquiries */}
+          <Link
+            href={`/${locale}/dashboard/inquiries`}
+            className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-[#1DB954]/40 hover:bg-white/10"
+          >
+            <div className="mb-3 text-2xl">📩</div>
+            <h2 className="text-lg font-semibold">Запитвания</h2>
+            <p className="mt-1 text-sm text-gray-400">Виж изпратените запитвания</p>
+          </Link>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-300">
-                Град
-              </label>
-              <input
-                type="text"
-                name="city"
-                defaultValue={specialist.city || ""}
-                className="w-full rounded-xl border border-white/10 bg-[#0F172A] px-4 py-3 text-white outline-none transition focus:border-[#1DB954]"
-              />
-            </div>
+          {/* Favorites */}
+          <Link
+            href={`/${locale}/dashboard/favorites`}
+            className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-[#1DB954]/40 hover:bg-white/10"
+          >
+            <div className="mb-3 text-2xl">❤️</div>
+            <h2 className="text-lg font-semibold">Любими</h2>
+            <p className="mt-1 text-sm text-gray-400">Запазени специалисти</p>
+          </Link>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-300">
-                Телефон
-              </label>
-              <input
-                type="text"
-                name="phone"
-                defaultValue={specialist.phone || ""}
-                className="w-full rounded-xl border border-white/10 bg-[#0F172A] px-4 py-3 text-white outline-none transition focus:border-[#1DB954]"
-              />
-            </div>
+          {/* Specialist dashboard */}
+          {specialist && (
+            <Link
+              href={`/${locale}/specialist/dashboard`}
+              className="rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/10 p-5 transition hover:border-[#1DB954]/60 hover:bg-[#1DB954]/20"
+            >
+              <div className="mb-3 text-2xl">🛠️</div>
+              <h2 className="text-lg font-semibold">Табло на специалист</h2>
+              <p className="mt-1 text-sm text-gray-400">Управлявай своя профил на специалист</p>
+            </Link>
+          )}
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-300">
-                Описание
-              </label>
-              <textarea
-                name="description"
-                rows={6}
-                defaultValue={specialist.description || ""}
-                className="w-full rounded-xl border border-white/10 bg-[#0F172A] px-4 py-3 text-white outline-none transition focus:border-[#1DB954]"
-              />
-            </div>
+          {/* Become specialist */}
+          {!specialist && (
+            <Link
+              href={`/${locale}/become-specialist`}
+              className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-[#1DB954]/40 hover:bg-white/10"
+            >
+              <div className="mb-3 text-2xl">🚀</div>
+              <h2 className="text-lg font-semibold">Стани специалист</h2>
+              <p className="mt-1 text-sm text-gray-400">Регистрирай се като специалист</p>
+            </Link>
+          )}
 
-            <div className="flex flex-wrap gap-3 pt-2">
-              <button
-                type="submit"
-                className="inline-flex items-center rounded-lg bg-[#1DB954] px-5 py-2.5 font-medium text-white transition hover:opacity-90"
-              >
-                Запази промените
-              </button>
-
-              <Link
-                href={`/${locale}/dashboard`}
-                className="inline-flex items-center rounded-lg border border-gray-600 px-5 py-2.5 text-gray-300 transition hover:bg-gray-700"
-              >
-                Назад към таблото
-              </Link>
-
-              <Link
-                href={`/${locale}/specialist/${specialist.id}`}
-                className="inline-flex items-center rounded-lg border border-white/10 px-5 py-2.5 text-gray-300 transition hover:bg-white/10"
-              >
-                Виж публичния профил
-              </Link>
-            </div>
-          </form>
+          {/* Admin */}
+          {role === "ADMIN" && (
+            <Link
+              href={`/${locale}/admin`}
+              className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-5 transition hover:border-yellow-500/60"
+            >
+              <div className="mb-3 text-2xl">⚙️</div>
+              <h2 className="text-lg font-semibold">Администрация</h2>
+              <p className="mt-1 text-sm text-gray-400">Управлявай платформата</p>
+            </Link>
+          )}
         </div>
       </div>
     </main>
