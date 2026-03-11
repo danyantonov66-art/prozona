@@ -1,15 +1,14 @@
+const path = require("path")
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'utfs.io',
-      },
-    ],
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      "@": path.resolve(__dirname),
+    }
+    return config
   },
-  // Ако имаш специфични настройки за i18n, добави ги тук
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
