@@ -37,15 +37,6 @@ export async function POST(request: Request) {
       }
     })
 
-    if (role === 'CLIENT' || !role) {
-      await prisma.clientProfile.create({
-        data: {
-          id: user.id,
-          userId: user.id,
-        }
-      })
-    }
-
     return NextResponse.json(
       { message: 'Успешна регистрация', user: { id: user.id, email: user.email, name: user.name } },
       { status: 201 }
