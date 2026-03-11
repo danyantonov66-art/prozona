@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { categories } from "@/lib/constants"
+import { authOptions } from "../../../lib/auth"
+import { prisma } from "../../../lib/prisma"
+import { categories } from "../../../lib/constants"
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -13,67 +13,33 @@ export async function POST(request: Request) {
     }
 
     const userId = (session.user as any)?.id
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
     const body = await request.json()
+
     const { categoryId, businessName, city, phone, description } = body ?? {}
 
     if (!categoryId) {
       return NextResponse.json(
-        { error: "Липсва категория" },
+        { error: "Missing categoryId" },
         { status: 400 }
       )
     }
 
-    const existingSpecialist = await prisma.specialist.findUnique({
-      where: { userId }
-    })
-
-    if (existingSpecialist) {
-      return NextResponse.json(
-        { error: "Вече имате профил на специалист" },
-        { status: 400 }
-      )
-    }
-
-    const selectedCategory = categories.find((c) => c.id === categoryId)
+    const selectedCategory = categories.find((c: any) => c.id === categoryId)
 
     if (!selectedCategory) {
       return NextResponse.json(
-        { error: "Невалидна категория" },
-        { status: 404 }
+        { error: "Invalid category" },
+        { status: 400 }
       )
     }
 
-    const categorySlug = selectedCategory.slug
-
     let categoryRecord = await prisma.category.findUnique({
-      where: { slug: categorySlug }
+      where: { slug: selectedCategory.slug },
     })
 
     if (!categoryRecord) {
       categoryRecord = await prisma.category.findUnique({
-        where: { name: selectedCategory.name }
-      })
-    }
-
-    if (categoryRecord && categoryRecord.slug !== categorySlug) {
-      categoryRecord = await prisma.category.update({
-        where: { id: categoryRecord.id },
-        data: {
-          slug: categorySlug,
-          name: selectedCategory.name,
-          description:
-            categoryRecord.description ||
-            selectedCategory.description ||
-            selectedCategory.name,
-          icon: categoryRecord.icon || selectedCategory.icon || null,
-          isActive: true,
-          updatedAt: new Date()
-        }
+        where: { name: selectedCategory.name },
       })
     }
 
@@ -81,59 +47,50 @@ export async function POST(request: Request) {
       categoryRecord = await prisma.category.create({
         data: {
           name: selectedCategory.name,
-          slug: categorySlug,
+          slug: selectedCategory.slug,
           description: selectedCategory.description || selectedCategory.name,
           icon: selectedCategory.icon || null,
-          sortOrder: 0,
-          isActive: true,
-          updatedAt: new Date()
-        }
+        },
       })
     }
 
-    const specialist = await prisma.specialist.create({
-      data: {
-        id: userId,
-        userId,
-        businessName: businessName || null,
-        description: description || null,
-        city: city || null,
-        serviceAreas: city ? [city] : [],
-        phone: phone || null,
-        verified: false,
-        credits: 0,
-        totalCreditsUsed: 0,
-        maxPriceListItems: 0,
-        creditPrice: 2.99,
-        SpecialistCategory: {
-          create: {
-            categoryId: categoryRecord.id
-          }
-        }
-      },
-      include: {
-        user: true,
-        SpecialistCategory: {
-          include: {
-            Category: true,
-            Subcategory: true
-          }
-        }
-      }
+    const existing = await prisma.specialist.findUnique({
+      where: { userId },
     })
 
-    return NextResponse.json(
-      {
-        success: true,
-        specialist
-      },
-      { status: 201 }
-    )
+    const specialist = existing
+      ? await prisma.specialist.update({
+          where: { userId },
+          data: {
+            businessName: businessName || null,
+            city: city || null,
+            phone: phone || null,
+            description: description || null,
+            categoryId: categoryRecord.id,
+            isVerified: false,
+          },
+          include: {
+            user: true,
+          },
+        })
+      : await prisma.specialist.create({
+          data: {
+            userId,
+            businessName: businessName || null,
+            city: city || null,
+            phone: phone || null,
+            description: description || null,
+            categoryId: categoryRecord.id,
+            isVerified: false,
+          },
+          include: {
+            user: true,
+          },
+        })
+
+    return NextResponse.json({ success: true, specialist })
   } catch (error) {
     console.error("Specialist upgrade error:", error)
-    return NextResponse.json(
-      { error: "Failed to upgrade specialist" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed" }, { status: 500 })
   }
 }
