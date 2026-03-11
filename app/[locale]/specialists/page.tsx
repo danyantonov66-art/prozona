@@ -1,7 +1,7 @@
 ﻿import Link from "next/link"
-import ProZonaHeader from "@/components/header/ProZonaHeader"
-import ProZonaFooter from "@/components/footer/ProZonaFooter"
-import { prisma } from "@/lib/prisma"
+import ProZonaHeader from "../../../components/header/ProZonaHeader"
+import ProZonaFooter from "../../../components/footer/ProZonaFooter"
+import { prisma } from "../../../lib/prisma"
 
 interface Props {
   params: Promise<{
@@ -18,12 +18,6 @@ export default async function SpecialistsPage({ params }: Props) {
     },
     include: {
       user: true,
-      SpecialistCategory: {
-        include: {
-          Category: true,
-          Subcategory: true,
-        },
-      },
     },
     orderBy: {
       createdAt: "desc",
@@ -34,114 +28,56 @@ export default async function SpecialistsPage({ params }: Props) {
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
 
-      <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-        <div className="mb-6 text-sm text-gray-400">
-          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">
-            Начало
-          </Link>
-          <span className="mx-2 text-gray-500">/</span>
-          <span className="text-white">Специалисти</span>
-        </div>
-
-        <div className="mb-12">
-          <h1 className="mb-4 text-4xl font-bold md:text-5xl">
-            Намери специалист
-          </h1>
-
-          <p className="max-w-3xl text-lg text-gray-400">
-            Разгледай верифицирани специалисти в ProZona и избери подходящия
-            професионалист за твоята услуга.
-          </p>
-        </div>
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <h1 className="mb-8 text-3xl font-bold">Специалисти</h1>
 
         {specialists.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-[#151528] p-10 text-center">
-            <h2 className="mb-3 text-2xl font-bold text-white">
-              Все още няма публикувани специалисти
-            </h2>
-
-            <p className="mx-auto max-w-2xl text-gray-400">
-              Скоро тук ще се появят първите верифицирани специалисти. Ако
-              предлагаш услуги, създай профил и кандидатствай.
-            </p>
-
-            <div className="mt-6">
-              <Link
-                href={`/${locale}/become-specialist`}
-                className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black transition hover:bg-[#1ed760]"
-              >
-                Стани специалист
-              </Link>
-            </div>
+          <div className="rounded-2xl border border-white/10 bg-[#151528] p-6 text-gray-300">
+            Няма намерени специалисти.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {specialists.map((specialist) => {
-              const mainCategory = specialist.SpecialistCategory[0]?.Category?.name
-              const subcategory = specialist.SpecialistCategory[0]?.Subcategory?.name
-              const displayName =
-                specialist.businessName || specialist.user?.name || "Специалист"
+              const image =
+                specialist.images?.[0] || specialist.user?.image || null
+
+              const name =
+                specialist.businessName ||
+                specialist.user?.name ||
+                "Специалист"
 
               return (
-                <div
+                <Link
                   key={specialist.id}
-                  className="overflow-hidden rounded-3xl border border-white/10 bg-[#151528]"
+                  href={`/${locale}/specialists/${specialist.id}`}
+                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
                 >
-                  <div className="relative h-52 bg-gradient-to-br from-[#1A1A2E] to-[#101522]">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-                    <div className="flex h-full items-center justify-center">
-                      <span className="text-gray-500">ProZona</span>
-                    </div>
-
-                    <div className="absolute bottom-4 left-4">
-                      <span className="inline-flex rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
-                        Верифициран
-                      </span>
-                    </div>
+                  <div className="mb-4">
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={name}
+                        className="h-40 w-full rounded-xl object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-40 w-full items-center justify-center rounded-xl bg-[#23233A] text-4xl font-bold text-[#1DB954]">
+                        {name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="p-6">
-                    <h2 className="mb-2 text-2xl font-bold text-white">
-                      {displayName}
-                    </h2>
+                  <h2 className="mb-2 text-xl font-semibold">{name}</h2>
 
-                    {mainCategory && (
-                      <p className="mb-1 text-sm text-[#86efac]">
-                        {mainCategory}
-                        {subcategory ? ` • ${subcategory}` : ""}
-                      </p>
-                    )}
+                  {specialist.city && (
+                    <p className="mb-2 text-sm text-gray-400">
+                      {specialist.city}
+                    </p>
+                  )}
 
-                    {specialist.city && (
-                      <p className="mb-4 text-sm text-gray-400">
-                        {specialist.city}
-                      </p>
-                    )}
-
-                    {specialist.description && (
-                      <p className="mb-6 line-clamp-3 text-sm text-gray-300">
-                        {specialist.description}
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap gap-3">
-                      <Link
-                        href={`/${locale}/specialists/${specialist.id}`}
-                        className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-4 py-2 font-semibold text-black transition hover:bg-[#1ed760]"
-                      >
-                        Виж профил
-                      </Link>
-
-                      <Link
-                        href={`/${locale}/search?q=${encodeURIComponent(displayName)}`}
-                        className="inline-flex items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-white transition hover:bg-white/10"
-                      >
-                        Подобни услуги
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                  <p className="line-clamp-3 text-sm text-gray-300">
+                    {specialist.description || "Няма добавено описание."}
+                  </p>
+                </Link>
               )
             })}
           </div>
