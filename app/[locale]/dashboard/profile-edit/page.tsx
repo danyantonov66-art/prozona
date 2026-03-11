@@ -1,139 +1,46 @@
-'use client'
-
-import { useState } from 'react'
-import Link from 'next/link'
-import { UploadButton } from '@/lib/uploadthing'
+import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import ProZonaHeader from "@/components/header/ProZonaHeader"
+import ProZonaFooter from "@/components/footer/ProZonaFooter"
+import ProfileEditForm from "./ProfileEditForm"
 
 interface Props {
-  locale: string
-  specialist: {
-    businessName: string
-    description: string
-    city: string
-    phone: string
-    experienceYears: number
-    userName: string
-    userImage: string | null
-  }
+  params: Promise<{ locale: string }>
 }
 
-export default function ProfileEditForm({ locale, specialist }: Props) {
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
-  const [messageType, setMessageType] = useState<'success' | 'error'>('success')
-  const [profileImage, setProfileImage] = useState<string | null>(specialist.userImage)
+export default async function ProfileEditPage({ params }: Props) {
+  const { locale } = await params
+  const session = await getServerSession(authOptions)
+  if (!session) redirect(`/${locale}/login`)
 
-  const [businessName, setBusinessName] = useState(specialist.businessName)
-  const [description, setDescription] = useState(specialist.description)
-  const [city, setCity] = useState(specialist.city)
-  const [phone, setPhone] = useState(specialist.phone)
-  const [experienceYears, setExperienceYears] = useState(specialist.experienceYears?.toString() || '')
+  const userId = (session.user as any).id
+  const specialist = await prisma.specialist.findUnique({
+    where: { userId },
+    include: { user: true },
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setMessage('')
-    try {
-      const res = await fetch('/api/specialist/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessName, description, city, phone, experienceYears: parseInt(experienceYears) || 0 })
-      })
-      if (res.ok) {
-        setMessage('Профилът е обновен успешно!')
-        setMessageType('success')
-      } else {
-        const data = await res.json()
-        setMessage(data.error || 'Грешка при обновяване')
-        setMessageType('error')
-      }
-    } catch {
-      setMessage('Възникна грешка')
-      setMessageType('error')
-    } finally {
-      setSaving(false)
-    }
-  }
+  if (!specialist) redirect(`/${locale}/dashboard`)
 
   return (
-    <div>
-      <Link href={`/${locale}/dashboard`} className="text-[#1DB954] hover:underline mb-6 inline-block">
-        ← Назад към таблото
-      </Link>
-
-      <h1 className="text-3xl font-bold text-white mb-8">Редакция на профил</h1>
-
-      {message && (
-        <div className={`border rounded-lg p-3 mb-4 ${messageType === 'success' ? 'bg-[#1DB954]/10 border-[#1DB954] text-[#1DB954]' : 'bg-red-500/10 border-red-500 text-red-400'}`}>
-          {message}
-        </div>
-      )}
-
-      {/* Profile image */}
-      <div className="bg-[#1A1A2E] rounded-xl p-6 mb-6 border border-white/10">
-        <h2 className="text-white font-semibold mb-4">Профилна снимка</h2>
-        <div className="flex items-center gap-6">
-          <div className="w-24 h-24 bg-[#25253a] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-            {profileImage ? (
-              <img src={profileImage} alt="Профил" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-4xl text-[#1DB954]">{specialist.userName.charAt(0)}</span>
-            )}
-          </div>
-          <UploadButton
-            endpoint="profileImage"
-            onClientUploadComplete={(res) => {
-              if (res?.[0]?.url) setProfileImage(res[0].url)
-              setMessage('Профилната снимка е обновена!')
-              setMessageType('success')
-            }}
-            onUploadError={(error) => {
-              setMessage(error.message || 'Грешка при качване')
-              setMessageType('error')
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-[#1A1A2E] rounded-xl p-6 space-y-4 border border-white/10">
-        <h2 className="text-white font-semibold mb-2">Основна информация</h2>
-
-        <div>
-          <label className="block text-gray-300 mb-2">Име на фирма</label>
-          <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)}
-            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 mb-2">Описание *</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required
-            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 mb-2">Град</label>
-          <input type="text" value={city} onChange={(e) => setCity(e.target.value)}
-            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 mb-2">Телефон</label>
-          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 mb-2">Години опит</label>
-          <input type="number" value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} min="0" max="50"
-            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
-        </div>
-
-        <button type="submit" disabled={saving}
-          className="w-full py-3 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] disabled:opacity-50 font-semibold">
-          {saving ? 'Запазване...' : 'Запази промените'}
-        </button>
-      </form>
-    </div>
+    <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <ProZonaHeader locale={locale} />
+      <section className="mx-auto max-w-2xl px-4 py-10">
+        <ProfileEditForm
+          locale={locale}
+          specialist={{
+            businessName: specialist.businessName || "",
+            description: specialist.description || "",
+            city: specialist.city || "",
+            phone: specialist.phone || "",
+            experienceYears: specialist.experienceYears || 0,
+            userName: specialist.user?.name || "",
+            userImage: specialist.user?.image || null,
+          }}
+        />
+      </section>
+      <ProZonaFooter locale={locale} />
+    </main>
   )
 }
