@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { authOptions } from "../../../../lib/auth"
+import { prisma } from "../../../../lib/prisma"
 
 interface Props {
   params: Promise<{
