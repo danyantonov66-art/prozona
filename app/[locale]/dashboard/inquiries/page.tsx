@@ -31,7 +31,7 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
   console.log('DASHBOARD SPECIALIST:', user?.specialist)
 
   if (!user?.specialist) {
-    redirect(`/${locale}`)
+    redirect(`/${locale}/dashboard`)
   }
 
   const inquiries = await prisma.inquiry.findMany({
