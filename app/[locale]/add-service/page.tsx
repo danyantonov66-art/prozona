@@ -1,8 +1,8 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import ProZonaHeader from '@/components/header/ProZonaHeader'
-import ProZonaFooter from '@/components/footer/ProZonaFooter'
+import ProZonaHeader from "../../../components/header/ProZonaHeader"
+import ProZonaFooter from "../../../components/footer/ProZonaFooter"
 
 export default function AddServicePage() {
   const params = useParams()

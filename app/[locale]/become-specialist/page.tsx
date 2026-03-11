@@ -1,9 +1,9 @@
-"use client"
+﻿"use client"
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { useSession } from "next-auth/react"
-import { categories } from "@/lib/constants"
+import { categories } from "../../../lib/constants"
 
 export default function BecomeSpecialistPage() {
   const { data: session, status } = useSession()

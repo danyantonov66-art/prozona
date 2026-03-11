@@ -1,11 +1,10 @@
-// app/specialist/buy-credits/page.tsx
 'use client';
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import CheckoutButton from '@/components/payment/CheckoutButton';
-import { getDualPrice, isTransitionPeriod } from '@/lib/currency';
+import CheckoutButton from '../../../../components/payment/CheckoutButton';
+import { getDualPrice, isTransitionPeriod } from '../../../../lib/currency';
 
 export default function BuyCreditsPage() {
   const { data: session, status } = useSession();
@@ -82,7 +81,6 @@ export default function BuyCreditsPage() {
           Планове и кредити
         </h1>
 
-        {/* Абонаменти */}
         <section className="mb-16">
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Месечни абонаменти</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
@@ -121,7 +119,6 @@ export default function BuyCreditsPage() {
           </div>
         </section>
 
-        {/* Кредитни пакети */}
         <section>
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Кредитни пакети</h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -163,7 +160,6 @@ export default function BuyCreditsPage() {
           </div>
         </section>
 
-        {/* Информация за преходния период */}
         {showBothCurrencies && (
           <div className="mt-8 bg-blue-500/10 border border-blue-500 text-blue-500 rounded-lg p-4 text-center">
             <p className="text-sm">
