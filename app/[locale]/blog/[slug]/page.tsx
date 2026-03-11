@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import ProZonaHeader from "@/components/header/ProZonaHeader"
-import ProZonaFooter from "@/components/footer/ProZonaFooter"
-import { blogPosts, getPostBySlug } from "@/lib/blog"
+import ProZonaHeader from "../../../../components/header/ProZonaHeader"
+import ProZonaFooter from "../../../../components/footer/ProZonaFooter"
+import { blogPosts, getPostBySlug } from "../../../../lib/blog"
 
 interface Props {
   params: Promise<{
