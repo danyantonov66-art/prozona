@@ -112,6 +112,13 @@ export default function ProZonaHeader({ locale = 'bg' }: HeaderProps) {
               >
                 BG
               </Link>
+              <span className="text-gray-600">|</span>
+              <Link
+                href={pathname?.replace(/^\/[a-z]{2}/, '/en') || '/en'}
+                className={`px-2 py-1 text-sm rounded ${currentLocale === 'en' ? 'text-[#1DB954] font-semibold' : 'text-gray-400 hover:text-white'}`}
+              >
+                EN
+              </Link>
             </div>
 
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
