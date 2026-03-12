@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const existing = await prisma.specialist.findUnique({ where: { userId } })
     const specialist = existing
       ? await prisma.specialist.update({ where: { userId }, data: specialistData, include: { user: true } })
-      : await prisma.specialist.create({ data: { userId, ...specialistData }, include: { user: true } })
+      : await prisma.specialist.create({ data: { userId, ...specialistData, credits: 20 }, include: { user: true } })
 
     await prisma.specialistCategory.upsert({
       where: { specialistId_categoryId_subcategoryId: { specialistId: specialist.id, categoryId: categoryRecord.id, subcategoryId: subcategoryRecord.id } },

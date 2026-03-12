@@ -42,12 +42,13 @@ export async function POST(request: Request) {
       line_items: [
         {
           price_data: {
-            currency: 'bgn',
+            currency: 'eur',
             product_data: {
               name: `ProZona – ${plan.name}`,
               description: `${plan.credits} кредита за ProZona`,
             },
-            unit_amount: amountBgn,
+            unit_amount: Math.round(plan.priceEur * 100),
+
           },
           quantity: 1,
         },
