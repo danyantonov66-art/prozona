@@ -1,66 +1,43 @@
 'use client'
-
 import { useState } from 'react'
-import { loadStripe } from '@stripe/stripe-js'
 
 type Props = {
   specialistId?: string
-  plan?: 'basic' | 'pro'
   planType?: string
+  price?: number
+  credits?: number
   label?: string
   className?: string
 }
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '')
-
 export default function CheckoutButton({
-  specialistId,
-  plan,
   planType,
+  price,
+  credits,
   label = 'Плати',
   className = '',
 }: Props) {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const resolvedPlan: 'basic' | 'pro' = plan ?? (planType === 'pro' ? 'pro' : 'basic')
-
   const handleCheckout = async () => {
     setLoading(true)
     setErrorMsg(null)
-
     try {
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ specialistId, plan: resolvedPlan }),
+        body: JSON.stringify({ planType, price, credits }),
       })
-
-      const data: { sessionId?: string; error?: string } = await res.json()
-
+      const data = await res.json()
       if (!res.ok) {
         setErrorMsg(data?.error || 'Грешка при създаване на checkout сесия.')
         return
       }
-
-      if (!data?.sessionId) {
-        setErrorMsg('Липсва sessionId от сървъра.')
-        return
-      }
-
-      const stripe = await stripePromise
-      if (!stripe) {
-        setErrorMsg('Stripe не можа да се зареди.')
-        return
-      }
-
-      // FIX: заобикаля TS конфликт, който при теб вижда грешен тип Stripe
-      const { error } = await (stripe as any).redirectToCheckout({
-        sessionId: data.sessionId,
-      })
-
-      if (error) {
-        setErrorMsg(error.message || 'Stripe checkout грешка.')
+      if (data?.url) {
+        window.location.href = data.url
+      } else {
+        setErrorMsg('Липсва URL от сървъра.')
       }
     } catch {
       setErrorMsg('Неуспешна заявка. Опитай отново.')
@@ -79,7 +56,6 @@ export default function CheckoutButton({
       >
         {loading ? 'Обработва се…' : label}
       </button>
-
       {errorMsg && <p className="mt-2 text-sm text-red-500">{errorMsg}</p>}
     </div>
   )
