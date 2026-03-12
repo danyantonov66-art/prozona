@@ -24,7 +24,7 @@ function NotificationBell({ locale }: { locale: string }) {
     }
 
     fetchCount()
-    const interval = setInterval(fetchCount, 30000) // Обновява на 30 сек
+    const interval = setInterval(fetchCount, 30000)
     return () => clearInterval(interval)
   }, [])
 
@@ -63,20 +63,10 @@ export default function ProZonaHeader({ locale = 'bg' }: HeaderProps) {
       login: "Вход",
       register: "Регистрация",
       logout: "Изход"
-    },
-    en: {
-      categories: "Categories",
-      howItWorks: "How it works",
-      forSpecialists: "For specialists",
-      pricing: "Pricing",
-      dashboard: "My dashboard",
-      login: "Log in",
-      register: "Sign up",
-      logout: "Log out"
     }
   }
 
-  const t = translations[currentLocale as keyof typeof translations] || translations.bg
+  const t = translations.bg
 
   return (
     <header className="border-b border-gray-800 bg-[#0D0D1A] overflow-x-clip">
@@ -105,22 +95,6 @@ export default function ProZonaHeader({ locale = 'bg' }: HeaderProps) {
           </nav>
 
           <div className="ml-auto flex min-w-0 items-center gap-2 sm:ml-0">
-            <div className="flex shrink-0 items-center gap-2">
-              <Link
-                href={pathname?.replace(/^\/[a-z]{2}/, '/bg') || '/bg'}
-                className={`px-2 py-1 text-sm rounded ${currentLocale === 'bg' ? 'text-[#1DB954] font-semibold' : 'text-gray-400 hover:text-white'}`}
-              >
-                BG
-              </Link>
-              <span className="text-gray-600">|</span>
-              <Link
-                href={pathname?.replace(/^\/[a-z]{2}/, '/en') || '/en'}
-                className={`px-2 py-1 text-sm rounded ${currentLocale === 'en' ? 'text-[#1DB954] font-semibold' : 'text-gray-400 hover:text-white'}`}
-              >
-                EN
-              </Link>
-            </div>
-
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               {status === 'loading' ? (
                 <span className="text-sm text-gray-400">Зареждане...</span>
