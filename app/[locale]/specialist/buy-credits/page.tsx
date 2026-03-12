@@ -109,7 +109,7 @@ export default function BuyCreditsPage() {
                     ))}
                   </ul>
                   <CheckoutButton
-                    planType={pkg.id}
+                     planType={pkg.id}
                     label={`Абонирай се за ${price.eur}`}
                     className="w-full px-4 py-3 bg-[#1DB954] text-white rounded-lg hover:bg-[#169b43] transition-colors"
                   />
