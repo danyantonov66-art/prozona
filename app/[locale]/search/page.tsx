@@ -21,7 +21,6 @@ export default async function SearchPage({ params, searchParams }: Props) {
 
   const specialists = await prisma.specialist.findMany({
     where: {
-      verified: true,
       ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
       OR: [
         {

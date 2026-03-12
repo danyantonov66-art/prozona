@@ -1,9 +1,17 @@
-"use client"
+﻿"use client"
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { useSession } from "next-auth/react"
 import { categories } from "../../../lib/constants"
+
+const BULGARIAN_CITIES = [
+  "София", "Пловдив", "Варна", "Бургас", "Русе", "Стара Загора",
+  "Плевен", "Сливен", "Добрич", "Шумен", "Перник", "Хасково",
+  "Ямбол", "Пазарджик", "Благоевград", "Велико Търново", "Враца",
+  "Габрово", "Асеновград", "Видин", "Казанлък", "Кюстендил",
+  "Монтана", "Силистра", "Ловеч", "Търговище", "Разград", "Смолян"
+]
 
 export default function BecomeSpecialistPage() {
   const { data: session, status } = useSession()
@@ -30,20 +38,11 @@ export default function BecomeSpecialistPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) {
     const { name, value } = e.target
-
     setForm((prev) => {
       if (name === "categoryId") {
-        return {
-          ...prev,
-          categoryId: value,
-          subcategoryId: ""
-        }
+        return { ...prev, categoryId: value, subcategoryId: "" }
       }
-
-      return {
-        ...prev,
-        [name]: value
-      }
+      return { ...prev, [name]: value }
     })
   }
 
@@ -56,9 +55,7 @@ export default function BecomeSpecialistPage() {
     try {
       const res = await fetch("/api/specialist/profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
       })
 
@@ -68,15 +65,8 @@ export default function BecomeSpecialistPage() {
         throw new Error(data.error || "Нещо се обърка")
       }
 
-      setSuccess("Заявката е изпратена успешно.")
-      setForm({
-        businessName: "",
-        categoryId: "",
-        subcategoryId: "",
-        description: "",
-        city: "",
-        phone: ""
-      })
+      setSuccess("Заявката е изпратена успешно. Ще получиш имейл за потвърждение.")
+      setForm({ businessName: "", categoryId: "", subcategoryId: "", description: "", city: "", phone: "" })
     } catch (err: any) {
       setError(err.message || "Възникна проблем при изпращането.")
     } finally {
@@ -104,11 +94,9 @@ export default function BecomeSpecialistPage() {
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               Трябва да сте влезли в профила си
             </h1>
-
             <p className="text-gray-400 mb-8">
               За да подадете заявка като специалист, първо влезте в профила си.
             </p>
-
             <Link
               href="/bg/login"
               className="inline-flex items-center justify-center bg-[#1DB954] text-black font-semibold px-6 py-3 rounded-xl hover:bg-[#1ed760] transition"
@@ -134,17 +122,13 @@ export default function BecomeSpecialistPage() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Стани специалист в ProZona
           </h1>
-
           <p className="text-gray-400 mb-8">
-            Попълни формата, за да публикуваш услугите си и да започнеш да получаваш
-            запитвания от клиенти.
+            Попълни формата, за да публикуваш услугите си и да започнеш да получаваш запитвания от клиенти.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Име на фирма или бранд
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Име на фирма или бранд</label>
               <input
                 type="text"
                 name="businessName"
@@ -156,9 +140,7 @@ export default function BecomeSpecialistPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Категория *
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Категория *</label>
               <select
                 name="categoryId"
                 value={form.categoryId}
@@ -168,17 +150,13 @@ export default function BecomeSpecialistPage() {
               >
                 <option value="">Изберете категория</option>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
+                  <option key={category.id} value={category.id}>{category.name}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Подкатегория *
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Подкатегория *</label>
               <select
                 name="subcategoryId"
                 value={form.subcategoryId}
@@ -189,17 +167,13 @@ export default function BecomeSpecialistPage() {
               >
                 <option value="">Изберете подкатегория</option>
                 {subcategories.map((subcategory) => (
-                  <option key={subcategory.id} value={subcategory.id}>
-                    {subcategory.name}
-                  </option>
+                  <option key={subcategory.id} value={subcategory.id}>{subcategory.name}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Описание на услугите *
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Описание на услугите *</label>
               <textarea
                 name="description"
                 value={form.description}
@@ -212,24 +186,23 @@ export default function BecomeSpecialistPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Град *
-              </label>
-              <input
-                type="text"
+              <label className="block text-sm text-gray-300 mb-2">Град *</label>
+              <select
                 name="city"
                 value={form.city}
                 onChange={handleChange}
                 required
-                placeholder="Пример: София"
                 className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
-              />
+              >
+                <option value="">Изберете град</option>
+                {BULGARIAN_CITIES.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Телефон за връзка *
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Телефон за връзка *</label>
               <input
                 type="text"
                 name="phone"

@@ -1,18 +1,16 @@
-import { NextRequest, NextResponse } from "next/server"
+﻿import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { sendSpecialistApprovedEmail } from "@/lib/email"
 
 interface Props {
-  params: Promise<{
-    id: string
-  }>
+  params: Promise<{ id: string }>
 }
 
 export async function PATCH(request: NextRequest, { params }: Props) {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session || (session.user as any)?.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -21,20 +19,23 @@ export async function PATCH(request: NextRequest, { params }: Props) {
 
     const specialist = await prisma.specialist.update({
       where: { id },
-      data: {
-        verified: true,
-      },
+      data: { verified: true },
+      include: { user: true },
     })
 
-    return NextResponse.json({
-      success: true,
-      specialist,
-    })
+    // Изпрати имейл до специалиста
+    try {
+      await sendSpecialistApprovedEmail({
+        specialistEmail: specialist.user?.email || '',
+        specialistName: specialist.user?.name || 'Специалист',
+      })
+    } catch (emailError) {
+      console.error('Email error:', emailError)
+    }
+
+    return NextResponse.json({ success: true, specialist })
   } catch (error) {
     console.error("Approve specialist error:", error)
-    return NextResponse.json(
-      { error: "Failed to approve specialist" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to approve specialist" }, { status: 500 })
   }
 }

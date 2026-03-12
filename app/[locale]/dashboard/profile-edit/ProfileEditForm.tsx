@@ -17,12 +17,19 @@ interface Props {
   }
 }
 
+const BULGARIAN_CITIES = [
+  "София", "Пловдив", "Варна", "Бургас", "Русе", "Стара Загора",
+  "Плевен", "Сливен", "Добрич", "Шумен", "Перник", "Хасково",
+  "Ямбол", "Пазарджик", "Благоевград", "Велико Търново", "Враца",
+  "Габрово", "Асеновград", "Видин", "Казанлък", "Кюстендил",
+  "Монтана", "Силистра", "Ловеч", "Търговище", "Разград", "Смолян"
+]
+
 export default function ProfileEditForm({ locale, specialist }: Props) {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState<'success' | 'error'>('success')
   const [profileImage, setProfileImage] = useState<string | null>(specialist.userImage)
-
   const [businessName, setBusinessName] = useState(specialist.businessName)
   const [description, setDescription] = useState(specialist.description)
   const [city, setCity] = useState(specialist.city)
@@ -58,7 +65,7 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
   return (
     <div>
       <Link href={`/${locale}/dashboard`} className="text-[#1DB954] hover:underline mb-6 inline-block">
-        ← Назад към таблото
+        Назад към таблото
       </Link>
 
       <h1 className="text-3xl font-bold text-white mb-8">Редакция на профил</h1>
@@ -69,7 +76,6 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
         </div>
       )}
 
-      {/* Profile image */}
       <div className="bg-[#1A1A2E] rounded-xl p-6 mb-6 border border-white/10">
         <h2 className="text-white font-semibold mb-4">Профилна снимка</h2>
         <div className="flex items-center gap-6">
@@ -95,7 +101,6 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
         </div>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="bg-[#1A1A2E] rounded-xl p-6 space-y-4 border border-white/10">
         <h2 className="text-white font-semibold mb-2">Основна информация</h2>
 
@@ -113,8 +118,16 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
 
         <div>
           <label className="block text-gray-300 mb-2">Град</label>
-          <input type="text" value={city} onChange={(e) => setCity(e.target.value)}
-            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
+          <select
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
+          >
+            <option value="">Изберете град</option>
+            {BULGARIAN_CITIES.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
 
         <div>

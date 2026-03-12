@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "../../../../lib/auth"
 import { prisma } from "../../../../lib/prisma"
 import { categories } from "../../../../lib/constants"
+import { sendNewSpecialistNotification, sendSpecialistRegistrationConfirmation } from "../../../../lib/email"
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +56,26 @@ export async function POST(request: NextRequest) {
       update: {},
       create: { specialistId: specialist.id, categoryId: categoryRecord.id, subcategoryId: subcategoryRecord.id },
     })
+
+    // Изпрати имейли само при нова регистрация
+    if (!existing) {
+      try {
+        await sendNewSpecialistNotification({
+          specialistName: specialist.user?.name || 'Непознат',
+          specialistEmail: specialist.user?.email || '',
+          city,
+          category: selectedCategory.name,
+          specialistId: specialist.id,
+        })
+        await sendSpecialistRegistrationConfirmation({
+          specialistEmail: specialist.user?.email || '',
+          specialistName: specialist.user?.name || 'Специалист',
+        })
+      } catch (emailError) {
+        console.error('Email error:', emailError)
+        // Не спираме ако имейлът се провали
+      }
+    }
 
     return NextResponse.json({ success: true, specialist })
   } catch (error) {
