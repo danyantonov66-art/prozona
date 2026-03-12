@@ -4,7 +4,7 @@ import { authOptions } from '../../../../lib/auth'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20.clover',
+  apiVersion: '2026-02-25.clover' as any,
 })
 
 const PLANS: Record<string, { name: string; priceEur: number; credits: number; mode: 'payment' | 'subscription' }> = {
