@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         planType,
         credits: plan.credits,
       },
-      success_url: `${appUrl}/bg/specialist/buy-credits?success=1&credits=${plan.credits}`,
+      success_url: `${appUrl}/bg/specialist/dashboard?success=1`,
       cancel_url: `${appUrl}/bg/specialist/buy-credits?cancelled=1`,
     })
 
