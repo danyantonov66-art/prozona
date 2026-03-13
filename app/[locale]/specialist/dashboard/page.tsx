@@ -23,6 +23,7 @@ export default async function SpecialistDashboardPage({ params }: Props) {
       GalleryImage: true,
       inquiries: { where: { status: "PENDING" }, take: 1 },
       reviews: { take: 1 },
+      PriceListItem: { take: 1 },
     },
   })
 
@@ -30,10 +31,38 @@ export default async function SpecialistDashboardPage({ params }: Props) {
 
   const name = specialist.businessName || specialist.user?.name || "Специалист"
 
+  const hasGallery = specialist.GalleryImage.length > 0
+  const onboardingSteps = [
+    { done: !!specialist.user?.image, label: "Добави профилна снимка", href: `/${locale}/specialist/profile/edit` },
+    { done: hasGallery, label: "Добави снимки в галерията", href: `/${locale}/specialist/gallery` },
+    { done: specialist.PriceListItem?.length > 0, label: "Добави ценова листа", href: `/${locale}/specialist/prices` },
+  ]
+  const completedSteps = onboardingSteps.filter((s) => s.done).length
+
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
       <section className="mx-auto max-w-5xl px-4 py-10">
+
+        {/* Onboarding */}
+        {completedSteps < 3 && (
+          <div className="mb-8 rounded-2xl border border-[#1DB954]/20 bg-gradient-to-r from-[#1DB954]/10 to-[#151528] p-6">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-[#1DB954]">Добре дошъл в ProZona! 👋</div>
+            <h2 className="mb-1 text-xl font-bold">Настрой профила си</h2>
+            <p className="mb-4 text-sm text-gray-400">{completedSteps} от 3 стъпки завършени</p>
+            <div className="mb-4 h-2 w-full rounded-full bg-white/10">
+              <div className="h-2 rounded-full bg-[#1DB954] transition-all" style={{ width: `${(completedSteps / 3) * 100}%` }} />
+            </div>
+            <div className="space-y-2">
+              {onboardingSteps.map((step, i) => (
+                <a key={i} href={step.href} className="flex items-center gap-3 rounded-xl border border-white/5 bg-[#0D0D1A]/60 px-4 py-3 transition hover:border-[#1DB954]/30">
+                  <span className={`text-lg ${step.done ? "text-[#1DB954]" : "text-gray-500"}`}>{step.done ? "✅" : "⬜"}</span>
+                  <span className={step.done ? "text-gray-400 line-through" : "text-white"}>{i + 1}. {step.label}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
