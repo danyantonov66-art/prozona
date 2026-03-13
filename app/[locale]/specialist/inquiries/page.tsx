@@ -5,16 +5,21 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import InquiryActions from './InquiryActions'
 
-export default async function SpecialistInquiriesPage() {
+interface Props {
+  params: Promise<{ locale: string }>
+}
+
+export default async function SpecialistInquiriesPage({ params }: Props) {
+  const { locale } = await params
   const session = await getServerSession(authOptions)
 
-  if (!session) redirect('/login')
+  if (!session) redirect(`/${locale}/login`)
 
   const specialist = await prisma.specialist.findUnique({
-    where: { userId: session.user.id }
+    where: { userId: (session.user as any).id }
   })
 
-  if (!specialist) redirect('/become-specialist')
+  if (!specialist) redirect(`/${locale}/become-specialist`)
 
   const inquiries = await prisma.inquiry.findMany({
     where: { specialistId: specialist.id },
@@ -25,17 +30,13 @@ export default async function SpecialistInquiriesPage() {
     <div className="min-h-screen bg-[#0D0D1A] py-8 px-4">
       <div className="container mx-auto max-w-4xl">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-white">Получени запитвания</h1>
-          <Link href="/specialist/dashboard" className="text-[#1DB954] hover:underline">
-            Назад към таблото
+          <div>
+            <h1 className="text-3xl font-bold text-white">Получени запитвания</h1>
+            <p className="text-sm text-gray-400 mt-1">Общо: {inquiries.length}</p>
+          </div>
+          <Link href={`/${locale}/specialist/dashboard`} className="text-[#1DB954] hover:underline">
+            ← Към таблото
           </Link>
-        </div>
-
-        <div className="bg-[#1DB954]/10 border border-[#1DB954]/30 rounded-lg p-4 mb-6">
-          <p className="text-[#1DB954] font-semibold mb-1">ProZona е напълно безплатна за вас!</p>
-          <p className="text-gray-300 text-sm">
-            През първите 3 месеца всички функции са безплатни.
-          </p>
         </div>
 
         {inquiries.length === 0 ? (
@@ -51,13 +52,14 @@ export default async function SpecialistInquiriesPage() {
                   <div>
                     <h3 className="text-white font-semibold text-lg">{inquiry.name}</h3>
                     <p className="text-gray-400 text-sm">
-                      {new Date(inquiry.createdAt).toLocaleDateString('bg-BG', {
-                        day: 'numeric', month: 'long', year: 'numeric'
+                      {new Date(inquiry.createdAt).toLocaleString('bg-BG', {
+                        day: 'numeric', month: 'long', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
                       })}
                     </p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    inquiry.status === 'PENDING' ? 'bg-[#1DB954] text-white' :
+                    inquiry.status === 'PENDING' ? 'bg-[#1DB954]/20 text-[#1DB954]' :
                     inquiry.status === 'VIEWED' ? 'bg-yellow-500/20 text-yellow-400' :
                     inquiry.status === 'REPLIED' ? 'bg-blue-500/20 text-blue-400' :
                     'bg-gray-700 text-gray-400'
@@ -67,11 +69,17 @@ export default async function SpecialistInquiriesPage() {
                      inquiry.status === 'REPLIED' ? 'Отговорено' : inquiry.status}
                   </span>
                 </div>
-                <p className="text-gray-300 mb-4 whitespace-pre-line">{inquiry.message}</p>
-                <div className="flex gap-4 text-sm text-gray-400 mb-2 flex-wrap">
+
+                <div className="mb-3 rounded-xl border border-white/5 bg-[#0D0D1A] px-4 py-3">
+                  <p className="text-gray-300 whitespace-pre-line">{inquiry.message}</p>
+                </div>
+
+                <div className="flex gap-4 text-sm text-gray-400 mb-4 flex-wrap">
                   <span>📧 {inquiry.email}</span>
                   {inquiry.phone && <span>📞 {inquiry.phone}</span>}
+                  {inquiry.city && <span>📍 {inquiry.city}</span>}
                 </div>
+
                 <InquiryActions inquiryId={inquiry.id} status={inquiry.status} />
               </div>
             ))}
