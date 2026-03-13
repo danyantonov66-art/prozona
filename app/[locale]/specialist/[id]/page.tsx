@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
+import InquiryButton from "@/components/InquiryButton"
 
 interface Props {
   params: Promise<{
@@ -78,6 +79,7 @@ export default async function SpecialistPage({ params }: Props) {
                     {specialist.serviceAreas.join(", ")}
                   </p>
                 )}
+                <InquiryButton specialistId={specialist.id} specialistName={name} />
 
                 <div className="mt-6">
                   <h2 className="mb-3 text-xl font-semibold">Описание</h2>
