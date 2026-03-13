@@ -2,7 +2,6 @@
 import { notFound } from "next/navigation"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
-import InquiryButton from "@/components/InquiryButton"
 
 interface Props {
   params: Promise<{
@@ -86,8 +85,6 @@ export default async function SpecialistPage({ params }: Props) {
                     {specialist.description || "Няма добавено описание."}
                   </p>
                 </div>
-
-                <InquiryButton specialistId={specialist.id} specialistName={name} />
               </div>
             </div>
           </div>
