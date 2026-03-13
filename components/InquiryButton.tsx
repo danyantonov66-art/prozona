@@ -2,6 +2,12 @@
 
 import { useState } from "react"
 
+const BULGARIAN_CITIES = [
+  "София", "Пловдив", "Варна", "Бургас", "Русе", "Стара Загора",
+  "Плевен", "Сливен", "Добрич", "Шумен", "Враца", "Хасково",
+  "Благоевград", "Велико Търново", "Габрово", "Пазарджик",
+]
+
 interface Props {
   specialistId: string
   specialistName: string
@@ -12,9 +18,15 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" })
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+    city: "",
+  })
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
@@ -28,12 +40,16 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
       const res = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, specialistId }),
+        body: JSON.stringify({
+          ...form,
+          specialistId,
+          categoryId: 1,
+        }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || "Нещо се обърка")
       setSuccess("Запитването е изпратено успешно!")
-      setForm({ name: "", email: "", phone: "", message: "" })
+      setForm({ name: "", email: "", phone: "", message: "", city: "" })
     } catch (err: any) {
       setError(err.message || "Възникна проблем")
     } finally {
@@ -73,7 +89,7 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
                   onChange={handleChange}
                   required
                   placeholder="Вашето име"
-                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50"
                 />
                 <input
                   name="email"
@@ -82,15 +98,27 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
                   onChange={handleChange}
                   required
                   placeholder="Имейл"
-                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50"
                 />
                 <input
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
                   placeholder="Телефон (незадължително)"
-                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50"
                 />
+                <select
+                  name="city"
+                  value={form.city}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50"
+                >
+                  <option value="">Изберете град *</option>
+                  {BULGARIAN_CITIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
                 <textarea
                   name="message"
                   value={form.message}
@@ -98,7 +126,7 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
                   required
                   rows={4}
                   placeholder="Опишете от какво имате нужда..."
-                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50 resize-none"
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50 resize-none"
                 />
                 {error && (
                   <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300">
