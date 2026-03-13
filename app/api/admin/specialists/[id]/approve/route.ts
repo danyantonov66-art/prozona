@@ -1,4 +1,4 @@
-п»їimport { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -8,7 +8,7 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-export async function PATCH(request: NextRequest, { params }: Props) {
+export async function POST(request: NextRequest, { params }: Props) {
   try {
     const session = await getServerSession(authOptions)
     if (!session || (session.user as any)?.role !== "ADMIN") {
@@ -23,11 +23,11 @@ export async function PATCH(request: NextRequest, { params }: Props) {
       include: { user: true },
     })
 
-    // РР·РїСЂР°С‚Рё РёРјРµР№Р» РґРѕ СЃРїРµС†РёР°Р»РёСЃС‚Р°
+    // Изпрати имейл до специалиста
     try {
       await sendSpecialistApprovedEmail({
         specialistEmail: specialist.user?.email || '',
-        specialistName: specialist.user?.name || 'РЎРїРµС†РёР°Р»РёСЃС‚',
+        specialistName: specialist.user?.name || 'Специалист',
       })
     } catch (emailError) {
       console.error('Email error:', emailError)
