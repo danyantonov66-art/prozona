@@ -13,10 +13,10 @@ const BULGARIAN_CITIES = [
 ]
 
 const CATEGORIES = [
-  { id: 1, name: "Ремонти и майстори" },
-  { id: 2, name: "Почистване" },
-  { id: 3, name: "Монтаж и дребни услуги" },
-  { id: 4, name: "Градина и двор" },
+  { id: 9, name: "Ремонти и майстори" },
+  { id: 11, name: "Почистване" },
+  { id: 12, name: "Монтаж и дребни услуги" },
+  { id: 8, name: "Градина и двор" },
 ]
 
 export default function RequestPage() {
