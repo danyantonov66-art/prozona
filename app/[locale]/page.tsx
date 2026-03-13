@@ -77,8 +77,60 @@ export default async function Home({ params }: Props) {
             Пример: ВиК, почистване, хамали, косене, София
           </div>
           <p className="mt-3 text-sm text-gray-500">
-           Платформата стартира през 2026 и изгражда мрежа от специалисти в България.
-           </p>
+            Платформата стартира през 2026 и изгражда мрежа от специалисти в България.
+          </p>
+        </div>
+      </section>
+
+      {/* EARLY SPECIALIST PROGRAM */}
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <div className="relative overflow-hidden rounded-2xl border border-[#1DB954]/20 bg-gradient-to-r from-[#1DB954]/10 to-[#151528] p-8">
+          <div className="absolute right-6 top-6 rounded-full border border-[#1DB954]/30 bg-[#1DB954]/10 px-3 py-1 text-xs font-semibold text-[#1DB954]">
+            Ограничено
+          </div>
+
+          <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#1DB954]">
+            Early Specialist Program
+          </div>
+
+          <h2 className="mb-2 text-2xl font-bold text-white md:text-3xl">
+            Първите 200 специалисти получават:
+          </h2>
+
+          <p className="mb-6 text-sm text-gray-400">
+            Регистрирай се сега и се възползвай от предимствата на ранната програма.
+          </p>
+
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-[#0D0D1A]/60 p-4">
+              <span className="text-2xl">⭐</span>
+              <div>
+                <p className="font-semibold text-white">Premium профил</p>
+                <p className="text-sm text-gray-400">Безплатно за 6 месеца</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-[#0D0D1A]/60 p-4">
+              <span className="text-2xl">🔝</span>
+              <div>
+                <p className="font-semibold text-white">По-висока позиция</p>
+                <p className="text-sm text-gray-400">В резултатите от търсенето</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-[#0D0D1A]/60 p-4">
+              <span className="text-2xl">📩</span>
+              <div>
+                <p className="font-semibold text-white">Ранни заявки</p>
+                <p className="text-sm text-gray-400">От клиенти преди останалите</p>
+              </div>
+            </div>
+          </div>
+
+          <Link
+            href={`/${locale}/become-specialist`}
+            className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black transition hover:bg-[#1ed760]"
+          >
+            Присъедини се сега →
+          </Link>
         </div>
       </section>
 
@@ -127,7 +179,7 @@ export default async function Home({ params }: Props) {
             </Link>
           ))}
         </div>
-       <PopularCities locale={locale} />
+        <PopularCities locale={locale} />
 
         <div className="mt-8 text-center">
           <Link
