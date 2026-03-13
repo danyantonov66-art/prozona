@@ -15,20 +15,17 @@ const featuredPosts = [
   {
     slug: "kak-da-izberesh-maistor-za-remont",
     title: "Как да избереш майстор за ремонт без излишен риск",
-    excerpt:
-      "Най-важните неща, които да провериш преди да наемеш майстор за дома си.",
+    excerpt: "Най-важните неща, които да провериш преди да наемеш майстор за дома си.",
   },
   {
     slug: "kolko-struva-domashnoto-pochistvane-v-sofia",
     title: "Колко струва домашното почистване в София",
-    excerpt:
-      "Ориентировъчни цени и какво влияе върху крайната стойност на услугата.",
+    excerpt: "Ориентировъчни цени и какво влияе върху крайната стойност на услугата.",
   },
   {
     slug: "hamalski-uslugi-koga-si-zasluzhava",
     title: "Хамалски услуги: кога си заслужава да наемеш професионален екип",
-    excerpt:
-      "Кога професионалните хамали спестяват време, риск и излишни разходи.",
+    excerpt: "Кога професионалните хамали спестяват време, риск и излишни разходи.",
   },
 ]
 
@@ -42,10 +39,7 @@ export default async function Home({ params }: Props) {
       <div className="bg-[#1A1A2E] px-4 py-2 text-center text-white">
         <p className="text-sm">
           Регистрацията е безплатна — намери майстор или стани специалист. Безплатният план е завинаги!
-          <Link
-            href={`/${locale}/how-it-works`}
-            className="ml-2 font-semibold text-[#1DB954] hover:underline"
-          >
+          <Link href={`/${locale}/how-it-works`} className="ml-2 font-semibold text-[#1DB954] hover:underline">
             Виж как работи →
           </Link>
         </p>
@@ -76,7 +70,19 @@ export default async function Home({ params }: Props) {
           <div className="mt-6 text-sm text-gray-400">
             Пример: ВиК, почистване, хамали, косене, София
           </div>
-          <p className="mt-3 text-sm text-gray-500">
+
+          {/* CTA за клиенти */}
+          <div className="mt-6">
+            <Link
+              href={`/${locale}/request`}
+              className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black transition hover:bg-[#1ed760] text-base"
+            >
+              🚀 Публикувай безплатна заявка
+            </Link>
+            <p className="mt-2 text-xs text-gray-500">До 5 специалисти ще се свържат с теб. Безплатно.</p>
+          </div>
+
+          <p className="mt-4 text-sm text-gray-500">
             Платформата стартира през 2026 и изгражда мрежа от специалисти в България.
           </p>
         </div>
@@ -136,10 +142,7 @@ export default async function Home({ params }: Props) {
 
       {/* CATEGORIES */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="mb-3 text-center text-3xl font-bold">
-          Популярни категории
-        </h2>
-
+        <h2 className="mb-3 text-center text-3xl font-bold">Популярни категории</h2>
         <p className="mx-auto mb-10 max-w-2xl text-center text-gray-400">
           Избери услуга и разгледай верифицирани специалисти близо до теб.
         </p>
@@ -156,22 +159,13 @@ export default async function Home({ params }: Props) {
                 alt={category.name}
                 className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
               />
-
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
-
               <div className="relative z-10 flex h-full flex-col justify-end p-5">
                 <span className="mb-3 inline-flex w-fit rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
                   Категория
                 </span>
-
-                <h3 className="mb-2 text-xl font-bold text-white">
-                  {category.name}
-                </h3>
-
-                <p className="line-clamp-2 text-sm text-gray-200">
-                  {category.description}
-                </p>
-
+                <h3 className="mb-2 text-xl font-bold text-white">{category.name}</h3>
+                <p className="line-clamp-2 text-sm text-gray-200">{category.description}</p>
                 <span className="mt-3 inline-flex items-center text-sm font-medium text-[#1DB954]">
                   Разгледай →
                 </span>
@@ -182,10 +176,7 @@ export default async function Home({ params }: Props) {
         <PopularCities locale={locale} />
 
         <div className="mt-8 text-center">
-          <Link
-            href={`/${locale}/categories`}
-            className="font-semibold text-[#1DB954] hover:underline"
-          >
+          <Link href={`/${locale}/categories`} className="font-semibold text-[#1DB954] hover:underline">
             Всички категории →
           </Link>
         </div>
@@ -224,12 +215,9 @@ export default async function Home({ params }: Props) {
               <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
                 За специалисти
               </span>
-              <h3 className="mb-3 text-2xl font-bold text-white">
-                Стани специалист в ProZona
-              </h3>
+              <h3 className="mb-3 text-2xl font-bold text-white">Стани специалист в ProZona</h3>
               <p className="mb-5 max-w-md text-sm text-gray-300">
-                Създай профил и започни да получаваш запитвания от клиенти близо
-                до теб.
+                Създай профил и започни да получаваш запитвания от клиенти близо до теб.
               </p>
               <span className="inline-flex items-center text-sm font-medium text-[#1DB954]">
                 Създай профил →
@@ -258,15 +246,8 @@ export default async function Home({ params }: Props) {
               <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gray-200">
                 Блог
               </span>
-
-              <h3 className="mb-3 line-clamp-2 text-xl font-bold text-white">
-                {post.title}
-              </h3>
-
-              <p className="mb-4 line-clamp-3 text-sm text-gray-300">
-                {post.excerpt}
-              </p>
-
+              <h3 className="mb-3 line-clamp-2 text-xl font-bold text-white">{post.title}</h3>
+              <p className="mb-4 line-clamp-3 text-sm text-gray-300">{post.excerpt}</p>
               <span className="inline-flex items-center text-sm font-medium text-[#1DB954]">
                 Прочети →
               </span>
@@ -275,10 +256,7 @@ export default async function Home({ params }: Props) {
         </div>
 
         <div className="mt-8 text-center">
-          <Link
-            href={`/${locale}/blog`}
-            className="font-semibold text-[#1DB954] hover:underline"
-          >
+          <Link href={`/${locale}/blog`} className="font-semibold text-[#1DB954] hover:underline">
             Виж всички статии →
           </Link>
         </div>
@@ -286,15 +264,10 @@ export default async function Home({ params }: Props) {
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 py-20 text-center">
-        <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-          Ти си професионалист?
-        </h2>
-
+        <h2 className="mb-4 text-3xl font-bold md:text-4xl">Ти си професионалист?</h2>
         <p className="mx-auto mb-10 max-w-2xl text-gray-400">
-          Започни да получаваш клиенти още днес чрез ProZona или предложи нова
-          услуга, която все още не присъства в платформата.
+          Започни да получаваш клиенти още днес чрез ProZona или предложи нова услуга, която все още не присъства в платформата.
         </p>
-
         <div className="flex flex-col justify-center gap-4 md:flex-row">
           <Link
             href={`/${locale}/become-specialist`}
@@ -302,7 +275,6 @@ export default async function Home({ params }: Props) {
           >
             Регистрирай се като специалист
           </Link>
-
           <Link
             href={`/${locale}/specialist/suggest-category`}
             className="inline-flex items-center justify-center rounded-xl border border-white/20 px-6 py-3 text-white transition hover:bg-white/10"
