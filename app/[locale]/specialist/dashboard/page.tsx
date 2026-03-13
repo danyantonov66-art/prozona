@@ -60,13 +60,37 @@ export default async function SpecialistDashboardPage({ params }: Props) {
             <p className="text-2xl font-bold text-[#1DB954]">{specialist.reviewCount}</p>
             <p className="text-sm text-gray-400 mt-1">Отзива</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
+          <div className="rounded-2xl border border-[#1DB954]/20 bg-[#151528] p-4 text-center">
             <p className="text-2xl font-bold text-[#1DB954]">{specialist.credits}</p>
             <p className="text-sm text-gray-400 mt-1">Кредити</p>
+            <p className="mt-1 text-xs text-gray-500">1 кредит отключва контакт на клиент</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
             <p className="text-2xl font-bold text-[#1DB954]">{specialist.GalleryImage.length}/5</p>
             <p className="text-sm text-gray-400 mt-1">Снимки</p>
+          </div>
+        </div>
+
+        {/* Profile stats */}
+        <div className="mb-8 rounded-2xl border border-white/10 bg-[#151528] p-5">
+          <h2 className="mb-4 font-semibold text-gray-300">📊 Статистика на профила</h2>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div>
+              <p className="text-lg font-bold text-white">{specialist.viewsCount}</p>
+              <p className="text-sm text-gray-400">Преглеждания на профила</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-white">{specialist.inquiryCount}</p>
+              <p className="text-sm text-gray-400">Общо запитвания</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-white">{specialist.completedJobs}</p>
+              <p className="text-sm text-gray-400">Завършени обекта</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-white">{specialist.totalCreditsUsed}</p>
+              <p className="text-sm text-gray-400">Изразходвани кредити</p>
+            </div>
           </div>
         </div>
 
@@ -105,6 +129,7 @@ export default async function SpecialistDashboardPage({ params }: Props) {
             <div className="text-2xl mb-3">⚡</div>
             <h2 className="font-semibold text-lg">Купи кредити</h2>
             <p className="text-sm text-gray-400 mt-1">{specialist.credits} кредита налични</p>
+            <p className="text-xs text-gray-500 mt-1">1 кредит = 1 контакт на клиент</p>
           </Link>
 
           <Link href={`/${locale}/specialist/${specialist.id}`}
