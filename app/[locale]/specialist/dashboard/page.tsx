@@ -136,7 +136,7 @@ export default async function SpecialistDashboardPage({ params }: Props) {
             className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40">
             <div className="text-2xl mb-3">📸</div>
             <h2 className="font-semibold text-lg">Галерия на обекти</h2>
-            <p className="text-sm text-gray-400 mt-1">{specialist.GalleryImage.length} от 5 снимки качени</p>
+            <p className="text-sm text-gray-400 mt-1">Профили със снимки получават до 3× повече заявки.</p>
           </Link>
 
           <Link href={`/${locale}/specialist/inquiries`}
