@@ -5,6 +5,8 @@ import { prisma } from "../../../../lib/prisma"
 import { categories } from "../../../../lib/constants"
 import { sendNewSpecialistNotification, sendSpecialistRegistrationConfirmation } from "../../../../lib/email"
 
+const EARLY_PROGRAM_LIMIT = 200
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -45,8 +47,35 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const specialistData = { businessName: businessName || null, description, city, phone, experienceYears: experience || null, verified: false }
     const existing = await prisma.specialist.findUnique({ where: { userId } })
+
+    // Проверка за Early Specialist Program
+    let earlyProgramBonus = {}
+    if (!existing) {
+      const totalSpecialists = await prisma.specialist.count()
+      if (totalSpecialists < EARLY_PROGRAM_LIMIT) {
+        const premiumExpiry = new Date()
+        premiumExpiry.setMonth(premiumExpiry.getMonth() + 6)
+        earlyProgramBonus = {
+          subscriptionPlan: "PREMIUM",
+          subscriptionExpiresAt: premiumExpiry,
+          isFeatured: true,
+          featuredExpiresAt: premiumExpiry,
+          priorityInquiries: true,
+        }
+      }
+    }
+
+    const specialistData = {
+      businessName: businessName || null,
+      description,
+      city,
+      phone,
+      experienceYears: experience || null,
+      verified: false,
+      ...earlyProgramBonus,
+    }
+
     const specialist = existing
       ? await prisma.specialist.update({ where: { userId }, data: specialistData, include: { user: true } })
       : await prisma.specialist.create({ data: { userId, ...specialistData, credits: 20 }, include: { user: true } })
@@ -57,7 +86,6 @@ export async function POST(request: NextRequest) {
       create: { specialistId: specialist.id, categoryId: categoryRecord.id, subcategoryId: subcategoryRecord.id },
     })
 
-    // Изпрати имейли само при нова регистрация
     if (!existing) {
       try {
         await sendNewSpecialistNotification({
@@ -73,11 +101,12 @@ export async function POST(request: NextRequest) {
         })
       } catch (emailError) {
         console.error('Email error:', emailError)
-        // Не спираме ако имейлът се провали
       }
     }
 
-    return NextResponse.json({ success: true, specialist })
+    const isEarlyMember = !existing && Object.keys(earlyProgramBonus).length > 0
+
+    return NextResponse.json({ success: true, specialist, earlyProgram: isEarlyMember })
   } catch (error) {
     console.error("Specialist profile POST error:", error)
     return NextResponse.json({ error: "Failed" }, { status: 500 })
