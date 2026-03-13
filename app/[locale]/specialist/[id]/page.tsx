@@ -1,7 +1,8 @@
-import { prisma } from "@/lib/prisma"
+﻿import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
+import InquiryButton from "@/components/InquiryButton"
 
 interface Props {
   params: Promise<{
@@ -24,21 +25,16 @@ export default async function SpecialistPage({ params }: Props) {
     notFound()
   }
 
-  const name =
-    specialist.businessName || specialist.user?.name || "Специалист"
-
-  const image =
-    specialist.user?.image || null
+  const name = specialist.businessName || specialist.user?.name || "Специалист"
+  const image = specialist.user?.image || null
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
-
       <section className="mx-auto max-w-5xl px-4 py-10">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151528]">
           <div className="p-6 md:p-8">
             <div className="grid gap-8 md:grid-cols-[320px_1fr]">
-
               <div>
                 {image ? (
                   <img
@@ -73,25 +69,30 @@ export default async function SpecialistPage({ params }: Props) {
                 {specialist.experienceYears && (
                   <p className="mb-2 text-gray-300">
                     <span className="font-semibold text-white">Опит:</span>{" "}
-                    {specialist.experienceYears}
+                    {specialist.experienceYears} години
+                  </p>
+                )}
+
+                {specialist.serviceAreas && specialist.serviceAreas.length > 0 && (
+                  <p className="mb-2 text-gray-300">
+                    <span className="font-semibold text-white">Обслужва:</span>{" "}
+                    {specialist.serviceAreas.join(", ")}
                   </p>
                 )}
 
                 <div className="mt-6">
                   <h2 className="mb-3 text-xl font-semibold">Описание</h2>
                   <p className="leading-7 text-gray-300">
-                    {specialist.description ||
-                      "Няма добавено описание."}
+                    {specialist.description || "Няма добавено описание."}
                   </p>
                 </div>
 
+                <InquiryButton specialistId={specialist.id} specialistName={name} />
               </div>
-
             </div>
           </div>
         </div>
       </section>
-
       <ProZonaFooter locale={locale} />
     </main>
   )

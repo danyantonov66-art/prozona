@@ -23,6 +23,7 @@ export default function EditProfilePage() {
   const [city, setCity] = useState('')
   const [experience, setExperience] = useState('')
   const [profileImage, setProfileImage] = useState<string | null>(null)
+  const [serviceAreasInput, setServiceAreasInput] = useState('')
 
   useEffect(() => {
     if (status === 'loading') return
@@ -44,6 +45,7 @@ export default function EditProfilePage() {
         setCity(data.city || '')
         setExperience(data.experienceYears?.toString() || '')
         setProfileImage(data.user?.image || null)
+        setServiceAreasInput((data.serviceAreas || []).join(', '))
       }
     } catch (error) {
       console.error('Error loading profile:', error)
@@ -56,6 +58,12 @@ export default function EditProfilePage() {
     e.preventDefault()
     setSaving(true)
     setMessage('')
+
+    const serviceAreas = serviceAreasInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+
     try {
       const res = await fetch('/api/specialist/profile', {
         method: 'PUT',
@@ -66,6 +74,7 @@ export default function EditProfilePage() {
           phone,
           city,
           experienceYears: parseInt(experience) || 0,
+          serviceAreas,
         })
       })
       if (res.ok) {
@@ -168,6 +177,23 @@ export default function EditProfilePage() {
               onChange={(e) => setCity(e.target.value)}
               className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 mb-2">
+              Работни райони
+              <span className="ml-2 text-xs text-gray-500">разделени със запетая</span>
+            </label>
+            <input
+              type="text"
+              value={serviceAreasInput}
+              onChange={(e) => setServiceAreasInput(e.target.value)}
+              placeholder="Пример: Враца, Мездра, Бяла Слатина"
+              className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Градовете и районите, в които предоставяш услуги
+            </p>
           </div>
 
           <div>

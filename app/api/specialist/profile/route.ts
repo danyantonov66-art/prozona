@@ -49,7 +49,6 @@ export async function POST(request: NextRequest) {
 
     const existing = await prisma.specialist.findUnique({ where: { userId } })
 
-    // Проверка за Early Specialist Program
     let earlyProgramBonus = {}
     if (!existing) {
       const totalSpecialists = await prisma.specialist.count()
@@ -105,7 +104,6 @@ export async function POST(request: NextRequest) {
     }
 
     const isEarlyMember = !existing && Object.keys(earlyProgramBonus).length > 0
-
     return NextResponse.json({ success: true, specialist, earlyProgram: isEarlyMember })
   } catch (error) {
     console.error("Specialist profile POST error:", error)
@@ -121,7 +119,7 @@ export async function PUT(request: NextRequest) {
     }
     const userId = (session.user as any)?.id
     const body = await request.json()
-    const { businessName, description, city, phone, experienceYears } = body ?? {}
+    const { businessName, description, city, phone, experienceYears, serviceAreas } = body ?? {}
 
     if (!description) {
       return NextResponse.json({ error: "Описанието е задължително" }, { status: 400 })
@@ -135,6 +133,7 @@ export async function PUT(request: NextRequest) {
         city: city || "",
         phone: phone || null,
         experienceYears: experienceYears || null,
+        serviceAreas: Array.isArray(serviceAreas) ? serviceAreas : [],
       },
       include: { user: true },
     })
