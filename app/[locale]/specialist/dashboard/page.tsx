@@ -44,7 +44,6 @@ export default async function SpecialistDashboardPage({ params }: Props) {
       <ProZonaHeader locale={locale} />
       <section className="mx-auto max-w-5xl px-4 py-10">
 
-        {/* Onboarding */}
         {completedSteps < 3 && (
           <div className="mb-8 rounded-2xl border border-[#1DB954]/20 bg-gradient-to-r from-[#1DB954]/10 to-[#151528] p-6">
             <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-[#1DB954]">Добре дошъл в ProZona! 👋</div>
@@ -64,7 +63,6 @@ export default async function SpecialistDashboardPage({ params }: Props) {
           </div>
         )}
 
-        {/* Header */}
         <div className="mb-8 flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-[#1A1A2E] border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0">
             {specialist.user?.image ? (
@@ -79,7 +77,6 @@ export default async function SpecialistDashboardPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
             <p className="text-2xl font-bold text-[#1DB954]">{specialist.rating.toFixed(1)}</p>
@@ -100,17 +97,16 @@ export default async function SpecialistDashboardPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Profile stats */}
         <div className="mb-8 rounded-2xl border border-white/10 bg-[#151528] p-5">
           <h2 className="mb-4 font-semibold text-gray-300">📊 Статистика на профила</h2>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div>
               <p className="text-lg font-bold text-white">{specialist.viewsCount}</p>
-              <p className="text-sm text-gray-400">Преглеждания на профила</p>
+              <p className="text-sm text-gray-400">Преглеждания</p>
             </div>
             <div>
               <p className="text-lg font-bold text-white">{specialist.inquiryCount}</p>
-              <p className="text-sm text-gray-400">Общо запитвания</p>
+              <p className="text-sm text-gray-400">Запитвания</p>
             </div>
             <div>
               <p className="text-lg font-bold text-white">{specialist.completedJobs}</p>
@@ -123,8 +119,8 @@ export default async function SpecialistDashboardPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
           <Link href={`/${locale}/specialist/profile/edit`}
             className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40">
             <div className="text-2xl mb-3">✏️</div>
@@ -144,6 +140,13 @@ export default async function SpecialistDashboardPage({ params }: Props) {
             <div className="text-2xl mb-3">📩</div>
             <h2 className="font-semibold text-lg">Запитвания</h2>
             <p className="text-sm text-gray-400 mt-1">Виж получените запитвания</p>
+          </Link>
+
+          <Link href={`/${locale}/specialist/marketplace`}
+            className="rounded-2xl border border-orange-500/30 bg-orange-500/10 p-5 transition hover:border-orange-500/60">
+            <div className="text-2xl mb-3">📋</div>
+            <h2 className="font-semibold text-lg">Заявки от клиенти</h2>
+            <p className="text-sm text-gray-400 mt-1">Намери нови клиенти с кредити</p>
           </Link>
 
           <Link href={`/${locale}/specialist/prices`}
@@ -176,6 +179,7 @@ export default async function SpecialistDashboardPage({ params }: Props) {
               <p className="text-sm text-gray-400 mt-1">Верифицирай профила си</p>
             </Link>
           )}
+
         </div>
       </section>
       <ProZonaFooter locale={locale} />
