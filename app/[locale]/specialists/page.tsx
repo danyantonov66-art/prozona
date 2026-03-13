@@ -49,7 +49,7 @@ export default async function SpecialistsPage({ params }: Props) {
               return (
                 <Link
                   key={specialist.id}
-                  href={`/${locale}/specialists/${specialist.id}`}
+                  href={`/${locale}/specialist/$\{specialist.id\}`}
                   className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
                 >
                   <div className="mb-4">
