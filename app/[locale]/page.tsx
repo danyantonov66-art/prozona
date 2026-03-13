@@ -76,6 +76,9 @@ export default async function Home({ params }: Props) {
           <div className="mt-6 text-sm text-gray-400">
             Пример: ВиК, почистване, хамали, косене, София
           </div>
+          <p className="mt-3 text-sm text-gray-500">
+           Платформата стартира през 2026 и изгражда мрежа от специалисти в България.
+           </p>
         </div>
       </section>
 
