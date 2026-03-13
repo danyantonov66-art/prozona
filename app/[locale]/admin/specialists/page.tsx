@@ -10,7 +10,7 @@ export default function AdminSpecialistsPage() {
     setLoading(true);
     const res = await fetch("/api/admin/specialists/pending", { cache: "no-store" });
     const data = await res.json();
-    setItems(data.specialists ?? []);
+    setItems(Array.isArray(data) ? data : (data.specialists ?? []));
     setLoading(false);
   }
 
