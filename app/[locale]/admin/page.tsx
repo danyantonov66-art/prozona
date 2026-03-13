@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../components/footer/ProZonaFooter"
+import ApproveButton from "@/components/ApproveButton"
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -96,6 +97,7 @@ export default async function AdminPage({ params }: Props) {
                   <span className={`rounded-full px-3 py-1 text-xs font-medium ${s.verified ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
                     {s.verified ? "Верифициран" : "Чака"}
                   </span>
+                  {!s.verified && <ApproveButton id={s.id} />}
                   <Link
                     href={`/${locale}/specialist/${s.id}`}
                     className="text-sm text-[#1DB954] hover:underline"
