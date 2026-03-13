@@ -1,4 +1,4 @@
-import Link from "next/link"
+﻿import Link from "next/link"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../components/footer/ProZonaFooter"
 import { prisma } from "../../../lib/prisma"
@@ -49,7 +49,7 @@ export default async function SpecialistsPage({ params }: Props) {
               return (
                 <Link
                   key={specialist.id}
-                  href={`/${locale}/specialist/$\{specialist.id\}`}
+                  href={`/${locale}/specialist/${specialist.id}`}
                   className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
                 >
                   <div className="mb-4">
