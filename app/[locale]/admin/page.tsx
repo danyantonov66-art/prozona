@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../components/footer/ProZonaFooter"
-import ApproveButton from "@/components/ApproveButton"
+import VerifyToggleButton from "@/components/VerifyToggleButton"
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -94,10 +94,7 @@ export default async function AdminPage({ params }: Props) {
                   <p className="text-sm text-gray-400">{s.user?.email} · {s.city}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${s.verified ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
-                    {s.verified ? "Верифициран" : "Чака"}
-                  </span>
-                  {!s.verified && <ApproveButton id={s.id} />}
+                  <VerifyToggleButton id={s.id} verified={s.verified} />
                   <Link
                     href={`/${locale}/specialist/${s.id}`}
                     className="text-sm text-[#1DB954] hover:underline"
