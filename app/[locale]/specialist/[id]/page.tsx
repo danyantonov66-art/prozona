@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import InquiryButton from "@/components/InquiryButton"
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: Promise<{
