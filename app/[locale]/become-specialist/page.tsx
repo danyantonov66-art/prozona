@@ -15,11 +15,8 @@ const BULGARIAN_CITIES = [
   "Монтана", "Силистра", "Ловеч", "Търговище", "Разград", "Смолян"
 ]
 
-interface Props {
-  params: { locale: string }
-}
-
-export default function BecomeSpecialistPage({ params }: Props) {
+export default function BecomeSpecialistPage() {
+  const locale = "bg"
   const locale = params?.locale || "bg"
   const { data: session, status } = useSession()
   const [loading, setLoading] = useState(false)
