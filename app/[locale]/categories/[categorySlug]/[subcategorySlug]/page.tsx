@@ -1,8 +1,6 @@
 import Link from "next/link"
-import { getServerSession } from "next-auth"
 import { prisma } from "../../../../../lib/prisma"
 import { categories } from "../../../../../lib/constants"
-import { authOptions } from "../../../../../lib/auth"
 import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 
@@ -16,8 +14,6 @@ interface Props {
 
 export default async function SubcategoryPage({ params }: Props) {
   const { locale, categorySlug, subcategorySlug } = await params
-  const session = await getServerSession(authOptions)
-  const isLoggedIn = !!session
 
   // Вземи реалните имена от constants
   const category = categories.find((c) => c.slug === categorySlug)
@@ -30,12 +26,8 @@ export default async function SubcategoryPage({ params }: Props) {
       verified: true,
       SpecialistCategory: {
         some: {
-          Category: {
-            slug: categorySlug,
-          },
-          Subcategory: {
-            slug: subcategorySlug,
-          },
+          Category: { slug: categorySlug },
+          Subcategory: { slug: subcategorySlug },
         },
       },
     },
@@ -101,10 +93,6 @@ export default async function SubcategoryPage({ params }: Props) {
                   <h2 className="mb-1 text-xl font-semibold">{name}</h2>
                   {specialist.city && (
                     <p className="mb-2 text-sm text-gray-400">📍 {specialist.city}</p>
-                  )}
-                  {/* Телефон само за логнати */}
-                  {isLoggedIn && specialist.phone && (
-                    <p className="mb-2 text-sm text-[#1DB954]">📞 {specialist.phone}</p>
                   )}
                   <p className="line-clamp-3 text-sm text-gray-300">
                     {specialist.description || "Няма добавено описание."}

@@ -1,7 +1,5 @@
 ﻿import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
@@ -18,8 +16,6 @@ interface Props {
 
 export default async function SpecialistPage({ params }: Props) {
   const { locale, id } = await params
-  const session = await getServerSession(authOptions)
-  const isLoggedIn = !!session
 
   const specialist = await prisma.specialist.findUnique({
     where: { id },
@@ -88,20 +84,6 @@ export default async function SpecialistPage({ params }: Props) {
                   </p>
                 )}
 
-                {/* Телефон само за логнати */}
-                {specialist.phone && (
-                  isLoggedIn ? (
-                    <p className="mb-2 text-gray-300">
-                      <span className="font-semibold text-white">📞 Телефон:</span>{" "}
-                      {specialist.phone}
-                    </p>
-                  ) : (
-                    <p className="mb-2 text-sm text-gray-500">
-                      📞 <Link href={`/${locale}/login`} className="text-[#1DB954] hover:underline">Влез в профила си</Link> за да видиш телефона
-                    </p>
-                  )
-                )}
-
                 {specialist.experienceYears && (
                   <p className="mb-2 text-gray-300">
                     <span className="font-semibold text-white">⏳ Опит:</span>{" "}
@@ -136,7 +118,7 @@ export default async function SpecialistPage({ params }: Props) {
                 {specialist.GalleryImage.map((img) => (
                   <img
                     key={img.id}
-                    src={img.url}
+                    src={img.imageUrl}
                     alt="Галерия"
                     className="h-32 w-full rounded-xl object-cover"
                   />
