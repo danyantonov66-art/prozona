@@ -169,17 +169,17 @@ model Favorite {
 
 model CategorySuggestion {
   id           String                   @id @default(cuid())
-  specialistId String
+  specialistId String?
   name         String
   description  String
-  reason       String
+  reason       String?
   status       CategorySuggestionStatus @default(PENDING)
   createdAt    DateTime                 @default(now())
   updatedAt    DateTime
   adminNotes   String?
   parentId     Int?
   parentName   String?
-  type         String
+  type         String?
   Specialist   Specialist               @relation(fields: [specialistId], references: [id], onDelete: Cascade)
 }
 
