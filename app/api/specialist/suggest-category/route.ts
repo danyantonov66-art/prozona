@@ -18,9 +18,6 @@ export async function POST(request: Request) {
         name: serviceName,
         description,
         parentName: categoryName ?? null,
-        type: null,
-        reason: null,
-        specialistId: null,
       }
     })
 
