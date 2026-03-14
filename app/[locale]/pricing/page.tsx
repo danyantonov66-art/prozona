@@ -7,11 +7,11 @@ import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 
 interface Props {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export default function PricingPage({ params }: Props) {
-  const locale = params?.locale || "bg"
+  const locale = "bg"
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
 
