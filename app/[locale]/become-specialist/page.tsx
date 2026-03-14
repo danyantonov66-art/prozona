@@ -17,7 +17,6 @@ const BULGARIAN_CITIES = [
 
 export default function BecomeSpecialistPage() {
   const locale = "bg"
-  const locale = params?.locale || "bg"
   const { data: session, status } = useSession()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
