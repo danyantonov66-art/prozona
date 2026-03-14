@@ -2,7 +2,7 @@
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_EMAIL = 'ProZona <admin@prozona.bg>'
-const ADMIN_EMAIL = 'admin@prozona.bg'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@prozona.bg'
 
 async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   const res = await fetch('https://api.resend.com/emails', {
