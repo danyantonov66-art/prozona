@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../components/footer/ProZonaFooter"
 import VerifyToggleButton from "@/components/VerifyToggleButton"
+import DeleteSpecialistButton from "@/components/DeleteSpecialistButton"
 
 interface Props {
   params: Promise<{ locale: string }>
