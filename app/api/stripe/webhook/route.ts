@@ -6,12 +6,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-02-25.clover' as any,
 })
 
-const PLANS: Record<string, number> = {
-  credits_5: 5,
-  credits_15: 15,
-  credits_30: 30,
-  basic_monthly: 10,
-  premium_monthly: 25,
+const PLANS: Record<string, { credits: number; plan?: string }> = {
+  credits_5:       { credits: 5 },
+  credits_15:      { credits: 15 },
+  credits_30:      { credits: 30 },
+  basic_monthly:   { credits: 10, plan: 'BASIC' },
+  premium_monthly: { credits: 25, plan: 'PREMIUM' },
 }
 
 export async function POST(request: NextRequest) {
@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
   let event: Stripe.Event
-
   try {
     if (webhookSecret && sig) {
       event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
@@ -41,7 +40,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
     }
 
-    const creditsToAdd = PLANS[planType] || parseInt(credits || '0')
+    const planConfig = PLANS[planType]
+    const creditsToAdd = planConfig?.credits || parseInt(credits || '0')
 
     try {
       const specialist = await prisma.specialist.findUnique({ where: { userId } })
@@ -50,9 +50,26 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Specialist not found' }, { status: 404 })
       }
 
+      // Обнови кредити + план ако е абонамент
+      const updateData: any = {
+        credits: { increment: creditsToAdd },
+      }
+
+      if (planConfig?.plan) {
+        const expiresAt = new Date()
+        expiresAt.setMonth(expiresAt.getMonth() + 1)
+        updateData.subscriptionPlan = planConfig.plan
+        updateData.subscriptionExpiresAt = expiresAt
+        if (planConfig.plan === 'PREMIUM') {
+          updateData.isFeatured = true
+          updateData.featuredExpiresAt = expiresAt
+          updateData.priorityInquiries = true
+        }
+      }
+
       await prisma.specialist.update({
         where: { userId },
-        data: { credits: { increment: creditsToAdd } },
+        data: updateData,
       })
 
       await prisma.creditTransaction.create({
@@ -79,7 +96,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      console.log(`Added ${creditsToAdd} credits to specialist ${specialist.id}`)
+      console.log(`Added ${creditsToAdd} credits + plan ${planConfig?.plan || 'none'} to specialist ${specialist.id}`)
     } catch (error) {
       console.error('Database error:', error)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
