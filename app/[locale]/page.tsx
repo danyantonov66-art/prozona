@@ -67,6 +67,10 @@ const infographicSteps = [
   { icon: "💼", label: "Работа и доход" },
 ]
 
+export const metadata = {
+  title: "Намери верифициран специалист близо до теб",
+  description: "Ремонти, почистване, монтаж и градински услуги на едно място. Безплатна заявка. Верифицирани майстори в целия град.",
+}
 export default async function Home({ params }: Props) {
   const { locale } = await params
 

@@ -4,6 +4,16 @@ import { categories } from "../../../../../lib/constants"
 import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 
+export async function generateMetadata({ params }: Props) {
+  const { categorySlug, subcategorySlug } = await params
+  const category = categories.find((c) => c.slug === categorySlug)
+  const subcategory = category?.subcategories.find((s) => s.slug === subcategorySlug)
+  return {
+    title: subcategory?.name || "Подкатегория",
+    description: `Намери верифицирани ${subcategory?.name} специалисти близо до теб. Безплатна заявка в ProZona.`,
+  }
+}
+
 interface Props {
   params: Promise<{
     locale: string

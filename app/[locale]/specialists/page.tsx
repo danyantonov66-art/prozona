@@ -9,6 +9,11 @@ interface Props {
   }>
 }
 
+export const metadata = {
+  title: "Специалисти",
+  description: "Разгледай верифицирани специалисти и майстори близо до теб.",
+}
+
 export default async function SpecialistsPage({ params }: Props) {
   const { locale } = await params
 

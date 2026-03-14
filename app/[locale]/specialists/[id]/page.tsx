@@ -5,6 +5,20 @@ import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import InquiryButton from "@/components/InquiryButton"
 
+export async function generateMetadata({ params }: Props) {
+  const { id } = await params
+  const specialist = await prisma.specialist.findUnique({
+    where: { id },
+    include: { user: true },
+  })
+  const name = specialist?.businessName || specialist?.user?.name || "Специалист"
+  const city = specialist?.city || ""
+  return {
+    title: `${name}${city ? ` — ${city}` : ""}`,
+    description: specialist?.description?.slice(0, 160) || `${name} — верифициран специалист в ProZona.`,
+  }
+}
+
 export const dynamic = 'force-dynamic'
 
 interface Props {

@@ -3,6 +3,15 @@ import ProZonaHeader from "../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../components/footer/ProZonaFooter"
 import { categories } from "../../../../lib/constants"
 
+export async function generateMetadata({ params }: Props) {
+  const { categorySlug } = await params
+  const category = categories.find((c) => c.slug === categorySlug)
+  return {
+    title: category?.name || "Категория",
+    description: `Намери верифицирани специалисти в категория ${category?.name}. Безплатна заявка в ProZona.`,
+  }
+}
+
 interface Props {
   params: Promise<{
     locale: string
