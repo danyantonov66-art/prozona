@@ -17,7 +17,7 @@ export const categories = [
       { id: "dovarshitelni-remonti", name: "Довършителни ремонти", slug: "dovarshitelni-remonti", icon: "🏠" },
       { id: "drebni-remonti-dom", name: "Дребни ремонти в дома", slug: "drebni-remonti-dom", icon: "🔨" },
       { id: "remont-banya-kuhnya", name: "Ремонт на баня и кухня", slug: "remont-banya-kuhnya", icon: "🚿" },
-      { id: "klimatici-montaj", name: "Инсталация на климатици", slug: "klimatici-montaj", icon: "❄️" },
+      { id: "klimatici", name: "Ремонт, профилактика и инсталация на климатици", slug: "klimatici", icon: "❄️" },
     ],
   },
   {
@@ -49,11 +49,10 @@ export const categories = [
     icon: "/images/categories/mebeli.png",
     color: "#8E44AD",
     subcategories: [
-      { id: "mebeli", name: "Монтаж на мебели (IKEA, JYSK и др.)", slug: "mebeli", icon: "🪑" },
+      { id: "mebeli", name: "Изработка и монтаж на мебели", slug: "mebeli", icon: "🪑" },
       { id: "bitova-tehnika", name: "Монтаж на битова техника", slug: "bitova-tehnika", icon: "🍳" },
       { id: "premestvane-hamali", name: "Хамалски услуги и преместване", slug: "premestvane-hamali", icon: "🚛" },
       { id: "vrati-prozortsi-shtori", name: "Монтаж на врати, прозорци и щори", slug: "vrati-prozortsi-shtori", icon: "🚪" },
-      { id: "garderob-kuhnya", name: "Сглобяване на гардероби и кухни", slug: "garderob-kuhnya", icon: "🗄️" },
       { id: "drebni-bitovi", name: "Дребни битови услуги (рафтове, картини, корнизи)", slug: "drebni-bitovi", icon: "🔩" },
       { id: "elektro-osvetlenie", name: "Монтаж на осветление и електроуреди", slug: "elektro-osvetlenie", icon: "💡" },
     ],
