@@ -132,19 +132,19 @@ export default async function Home({ params }: Props) {
       {/* CATEGORIES */}
       <section className="mx-auto max-w-6xl px-4 py-12">
         <h2 className="mb-8 text-center text-2xl font-bold">Категории услуги</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <div className="flex flex-wrap justify-center gap-4">
           {categories.map((cat) => (
             <Link
               key={cat.slug}
               href={`/${locale}/categories/${cat.slug}`}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] text-center transition hover:border-[#1DB954]/40"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] text-center transition hover:border-[#1DB954]/40 w-48"
             >
               <div
-                className="h-24 w-full bg-cover bg-center opacity-80 transition group-hover:opacity-100"
+                className="h-32 w-full bg-cover bg-center opacity-80 transition group-hover:opacity-100"
                 style={{ backgroundImage: `url(${cat.icon})` }}
               />
-              <div className="px-2 py-2">
-                <span className="text-xs font-medium text-gray-200">{cat.name}</span>
+              <div className="px-2 py-3">
+                <span className="text-sm font-medium text-gray-200">{cat.name}</span>
               </div>
             </Link>
           ))}
