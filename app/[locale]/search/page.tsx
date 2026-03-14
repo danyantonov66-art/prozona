@@ -10,72 +10,133 @@ interface Props {
   searchParams: Promise<{
     q?: string
     city?: string
+    category?: string
+    subcategory?: string
   }>
 }
 
 export default async function SearchPage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { q, city } = await searchParams
-
+  const { q, city, category, subcategory } = await searchParams
   const query = q?.trim() || ""
 
+  const where: any = {
+    verified: true,
+    ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
+  }
+
+  // Търсене по категория/подкатегория
+  if (category || subcategory) {
+    where.SpecialistCategory = {
+      some: {
+        ...(category ? { Category: { slug: category } } : {}),
+        ...(subcategory ? { Subcategory: { slug: subcategory } } : {}),
+      },
+    }
+  }
+
+  // Търсене по текст
+  if (query) {
+    where.OR = [
+      { businessName: { contains: query, mode: "insensitive" } },
+      { description: { contains: query, mode: "insensitive" } },
+      { user: { is: { name: { contains: query, mode: "insensitive" } } } },
+      {
+        SpecialistCategory: {
+          some: {
+            Category: { name: { contains: query, mode: "insensitive" } },
+          },
+        },
+      },
+      {
+        SpecialistCategory: {
+          some: {
+            Subcategory: { name: { contains: query, mode: "insensitive" } },
+          },
+        },
+      },
+    ]
+  }
+
   const specialists = await prisma.specialist.findMany({
-    where: {
-      ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
-      OR: [
-        {
-          businessName: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          description: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          user: {
-            is: {
-              name: {
-                contains: query,
-                mode: "insensitive",
-              },
-            },
-          },
-        },
-      ],
-    },
+    where,
     include: {
       user: true,
+      SpecialistCategory: {
+        include: {
+          Category: true,
+          Subcategory: true,
+        },
+      },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      { isFeatured: "desc" },
+      { createdAt: "desc" },
+    ],
   })
+
+  const searchTitle = query
+    ? `Резултати за „${query}"`
+    : category
+    ? `Специалисти в категория`
+    : "Всички специалисти"
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
-
       <section className="mx-auto max-w-6xl px-4 py-10">
-        <h1 className="mb-8 text-3xl font-bold">Резултати от търсенето</h1>
+
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-3xl font-bold">{searchTitle}</h1>
+          <p className="text-sm text-gray-400">{specialists.length} намерени</p>
+        </div>
+
+        {/* Активни филтри */}
+        {(query || city || category) && (
+          <div className="mb-6 flex flex-wrap gap-2">
+            {query && (
+              <span className="rounded-full border border-[#1DB954]/30 bg-[#1DB954]/10 px-3 py-1 text-sm text-[#1DB954]">
+                🔍 {query}
+              </span>
+            )}
+            {city && (
+              <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-gray-300">
+                📍 {city}
+              </span>
+            )}
+            {category && (
+              <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-gray-300">
+                📂 {category}
+              </span>
+            )}
+            <Link
+              href={`/${locale}/search`}
+              className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-sm text-red-400 hover:bg-red-500/20"
+            >
+              ✕ Изчисти
+            </Link>
+          </div>
+        )}
 
         {specialists.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-[#151528] p-6 text-gray-300">
-            Няма намерени специалисти.
+          <div className="rounded-2xl border border-white/10 bg-[#151528] p-8 text-center">
+            <p className="mb-4 text-gray-300">Няма намерени специалисти.</p>
+            <Link
+              href={`/${locale}/specialists`}
+              className="text-[#1DB954] hover:underline"
+            >
+              Виж всички специалисти →
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {specialists.map((specialist) => {
-              const image =
-                specialist.user?.image || null
-
-              const name =
-                specialist.businessName ||
-                specialist.user?.name ||
-                "Специалист"
+              const image = specialist.user?.image || null
+              const name = specialist.businessName || specialist.user?.name || "Специалист"
+              const cats = specialist.SpecialistCategory
+                .map((sc) => sc.Subcategory?.name || sc.Category?.name)
+                .filter(Boolean)
+                .slice(0, 2)
 
               return (
                 <Link
@@ -96,15 +157,19 @@ export default async function SearchPage({ params, searchParams }: Props) {
                       </div>
                     )}
                   </div>
-
-                  <h2 className="mb-2 text-xl font-semibold">{name}</h2>
-
+                  <h2 className="mb-1 text-xl font-semibold">{name}</h2>
                   {specialist.city && (
-                    <p className="mb-2 text-sm text-gray-400">
-                      {specialist.city}
-                    </p>
+                    <p className="mb-2 text-sm text-gray-400">📍 {specialist.city}</p>
                   )}
-
+                  {cats.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      {cats.map((cat, i) => (
+                        <span key={i} className="rounded-full bg-[#1DB954]/10 px-2 py-0.5 text-xs text-[#1DB954]">
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <p className="line-clamp-3 text-sm text-gray-300">
                     {specialist.description || "Няма добавено описание."}
                   </p>
@@ -114,7 +179,6 @@ export default async function SearchPage({ params, searchParams }: Props) {
           </div>
         )}
       </section>
-
       <ProZonaFooter locale={locale} />
     </main>
   )
