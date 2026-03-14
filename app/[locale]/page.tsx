@@ -76,7 +76,7 @@ export default async function Home({ params }: Props) {
 
       <div className="bg-[#1A1A2E] px-4 py-2 text-center text-white">
         <p className="text-sm">
-          Регистрацията е безплатна – намери майстор или стани специалист. Безплатният план е завинаги!
+          🎉 Стартова оферта: 3 месеца Premium безплатно за всички нови специалисти! Първите 200 получават 6 месеца!          
           <Link href={`/${locale}/how-it-works`} className="ml-2 font-semibold text-[#1DB954] hover:underline">
             Виж как работи →
           </Link>
