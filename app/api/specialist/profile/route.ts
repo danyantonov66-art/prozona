@@ -49,21 +49,21 @@ export async function POST(request: NextRequest) {
 
     const existing = await prisma.specialist.findUnique({ where: { userId } })
 
-    let earlyProgramBonus = {}
-    if (!existing) {
-      const totalSpecialists = await prisma.specialist.count()
-      if (totalSpecialists < EARLY_PROGRAM_LIMIT) {
-        const premiumExpiry = new Date()
-        premiumExpiry.setMonth(premiumExpiry.getMonth() + 6)
-        earlyProgramBonus = {
-          subscriptionPlan: "PREMIUM",
-          subscriptionExpiresAt: premiumExpiry,
-          isFeatured: true,
-          featuredExpiresAt: premiumExpiry,
-          priorityInquiries: true,
-        }
-      }
-    }
+  let earlyProgramBonus = {}
+if (!existing) {
+  const totalSpecialists = await prisma.specialist.count()
+  const isEarly = totalSpecialists < EARLY_PROGRAM_LIMIT
+  const months = isEarly ? 6 : 3
+  const premiumExpiry = new Date()
+  premiumExpiry.setMonth(premiumExpiry.getMonth() + months)
+  earlyProgramBonus = {
+    subscriptionPlan: "PREMIUM",
+    subscriptionExpiresAt: premiumExpiry,
+    isFeatured: isEarly,
+    featuredExpiresAt: isEarly ? premiumExpiry : null,
+    priorityInquiries: isEarly,
+  }
+}
 
     const specialistData = {
       businessName: businessName || null,
