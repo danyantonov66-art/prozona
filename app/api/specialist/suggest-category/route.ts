@@ -4,9 +4,9 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { categoryName, subcategoryName, parentCategory, description, city, phone, email } = body
+    const { serviceName, categoryName, description } = body
 
-    if (!categoryName || !description) {
+    if (!serviceName || !description) {
       return NextResponse.json(
         { error: 'Моля, попълнете всички задължителни полета' },
         { status: 400 }
@@ -15,16 +15,12 @@ export async function POST(request: Request) {
 
     await prisma.categorySuggestion.create({
       data: {
-        categoryName: categoryName ?? null,
-        subcategoryName: subcategoryName ?? null,
-        parentCategory: parentCategory ?? null,
+        name: serviceName,
         description,
-        city: city ?? null,
-        phone: phone ?? null,
-        email: email ?? null,
-        specialistId: null,
-        reason: null,
+        parentName: categoryName ?? null,
         type: null,
+        reason: null,
+        specialistId: null,
       }
     })
 
