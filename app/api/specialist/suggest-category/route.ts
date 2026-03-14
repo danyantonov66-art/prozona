@@ -1,37 +1,32 @@
-// app/api/specialist/suggest-category/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { type, categoryName, subcategoryName, parentCategory, description, reason, specialistId } = body
+    const { categoryName, subcategoryName, parentCategory, description, city, phone, email } = body
 
-    // Валидация
-    if (!type || !description || !reason || !specialistId) {
+    if (!categoryName || !description) {
       return NextResponse.json(
         { error: 'Моля, попълнете всички задължителни полета' },
         { status: 400 }
       )
     }
 
-    if (type === 'category' && !categoryName) {
-      return NextResponse.json(
-        { error: 'Моля, въведете име на категория' },
-        { status: 400 }
-      )
-    }
-
-    if (type === 'subcategory' && (!subcategoryName || !parentCategory)) {
-      return NextResponse.json(
-        { error: 'Моля, въведете име на подкатегория и изберете родителска категория' },
-        { status: 400 }
-      )
-    }
-
-    // Тук ще запазим предложението в базата
-    // Засега просто връщаме успех
-    // В бъдеще ще създадем модел CategorySuggestion
+    await prisma.categorySuggestion.create({
+      data: {
+        categoryName: categoryName ?? null,
+        subcategoryName: subcategoryName ?? null,
+        parentCategory: parentCategory ?? null,
+        description,
+        city: city ?? null,
+        phone: phone ?? null,
+        email: email ?? null,
+        specialistId: null,
+        reason: null,
+        type: null,
+      }
+    })
 
     return NextResponse.json(
       { message: 'Предложението е изпратено успешно' },
