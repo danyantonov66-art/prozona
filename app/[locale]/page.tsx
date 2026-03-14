@@ -243,8 +243,13 @@ export default async function Home({ params }: Props) {
             ].map((step, i) => (
               step.label ? (
                 <div key={i} className="flex flex-col items-center rounded-xl border border-white/10 bg-[#151528] px-4 py-3 text-center min-w-[100px]">
-                  <span className="text-2xl">{step.icon}</span>
-                  <span className="mt-1 text-xs text-gray-300">{step.label}</span>
+                  <span className="mb-2 text-2xl">
+                   {cat.id === "remonti" ? "🔧" :
+                    cat.id === "pochistvane" ? "🧹" :
+                    cat.id === "montaj" ? "🔩" :
+                    cat.id === "gradina" ? "🌿" : "🛠️"}
+                    </span>                 
+                   <span className="mt-1 text-xs text-gray-300">{step.label}</span>
                 </div>
               ) : (
                 <span key={i} className="text-2xl text-[#1DB954] hidden md:block">{step.icon}</span>
