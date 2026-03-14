@@ -199,7 +199,7 @@ model Banner {
   endDate     DateTime?
   impressions Int            @default(0)
   startDate   DateTime?
-  updatedAt   DateTime
+  updatedAt    DateTime  @updatedAt
   Category    Category?      @relation(fields: [categoryId], references: [id])
 }
 
