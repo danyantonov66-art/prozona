@@ -93,6 +93,16 @@ export default function EditProfilePage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!confirm('Сигурен ли си? Профилът ти ще бъде изтрит безвъзвратно.')) return
+    const res = await fetch('/api/specialist/profile/delete', { method: 'DELETE' })
+    if (res.ok) {
+      window.location.href = '/'
+    } else {
+      alert('Грешка при изтриване')
+    }
+  }
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
@@ -116,7 +126,6 @@ export default function EditProfilePage() {
           </div>
         )}
 
-        {/* Profile image */}
         <div className="bg-[#1A1A2E] rounded-xl p-6 mb-6">
           <h2 className="text-white font-semibold mb-4">Профилна снимка</h2>
           <div className="flex items-center gap-6 mb-4">
@@ -144,7 +153,6 @@ export default function EditProfilePage() {
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="bg-[#1A1A2E] rounded-xl p-6 space-y-4">
           <h2 className="text-white font-semibold mb-2">Основна информация</h2>
 
@@ -226,6 +234,19 @@ export default function EditProfilePage() {
             {saving ? 'Запазване...' : 'Запази промените'}
           </button>
         </form>
+
+        <div className="mt-6 rounded-xl border border-red-500/20 bg-red-500/5 p-6">
+          <h2 className="mb-1 font-semibold text-red-400">⚠️ Опасна зона</h2>
+          <p className="mb-4 text-sm text-gray-400">Изтриването на профила е необратимо. Всички данни ще бъдат изгубени.</p>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="rounded-lg border border-red-500/30 bg-red-500/10 px-5 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition"
+          >
+            🗑️ Изтрий профила си
+          </button>
+        </div>
+
       </div>
     </div>
   )
