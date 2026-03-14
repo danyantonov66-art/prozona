@@ -19,11 +19,12 @@ export default async function AdminPage({ params }: Props) {
     redirect(`/${locale}/login`)
   }
 
-  const [userCount, specialistCount, pendingCount, inquiryCount] = await Promise.all([
+  const [userCount, specialistCount, pendingCount, inquiryCount, suggestionCount] = await Promise.all([
     prisma.user.count(),
     prisma.specialist.count(),
     prisma.specialist.count({ where: { verified: false } }),
     prisma.inquiry.count(),
+    prisma.categorySuggestion.count({ where: { status: "PENDING" } }),
   ])
 
   const recentSpecialists = await prisma.specialist.findMany({
@@ -38,7 +39,7 @@ export default async function AdminPage({ params }: Props) {
       <section className="mx-auto max-w-6xl px-4 py-10">
         <h1 className="mb-8 text-3xl font-bold">Админ панел</h1>
 
-        <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-5 text-center">
             <p className="text-3xl font-bold text-[#1DB954]">{userCount}</p>
             <p className="mt-1 text-sm text-gray-400">Потребители</p>
@@ -55,9 +56,13 @@ export default async function AdminPage({ params }: Props) {
             <p className="text-3xl font-bold text-[#1DB954]">{inquiryCount}</p>
             <p className="mt-1 text-sm text-gray-400">Запитвания</p>
           </div>
+          <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 text-center">
+            <p className="text-3xl font-bold text-blue-400">{suggestionCount}</p>
+            <p className="mt-1 text-sm text-gray-400">Предложения</p>
+          </div>
         </div>
 
-        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
           <Link href={`/${locale}/admin/specialists`} className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40">
             <h2 className="text-lg font-semibold">🛠️ Специалисти</h2>
             <p className="mt-1 text-sm text-gray-400">Управлявай и верифицирай специалисти</p>
@@ -69,6 +74,10 @@ export default async function AdminPage({ params }: Props) {
           <Link href={`/${locale}/specialists`} className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40">
             <h2 className="text-lg font-semibold">👁️ Виж сайта</h2>
             <p className="mt-1 text-sm text-gray-400">Публичен изглед на платформата</p>
+          </Link>
+          <Link href={`/${locale}/admin/suggestions`} className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 transition hover:border-blue-500/60">
+            <h2 className="text-lg font-semibold">📋 Предложения за услуги</h2>
+            <p className="mt-1 text-sm text-gray-400">{suggestionCount} нови предложения</p>
           </Link>
         </div>
 
