@@ -136,7 +136,7 @@ export default async function Home({ params }: Props) {
           {categories.map((cat) => (
             <Link
               key={cat.slug}
-              href={`/${locale}/specialists?category=${cat.slug}`}
+              href={`/${locale}/categories/${cat.slug}`}
               className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] text-center transition hover:border-[#1DB954]/40"
             >
               <div
