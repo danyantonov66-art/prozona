@@ -57,6 +57,16 @@ const comparisonRows = [
   },
 ]
 
+const infographicSteps = [
+  { icon: "📋", label: "Заявка от клиент" },
+  { icon: "→", label: "" },
+  { icon: "🪙", label: "1 кредит" },
+  { icon: "→", label: "" },
+  { icon: "📞", label: "Директен контакт" },
+  { icon: "→", label: "" },
+  { icon: "💼", label: "Работа и доход" },
+]
+
 export default async function Home({ params }: Props) {
   const { locale } = await params
 
@@ -127,10 +137,15 @@ export default async function Home({ params }: Props) {
             <Link
               key={cat.slug}
               href={`/${locale}/specialists?category=${cat.slug}`}
-              className="flex flex-col items-center rounded-2xl border border-white/10 bg-[#151528] px-3 py-4 text-center transition hover:border-[#1DB954]/40 hover:bg-[#1b1b31]"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] text-center transition hover:border-[#1DB954]/40"
             >
-              <span className="mb-2 text-2xl">{cat.icon}</span>
-              <span className="text-xs font-medium text-gray-200">{cat.name}</span>
+              <div
+                className="h-24 w-full bg-cover bg-center opacity-80 transition group-hover:opacity-100"
+                style={{ backgroundImage: `url(${cat.icon})` }}
+              />
+              <div className="px-2 py-2">
+                <span className="text-xs font-medium text-gray-200">{cat.name}</span>
+              </div>
             </Link>
           ))}
         </div>
@@ -232,24 +247,11 @@ export default async function Home({ params }: Props) {
         <div className="mt-10 rounded-2xl border border-[#1DB954]/20 bg-[#1DB954]/5 p-8">
           <h3 className="mb-6 text-center text-xl font-bold">🪙 Как работи кредитната система</h3>
           <div className="flex flex-col items-center gap-3 md:flex-row md:justify-center">
-            {[
-              { icon: "📋", label: "Заявка от клиент" },
-              { icon: "→", label: "" },
-              { icon: "🪙", label: "1 кредит" },
-              { icon: "→", label: "" },
-              { icon: "📞", label: "Директен контакт" },
-              { icon: "→", label: "" },
-              { icon: "💼", label: "Работа и доход" },
-            ].map((step, i) => (
+            {infographicSteps.map((step, i) => (
               step.label ? (
                 <div key={i} className="flex flex-col items-center rounded-xl border border-white/10 bg-[#151528] px-4 py-3 text-center min-w-[100px]">
-                  <span className="mb-2 text-2xl">
-                   {cat.id === "remonti" ? "🔧" :
-                    cat.id === "pochistvane" ? "🧹" :
-                    cat.id === "montaj" ? "🔩" :
-                    cat.id === "gradina" ? "🌿" : "🛠️"}
-                    </span>                 
-                   <span className="mt-1 text-xs text-gray-300">{step.label}</span>
+                  <span className="text-2xl">{step.icon}</span>
+                  <span className="mt-1 text-xs text-gray-300">{step.label}</span>
                 </div>
               ) : (
                 <span key={i} className="text-2xl text-[#1DB954] hidden md:block">{step.icon}</span>
