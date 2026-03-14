@@ -14,12 +14,21 @@ export async function POST(request: NextRequest, { params }: Props) {
     if (!session || (session.user as any)?.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
     const { id } = await params
+
     const specialist = await prisma.specialist.update({
       where: { id },
       data: { verified: true },
       include: { user: true },
     })
+
+    // Сменяме ролята на потребителя на SPECIALIST
+    await prisma.user.update({
+      where: { id: specialist.userId },
+      data: { role: "SPECIALIST" },
+    })
+
     try {
       await sendSpecialistApprovedEmail({
         specialistEmail: specialist.user?.email || "",
@@ -28,6 +37,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     } catch (emailError) {
       console.error("Email error:", emailError)
     }
+
     return NextResponse.json({ success: true, specialist })
   } catch (error) {
     console.error("Approve specialist error:", error)
