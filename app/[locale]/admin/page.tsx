@@ -14,7 +14,6 @@ interface Props {
 
 export default async function AdminPage({ params }: Props) {
   const { locale } = await params
-
   const session = await getServerSession(authOptions)
   if (!session || (session.user as any)?.role !== "ADMIN") {
     redirect(`/${locale}/login`)
@@ -39,7 +38,6 @@ export default async function AdminPage({ params }: Props) {
       <section className="mx-auto max-w-6xl px-4 py-10">
         <h1 className="mb-8 text-3xl font-bold">Админ панел</h1>
 
-        {/* Stats */}
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-5 text-center">
             <p className="text-3xl font-bold text-[#1DB954]">{userCount}</p>
@@ -59,32 +57,21 @@ export default async function AdminPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Quick links */}
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Link
-            href={`/${locale}/admin/specialists`}
-            className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
-          >
+          <Link href={`/${locale}/admin/specialists`} className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40">
             <h2 className="text-lg font-semibold">🛠️ Специалисти</h2>
             <p className="mt-1 text-sm text-gray-400">Управлявай и верифицирай специалисти</p>
           </Link>
-          <Link
-            href={`/${locale}/admin/specialists?filter=pending`}
-            className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-5 transition hover:border-yellow-500/60"
-          >
+          <Link href={`/${locale}/admin/specialists?filter=pending`} className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-5 transition hover:border-yellow-500/60">
             <h2 className="text-lg font-semibold">⏳ Чакащи верификация</h2>
             <p className="mt-1 text-sm text-gray-400">{pendingCount} специалиста чакат</p>
           </Link>
-          <Link
-            href={`/${locale}/specialists`}
-            className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
-          >
+          <Link href={`/${locale}/specialists`} className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40">
             <h2 className="text-lg font-semibold">👁️ Виж сайта</h2>
             <p className="mt-1 text-sm text-gray-400">Публичен изглед на платформата</p>
           </Link>
         </div>
 
-        {/* Recent specialists */}
         <div className="rounded-2xl border border-white/10 bg-[#151528] p-6">
           <h2 className="mb-4 text-xl font-semibold">Последно регистрирани специалисти</h2>
           <div className="space-y-3">
@@ -96,12 +83,10 @@ export default async function AdminPage({ params }: Props) {
                 </div>
                 <div className="flex items-center gap-3">
                   <VerifyToggleButton id={s.id} verified={s.verified} />
-                  <Link
-                    href={`/${locale}/specialist/${s.id}`}
-                    className="text-sm text-[#1DB954] hover:underline"
-                  >
+                  <Link href={`/${locale}/specialist/${s.id}`} className="text-sm text-[#1DB954] hover:underline">
                     Виж
                   </Link>
+                  <DeleteSpecialistButton id={s.id} />
                 </div>
               </div>
             ))}
