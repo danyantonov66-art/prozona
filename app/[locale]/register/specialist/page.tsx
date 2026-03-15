@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useState } from "react"
+import { trackCompleteRegistration } from "@/lib/metaPixel"
 
 export default function RegisterSpecialistPage() {
   const [form, setForm] = useState({
@@ -62,6 +63,7 @@ export default function RegisterSpecialistPage() {
         throw new Error("Неуспешна регистрация")
       }
 
+      trackCompleteRegistration("Specialist Registration")
       setSuccess("Регистрацията е успешна. Можеш да влезеш в профила си.")
       setForm({
         name: "",
