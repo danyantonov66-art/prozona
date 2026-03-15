@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { trackLead } from '@/lib/metaPixel'
 import Link from 'next/link'
 
 export default function ContactPage() {
@@ -125,8 +126,12 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Телефон</p>
-                    <a href="tel:+359883202922" className="text-white hover:text-[#1DB954]">
-                     +359 883 202 922
+                  <a
+                  href="tel:+359883202922"
+                    className="text-white hover:text-[#1DB954]"
+                    onClick={() => trackLead("Phone Contact")}
+                     >
+                    +359 883 202 922
                    </a>
                   </div>
                 </div>
