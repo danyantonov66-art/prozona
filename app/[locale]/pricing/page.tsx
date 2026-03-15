@@ -10,11 +10,6 @@ interface Props {
   params: Promise<{ locale: string }>
 }
 
-export const metadata = {
-  title: "Цени",
-  description: "Прости и честни цени. 3 месеца Premium безплатно. Плащай само когато получаваш клиенти.",
-}
-
 export default function PricingPage({ params }: Props) {
   const locale = "bg"
   const router = useRouter()
