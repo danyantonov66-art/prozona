@@ -1,6 +1,7 @@
 ﻿"use client"
 
 import { useState } from "react"
+import { trackLead } from "@/lib/metaPixel"
 
 const CITIES = ["София","Пловдив","Варна","Бургас","Русе","Стара Загора","Плевен","Враца","Хасково","Благоевград","Велико Търново"]
 
@@ -29,6 +30,7 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || "Грешка")
+      trackLead("Inquiry Submitted")
       setSuccess("Запитването е изпратено успешно!")
       setForm({ name: "", email: "", phone: "", message: "", city: "" })
     } catch (err: any) {

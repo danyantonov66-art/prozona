@@ -4,6 +4,7 @@ import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import InquiryButton from "@/components/InquiryButton"
+import TrackViewContent from "@/components/tracking/TrackViewContent"
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params
@@ -55,6 +56,7 @@ export default async function SpecialistPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
+      <TrackViewContent name={name} />
       <section className="mx-auto max-w-5xl px-4 py-10">
 
         {/* Breadcrumb */}
