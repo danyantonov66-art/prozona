@@ -1,5 +1,4 @@
 import { Inter } from 'next/font/google'
-import './globals.css' // Увери се, че пътят до твоя CSS е правилен
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
@@ -11,9 +10,8 @@ export default function RootLayout({
   params: { locale: string }
 }) {
   return (
-    <html lang={locale}>
+    <html lang={locale || 'bg'}>
       <head>
-        {/* Тук е мястото за Meta Pixel */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -30,14 +28,6 @@ export default function RootLayout({
             `,
           }}
         />
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: 'none' }}
-            src="https://www.facebook.com/tr?id=1975831049728243&ev=PageView&noscript=1"
-          />
-        </noscript>
       </head>
       <body className={inter.className}>
         {children}
