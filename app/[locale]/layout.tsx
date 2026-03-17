@@ -1,4 +1,5 @@
 import { Inter } from 'next/font/google'
+// Ако имаш други импорти тук, ВЪРНИ ГИ (например за i18n или Providers)
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
@@ -9,12 +10,12 @@ export default async function RootLayout({
   children: React.ReactNode
   params: Promise<{ locale: string }>
 }) {
-  // Трябва да изчакаме params, защото вече е Promise
   const { locale } = await params;
 
   return (
     <html lang={locale || 'bg'}>
       <head>
+        {/* ПИКЕЛЪТ СЕ СЛАГА ТУК - ТОВА Е БЕЗОПАСНО */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -33,7 +34,7 @@ export default async function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {children}
+          {children}
       </body>
     </html>
   )
