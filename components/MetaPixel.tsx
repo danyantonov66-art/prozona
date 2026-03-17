@@ -1,17 +1,11 @@
 'use client'
 
-import Script from 'next/script'
-
 export default function MetaPixel() {
-  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
-
-  if (!pixelId) return null
+  const pixelId = "1975831049728243"; // Слагаме го директно тук, за да сме 100% сигурни
 
   return (
     <>
-      <Script
-        id="fb-pixel"
-        strategy="afterInteractive"
+      <script
         dangerouslySetInnerHTML={{
           __html: `
             !function(f,b,e,v,n,t,s)
