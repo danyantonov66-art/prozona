@@ -1,20 +1,25 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Script from 'next/script'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 
-export default function MetaPixel() {
+function PixelEvents() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
   useEffect(() => {
     if (!pixelId || !window.fbq) return
-
-    // Това казва на Facebook, че потребителят е преминал на нова страница (статия)
+    
+    // Отчитаме PageView само при промяна на URL
     window.fbq('track', 'PageView')
-  }, [pathname, searchParams, pixelId])
+  }, [pathname, pixelId])
+
+  return null
+}
+
+export default function MetaPixel() {
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
   if (!pixelId) return null
 
@@ -34,6 +39,11 @@ export default function MetaPixel() {
           fbq('track', 'PageView');
         `}
       </Script>
+      
+      {/* Махаме useSearchParams, за да не чупим блога */}
+      <Suspense fallback={null}>
+        <PixelEvents />
+      </Suspense>
 
       <noscript>
         <img
