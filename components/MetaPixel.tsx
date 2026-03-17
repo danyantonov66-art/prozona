@@ -1,10 +1,16 @@
 'use client'
 
 import Script from 'next/script'
-import { META_PIXEL_ID } from '@/lib/metaPixel'
 
 export default function MetaPixel() {
-  if (!META_PIXEL_ID) return null
+  // Вземаме ID-то директно от променливата на средата, която е настроена във Vercel
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
+
+  // Ако променливата липсва, скриптът няма да се зареди, за да не дава грешки
+  if (!pixelId) {
+    console.warn("Meta Pixel ID is missing. Check your Vercel Environment Variables.")
+    return null
+  }
 
   return (
     <>
@@ -18,7 +24,7 @@ export default function MetaPixel() {
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '${META_PIXEL_ID}');
+          fbq('init', '${pixelId}');
           fbq('track', 'PageView');
         `}
       </Script>
@@ -29,7 +35,7 @@ export default function MetaPixel() {
           width="1"
           style={{ display: 'none' }}
           alt=""
-          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+          src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
         />
       </noscript>
     </>
