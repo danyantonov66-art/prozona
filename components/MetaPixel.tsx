@@ -1,16 +1,22 @@
 'use client'
 
+import { usePathname, useSearchParams } from 'next/navigation'
 import Script from 'next/script'
+import { useEffect } from 'react'
 
 export default function MetaPixel() {
-  // Вземаме ID-то директно от променливата на средата, която е настроена във Vercel
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
-  // Ако променливата липсва, скриптът няма да се зареди, за да не дава грешки
-  if (!pixelId) {
-    console.warn("Meta Pixel ID is missing. Check your Vercel Environment Variables.")
-    return null
-  }
+  useEffect(() => {
+    if (!pixelId || !window.fbq) return
+
+    // Това казва на Facebook, че потребителят е преминал на нова страница (статия)
+    window.fbq('track', 'PageView')
+  }, [pathname, searchParams, pixelId])
+
+  if (!pixelId) return null
 
   return (
     <>
