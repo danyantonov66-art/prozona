@@ -2,13 +2,16 @@ import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-  params: { locale }
+  params
 }: {
   children: React.ReactNode
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }) {
+  // Трябва да изчакаме params, защото вече е Promise
+  const { locale } = await params;
+
   return (
     <html lang={locale || 'bg'}>
       <head>
