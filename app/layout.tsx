@@ -64,7 +64,6 @@ export default function RootLayout({
     <html lang="bg">
       <body className={inter.className}>
         <Providers>
-          <MetaPixel />
           {children}
         </Providers>
       </body>
