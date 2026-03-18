@@ -49,26 +49,33 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role
-        token.id = user.id
-      }
-      return token
-    },
-    async session({ session, token }) {
-      if (session?.user) {
-        session.user.role = token.role as Role
-        session.user.id = token.id as string
-      }
-      return session
+  async jwt({ token, user }) {
+    // при login
+    if (user) {
+      token.id = user.id
+      token.role = user.role ?? "user"
     }
+
+    // 🔥 винаги взимаме role от базата
+    if (token.id) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.id as string },
+        select: { role: true },
+      })
+
+      if (dbUser) {
+        token.role = dbUser.role
+      }
+    }
+
+    return token
   },
-  pages: {
-    signIn: '/login',
+
+  async session({ session, token }) {
+    if (session.user) {
+      session.user.id = token.id as string
+      session.user.role = token.role as Role
+    }
+    return session
   },
-  session: {
-    strategy: 'jwt',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
 }
