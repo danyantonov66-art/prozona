@@ -31,9 +31,8 @@ export default function AdminSpecialistsPage() {
     setLoading(false)
   }
 
-  async function toggleVerify(id: string, verified: boolean) {
-    const endpoint = verified ? "unverify" : "verify"
-    await fetch(`/api/admin/specialists/${id}/${endpoint}`, { method: "POST" })
+  async function toggleVerify(id: string) {
+    await fetch(`/api/admin/specialists/${id}/verify`, { method: "PATCH" })
     load()
   }
 
@@ -75,7 +74,6 @@ export default function AdminSpecialistsPage() {
           <h1 className="text-3xl font-bold">Специалисти ({filtered.length})</h1>
         </div>
 
-        {/* Филтри и търсене */}
         <div className="flex flex-wrap gap-3 mb-6">
           <div className="flex gap-2">
             {(["all", "pending", "verified"] as const).map((f) => (
@@ -154,7 +152,7 @@ export default function AdminSpecialistsPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => toggleVerify(s.id, s.verified)}
+                        onClick={() => toggleVerify(s.id)}
                         className={`text-xs font-medium hover:underline ${
                           s.verified ? "text-yellow-400" : "text-[#1DB954]"
                         }`}
