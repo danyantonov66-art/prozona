@@ -7,6 +7,16 @@ import { sendNewSpecialistNotification, sendSpecialistRegistrationConfirmation }
 
 const EARLY_PROGRAM_LIMIT = 200
 
+function containsContactInfo(text: string): boolean {
+  const patterns = [
+    /(\+359|08|00359)\s?[\d\s\-]{8,}/,
+    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,
+    /(https?:\/\/|www\.)/i,
+    /facebook\.com|instagram\.com|viber|whatsapp/i,
+  ]
+  return patterns.some((p) => p.test(text))
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -19,6 +29,14 @@ export async function POST(request: NextRequest) {
 
     if (!description || !city || !categoryId || !subcategoryId || !phone) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    // Валидация за контактна информация
+    if (containsContactInfo(description)) {
+      return NextResponse.json(
+        { error: "Описанието не може да съдържа телефон, имейл или линкове." },
+        { status: 400 }
+      )
     }
 
     const selectedCategory = categories.find((c: any) => c.id === categoryId)
@@ -49,21 +67,21 @@ export async function POST(request: NextRequest) {
 
     const existing = await prisma.specialist.findUnique({ where: { userId } })
 
-  let earlyProgramBonus = {}
-if (!existing) {
-  const totalSpecialists = await prisma.specialist.count()
-  const isEarly = totalSpecialists < EARLY_PROGRAM_LIMIT
-  const months = isEarly ? 6 : 3
-  const premiumExpiry = new Date()
-  premiumExpiry.setMonth(premiumExpiry.getMonth() + months)
-  earlyProgramBonus = {
-    subscriptionPlan: "PREMIUM",
-    subscriptionExpiresAt: premiumExpiry,
-    isFeatured: isEarly,
-    featuredExpiresAt: isEarly ? premiumExpiry : null,
-    priorityInquiries: isEarly,
-  }
-}
+    let earlyProgramBonus = {}
+    if (!existing) {
+      const totalSpecialists = await prisma.specialist.count()
+      const isEarly = totalSpecialists < EARLY_PROGRAM_LIMIT
+      const months = isEarly ? 6 : 3
+      const premiumExpiry = new Date()
+      premiumExpiry.setMonth(premiumExpiry.getMonth() + months)
+      earlyProgramBonus = {
+        subscriptionPlan: "PREMIUM",
+        subscriptionExpiresAt: premiumExpiry,
+        isFeatured: isEarly,
+        featuredExpiresAt: isEarly ? premiumExpiry : null,
+        priorityInquiries: isEarly,
+      }
+    }
 
     const specialistData = {
       businessName: businessName || null,
@@ -123,6 +141,14 @@ export async function PUT(request: NextRequest) {
 
     if (!description) {
       return NextResponse.json({ error: "Описанието е задължително" }, { status: 400 })
+    }
+
+    // Валидация за контактна информация
+    if (containsContactInfo(description)) {
+      return NextResponse.json(
+        { error: "Описанието не може да съдържа телефон, имейл или линкове." },
+        { status: 400 }
+      )
     }
 
     const specialist = await prisma.specialist.update({
