@@ -1,41 +1,20 @@
 import { Inter } from 'next/font/google'
-// Ако имаш други импорти тук, ВЪРНИ ГИ (например за i18n или Providers)
+import { Providers } from '../providers'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
-export default async function RootLayout({
+export default async function LocaleLayout({
   children,
   params
 }: {
   children: React.ReactNode
   params: Promise<{ locale: string }>
 }) {
-  const { locale } = await params;
+  const { locale } = await params
 
   return (
-    <html lang={locale || 'bg'}>
-      <head>
-        {/* ПИКЕЛЪТ СЕ СЛАГА ТУК - ТОВА Е БЕЗОПАСНО */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '1975831049728243');
-              fbq('track', 'PageView');
-            `,
-          }}
-        />
-      </head>
-      <body className={inter.className}>
-          {children}
-      </body>
-    </html>
+    <Providers>
+      {children}
+    </Providers>
   )
 }

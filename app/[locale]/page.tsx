@@ -52,7 +52,7 @@ const comparisonRows = [
   },
   {
     feature: "Заявки за клиенти",
-    prozona: "Безплатни + до 5 специалисти се свързват директно",
+    prozona: "Безплатни + до 5 специалиста се свързват директно",
     benefit: "Клиентът получава бързи оферти безплатно.",
   },
 ]
@@ -71,6 +71,7 @@ export const metadata = {
   title: "Намери верифициран специалист близо до теб",
   description: "Ремонти, почистване, монтаж и градински услуги на едно място. Безплатна заявка. Верифицирани майстори в целия град.",
 }
+
 export default async function Home({ params }: Props) {
   const { locale } = await params
 
@@ -80,7 +81,7 @@ export default async function Home({ params }: Props) {
 
       <div className="bg-[#1A1A2E] px-4 py-2 text-center text-white">
         <p className="text-sm">
-          🎉 Стартова оферта: 3 месеца Premium безплатно за всички нови специалисти! Първите 200 получават 6 месеца!          
+          🎉 Стартова оферта: 3 месеца Premium безплатно за всички нови специалисти! Първите 200 получават 6 месеца!
           <Link href={`/${locale}/how-it-works`} className="ml-2 font-semibold text-[#1DB954] hover:underline">
             Виж как работи →
           </Link>
@@ -113,13 +114,19 @@ export default async function Home({ params }: Props) {
             Пример: ВиК, почистване, хамали, косене, София
           </div>
 
-          {/* CTA за клиенти */}
-          <div className="mt-6">
+          {/* CTA бутони */}
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href={`/${locale}/request`}
-              className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black transition hover:bg-[#1ed760] text-base"
+              className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black transition hover:bg-[#1ed760] text-base w-full sm:w-auto"
             >
               🚀 Публикувай безплатна заявка
+            </Link>
+            <Link
+              href={`/${locale}/become-specialist`}
+              className="inline-flex items-center justify-center rounded-xl border border-white/20 px-8 py-3 font-semibold text-white transition hover:bg-white/10 text-base w-full sm:w-auto"
+            >
+              🔧 Регистрирай се като специалист
             </Link>
           </div>
 
@@ -217,7 +224,6 @@ export default async function Home({ params }: Props) {
           </p>
         </div>
 
-        {/* Таблица за сравнение */}
         <div className="overflow-x-auto rounded-2xl border border-white/10">
           <table className="w-full text-sm">
             <thead>
@@ -247,7 +253,6 @@ export default async function Home({ params }: Props) {
           </table>
         </div>
 
-        {/* Кредитна инфографика */}
         <div className="mt-10 rounded-2xl border border-[#1DB954]/20 bg-[#1DB954]/5 p-8">
           <h3 className="mb-6 text-center text-xl font-bold">🪙 Как работи кредитната система</h3>
           <div className="flex flex-col items-center gap-3 md:flex-row md:justify-center">

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { trackCompleteRegistration } from "@/lib/metaPixel"
+import { categories } from "@/lib/constants"
 
 export default function RegisterSpecialistPage() {
   const [form, setForm] = useState({
@@ -13,19 +14,33 @@ export default function RegisterSpecialistPage() {
     password: "",
     confirmPassword: "",
     service: "",
-    description: ""
+    description: "",
+    categoryId: "",
+    subcategoryId: "",
   })
 
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
 
+  const selectedCategory = categories.find((c) => c.id === form.categoryId)
+
   function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) {
+    const { name, value } = e.target
     setForm((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value,
+      ...(name === "categoryId" ? { subcategoryId: "", service: "" } : {}),
+      ...(name === "subcategoryId"
+        ? {
+            service:
+              categories
+                .find((c) => c.id === form.categoryId)
+                ?.subcategories.find((s) => s.id === value)?.name || "",
+          }
+        : {}),
     }))
   }
 
@@ -39,14 +54,17 @@ export default function RegisterSpecialistPage() {
       return
     }
 
+    if (!form.categoryId || !form.subcategoryId) {
+      setError("Моля, избери категория и подкатегория.")
+      return
+    }
+
     setLoading(true)
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
           email: form.email,
@@ -55,13 +73,13 @@ export default function RegisterSpecialistPage() {
           password: form.password,
           role: "SPECIALIST",
           service: form.service,
-          description: form.description
-        })
+          description: form.description,
+          categoryId: form.categoryId,
+          subcategoryId: form.subcategoryId,
+        }),
       })
 
-      if (!res.ok) {
-        throw new Error("Неуспешна регистрация")
-      }
+      if (!res.ok) throw new Error("Неуспешна регистрация")
 
       trackCompleteRegistration("Specialist Registration")
       setSuccess("Регистрацията е успешна. Можеш да влезеш в профила си.")
@@ -73,7 +91,9 @@ export default function RegisterSpecialistPage() {
         password: "",
         confirmPassword: "",
         service: "",
-        description: ""
+        description: "",
+        categoryId: "",
+        subcategoryId: "",
       })
     } catch (err) {
       setError("Възникна проблем при регистрацията. Провери данните и опитай отново.")
@@ -95,17 +115,15 @@ export default function RegisterSpecialistPage() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Регистрация на специалист
           </h1>
-
           <p className="text-gray-400 mb-8">
             Създай профил в ProZona и започни да получаваш запитвания от клиенти.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Име и Имейл */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Име и фамилия
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Име и фамилия</label>
                 <input
                   type="text"
                   name="name"
@@ -115,11 +133,8 @@ export default function RegisterSpecialistPage() {
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Имейл
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Имейл</label>
                 <input
                   type="email"
                   name="email"
@@ -131,11 +146,10 @@ export default function RegisterSpecialistPage() {
               </div>
             </div>
 
+            {/* Телефон и Град */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Телефон
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Телефон</label>
                 <input
                   type="text"
                   name="phone"
@@ -145,11 +159,8 @@ export default function RegisterSpecialistPage() {
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Град
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Град</label>
                 <input
                   type="text"
                   name="city"
@@ -161,25 +172,53 @@ export default function RegisterSpecialistPage() {
               </div>
             </div>
 
+            {/* Категория */}
             <div>
               <label className="block text-sm text-gray-300 mb-2">
-                Основна услуга
+                Категория <span className="text-red-400">*</span>
               </label>
-              <input
-                type="text"
-                name="service"
-                value={form.service}
+              <select
+                name="categoryId"
+                value={form.categoryId}
                 onChange={handleChange}
-                placeholder="Пример: Ел. услуги, Маникюр, Автосервиз"
                 className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
                 required
-              />
+              >
+                <option value="">-- Избери категория --</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
+            {/* Подкатегория */}
+            {selectedCategory && (
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Подкатегория <span className="text-red-400">*</span>
+                </label>
+                <select
+                  name="subcategoryId"
+                  value={form.subcategoryId}
+                  onChange={handleChange}
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+                  required
+                >
+                  <option value="">-- Избери подкатегория --</option>
+                  {selectedCategory.subcategories.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.icon} {sub.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Описание */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Кратко описание
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Кратко описание</label>
               <textarea
                 name="description"
                 value={form.description}
@@ -190,11 +229,10 @@ export default function RegisterSpecialistPage() {
               />
             </div>
 
+            {/* Парола */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Парола
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Парола</label>
                 <input
                   type="password"
                   name="password"
@@ -204,11 +242,8 @@ export default function RegisterSpecialistPage() {
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Повтори паролата
-                </label>
+                <label className="block text-sm text-gray-300 mb-2">Повтори паролата</label>
                 <input
                   type="password"
                   name="confirmPassword"
@@ -225,7 +260,6 @@ export default function RegisterSpecialistPage() {
                 {success}
               </div>
             )}
-
             {error && (
               <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300">
                 {error}

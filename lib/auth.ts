@@ -1,4 +1,3 @@
-// lib/auth.ts
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
@@ -30,21 +29,16 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null
         }
-
         const user = await prisma.user.findUnique({
           where: { email: credentials.email }
         })
-
         if (!user || !user.password) {
           return null
         }
-
         const passwordMatch = await bcrypt.compare(credentials.password, user.password)
-
         if (!passwordMatch) {
           return null
         }
-
         return {
           id: user.id,
           email: user.email,
@@ -60,27 +54,24 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.role = user.role ?? Role.CLIENT
       }
-
       if (token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: { role: true },
         })
-
         if (dbUser) {
           token.role = dbUser.role
         }
       }
-
       return token
     },
-
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as Role
+        (session.user as any).id = token.id as string;
+        (session.user as any).role = token.role as Role
       }
       return session
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
 }

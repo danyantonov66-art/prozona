@@ -12,7 +12,7 @@ function generateRefCode(name: string, id: string): string {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, name, role, phone, city, service, description } = body
+    const { email, password, name, role, phone, city, service, description, categoryId, subcategoryId } = body
 
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -41,9 +41,8 @@ export async function POST(request: Request) {
       }
     })
 
-    // Ако е специалист — създай Specialist профил
     if (role === 'SPECIALIST') {
-      await prisma.specialist.create({
+      const specialist = await prisma.specialist.create({
         data: {
           userId: user.id,
           description: description || 'Профилът предстои да бъде попълнен.',
@@ -54,7 +53,32 @@ export async function POST(request: Request) {
         }
       })
 
-      // Реферален код
+      // Запиши категорията в SpecialistCategory
+      if (categoryId && subcategoryId) {
+        // Намери категорията в БД по slug
+        const dbCategory = await prisma.category.findUnique({
+          where: { slug: categoryId }
+        })
+
+        if (dbCategory) {
+          // Намери подкатегорията в БД по slug
+          const dbSubcategory = await prisma.subcategory.findFirst({
+            where: {
+              slug: subcategoryId,
+              categoryId: dbCategory.id
+            }
+          })
+
+          await prisma.specialistCategory.create({
+            data: {
+              specialistId: specialist.id,
+              categoryId: dbCategory.id,
+              subcategoryId: dbSubcategory?.id || null,
+            }
+          })
+        }
+      }
+
       const refCode = generateRefCode(name, user.id)
       const refLink = `https://www.prozona.bg/bg/register/specialist?ref=${refCode}`
 
@@ -70,51 +94,22 @@ export async function POST(request: Request) {
                 <span style="color: #0D0D1A; font-size: 24px; font-weight: bold;">PZ ProZona</span>
               </div>
             </div>
-
             <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">
               Здравей, ${name}! 👋
             </h1>
-
             <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">
-              Благодарим ти, че се присъедини към <strong style="color: #1DB954;">ProZona</strong> — платформата за професионални услуги в България!
+              Благодарим ти, че се присъедини към <strong style="color: #1DB954;">ProZona</strong>!
             </p>
-
-            <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">
-              Профилът ти е създаден успешно. За да привлечеш повече клиенти, препоръчваме да:
-            </p>
-
-            <ul style="color: #cccccc; font-size: 15px; line-height: 2;">
-              <li>📸 <strong>Добавиш снимка на профила</strong> — специалистите с профилна снимка получават 3x повече запитвания</li>
-              <li>📝 Попълниш описанието и услугите си</li>
-              <li>🏙️ Добавиш районите, в които работиш</li>
-            </ul>
-
             <div style="text-align: center; margin: 32px 0;">
               <a href="https://www.prozona.bg/bg/specialist/dashboard"
                 style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
                 Попълни профила си →
               </a>
             </div>
-
-            <hr style="border: 1px solid #333; margin: 32px 0;" />
-
-            <h2 style="color: #ffffff; font-size: 20px;">🤝 Покани колеги и получи бонус!</h2>
-
-            <p style="color: #cccccc; font-size: 15px; line-height: 1.6;">
-              Познаваш майстори, електротехници, почистващи фирми или други специалисти?
-              Покани ги в ProZona с твоя личен линк и <strong style="color: #1DB954;">двамата получавате +1 месец Premium безплатно!</strong>
-            </p>
-
             <div style="background: #151528; border: 1px solid #1DB954; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
               <p style="color: #888; font-size: 13px; margin: 0 0 8px;">Твоят реферален линк:</p>
               <a href="${refLink}" style="color: #1DB954; font-size: 14px; word-break: break-all;">${refLink}</a>
             </div>
-
-            <p style="color: #555; font-size: 13px; text-align: center; margin-top: 32px;">
-              С уважение,<br/>
-              <strong style="color: #1DB954;">Екипът на ProZona</strong><br/>
-              office@prozona.bg · prozona.bg
-            </p>
           </div>
         `
       })
@@ -122,7 +117,7 @@ export async function POST(request: Request) {
       // Известие към админа
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',
-        to: 'office@prozona.bg',
+        to: process.env.ADMIN_EMAIL!,
         subject: `🆕 Нов специалист: ${name}`,
         html: `
           <p><strong>Нов специалист се регистрира в ProZona:</strong></p>
@@ -132,6 +127,8 @@ export async function POST(request: Request) {
             <li>Телефон: ${phone || '—'}</li>
             <li>Град: ${city || '—'}</li>
             <li>Услуга: ${service || '—'}</li>
+            <li>Категория: ${categoryId || '—'}</li>
+            <li>Подкатегория: ${subcategoryId || '—'}</li>
           </ul>
           <a href="https://www.prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
         `
