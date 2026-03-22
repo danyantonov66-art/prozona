@@ -19,6 +19,13 @@ export async function GET() {
             email: true,
           },
         },
+        GalleryImage: {
+          select: {
+            id: true,
+            imageUrl: true,
+            title: true,
+          }
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -28,7 +35,6 @@ export async function GET() {
     return NextResponse.json(specialists)
   } catch (error) {
     console.error('Admin specialists error:', error)
-
     return NextResponse.json(
       { error: 'Failed to load specialists' },
       { status: 500 }
