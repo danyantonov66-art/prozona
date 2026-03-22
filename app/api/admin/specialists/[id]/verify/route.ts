@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -13,8 +13,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await context.params
+
     const specialist = await prisma.specialist.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!specialist) {
@@ -22,7 +24,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.specialist.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         verified: !specialist.verified,
         verifiedAt: !specialist.verified ? new Date() : null,
