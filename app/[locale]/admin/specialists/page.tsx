@@ -4,6 +4,12 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 
+interface GalleryImage {
+  id: number
+  imageUrl: string
+  title?: string
+}
+
 interface Specialist {
   id: string
   businessName?: string
@@ -12,6 +18,7 @@ interface Specialist {
   subscriptionPlan: string
   createdAt: string
   user?: { name: string; email: string }
+  GalleryImage?: GalleryImage[]
 }
 
 export default function AdminSpecialistsPage() {
@@ -22,6 +29,7 @@ export default function AdminSpecialistsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "pending" | "verified">("all")
   const [search, setSearch] = useState("")
+  const [expandedGallery, setExpandedGallery] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -40,6 +48,18 @@ export default function AdminSpecialistsPage() {
     if (!confirm("Сигурен ли си? Това ще изтрие профила безвъзвратно.")) return
     await fetch(`/api/admin/specialists/${id}/delete`, { method: "DELETE" })
     load()
+  }
+
+  async function deleteGalleryImage(specialistId: string, imageId: number) {
+    if (!confirm("Изтриваш тази снимка?")) return
+    await fetch(`/api/admin/gallery/${imageId}`, { method: "DELETE" })
+    setItems((prev) =>
+      prev.map((s) =>
+        s.id === specialistId
+          ? { ...s, GalleryImage: s.GalleryImage?.filter((img) => img.id !== imageId) }
+          : s
+      )
+    )
   }
 
   useEffect(() => { load() }, [])
@@ -100,84 +120,105 @@ export default function AdminSpecialistsPage() {
         </div>
 
         {loading && <p className="text-gray-400">Зареждане...</p>}
-
         {!loading && filtered.length === 0 && (
           <p className="text-gray-400">Няма специалисти.</p>
         )}
 
-        <div className="rounded-2xl border border-white/10 bg-[#151528] overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="border-b border-white/10 bg-[#0D0D1A]">
-              <tr>
-                <th className="px-4 py-3 text-left text-gray-400">Специалист</th>
-                <th className="px-4 py-3 text-left text-gray-400">Имейл</th>
-                <th className="px-4 py-3 text-left text-gray-400">Град</th>
-                <th className="px-4 py-3 text-left text-gray-400">План</th>
-                <th className="px-4 py-3 text-left text-gray-400">Статус</th>
-                <th className="px-4 py-3 text-left text-gray-400">Регистриран</th>
-                <th className="px-4 py-3 text-left text-gray-400">Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s) => (
-                <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition">
-                  <td className="px-4 py-3 font-medium">
+        <div className="space-y-4">
+          {filtered.map((s) => (
+            <div key={s.id} className="rounded-2xl border border-white/10 bg-[#151528] overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between px-4 py-3 gap-3">
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <span className="font-medium text-white">
                     {s.businessName || s.user?.name || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">{s.user?.email}</td>
-                  <td className="px-4 py-3 text-gray-400">{s.city}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                      s.subscriptionPlan === "PREMIUM"
-                        ? "bg-yellow-500/20 text-yellow-400"
-                        : s.subscriptionPlan === "BASIC"
-                        ? "bg-blue-500/20 text-blue-400"
-                        : "bg-gray-500/20 text-gray-400"
-                    }`}>
-                      {s.subscriptionPlan}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                      s.verified
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-yellow-500/20 text-yellow-400"
-                    }`}>
-                      {s.verified ? "Верифициран" : "Чакащ"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">
+                  </span>
+                  <span className="text-gray-400">{s.user?.email}</span>
+                  <span className="text-gray-400">{s.city}</span>
+                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                    s.subscriptionPlan === "PREMIUM"
+                      ? "bg-yellow-500/20 text-yellow-400"
+                      : s.subscriptionPlan === "BASIC"
+                      ? "bg-blue-500/20 text-blue-400"
+                      : "bg-gray-500/20 text-gray-400"
+                  }`}>
+                    {s.subscriptionPlan}
+                  </span>
+                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                    s.verified
+                      ? "bg-green-500/20 text-green-400"
+                      : "bg-yellow-500/20 text-yellow-400"
+                  }`}>
+                    {s.verified ? "Верифициран" : "Чакащ"}
+                  </span>
+                  <span className="text-gray-500 text-xs">
                     {new Date(s.createdAt).toLocaleDateString("bg-BG")}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleVerify(s.id)}
-                        className={`text-xs font-medium hover:underline ${
-                          s.verified ? "text-yellow-400" : "text-[#1DB954]"
-                        }`}
-                      >
-                        {s.verified ? "Премахни верификация" : "Верифицирай"}
-                      </button>
-                      <Link
-                        href={`/${locale}/specialist/${s.id}`}
-                        className="text-xs text-blue-400 hover:underline"
-                        target="_blank"
-                      >
-                        Виж
-                      </Link>
-                      <button
-                        onClick={() => deleteSpecialist(s.id)}
-                        className="text-xs text-red-400 hover:text-red-300 hover:underline"
-                      >
-                        Изтрий
-                      </button>
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs">
+                  <button
+                    onClick={() => toggleVerify(s.id)}
+                    className={`font-medium hover:underline ${
+                      s.verified ? "text-yellow-400" : "text-[#1DB954]"
+                    }`}
+                  >
+                    {s.verified ? "Премахни" : "Верифицирай"}
+                  </button>
+                  <Link
+                    href={`/${locale}/specialist/${s.id}`}
+                    className="text-blue-400 hover:underline"
+                    target="_blank"
+                  >
+                    Виж
+                  </Link>
+                  <button
+                    onClick={() => setExpandedGallery(expandedGallery === s.id ? null : s.id)}
+                    className="text-purple-400 hover:underline"
+                  >
+                    🖼️ Галерия ({s.GalleryImage?.length || 0})
+                  </button>
+                  <button
+                    onClick={() => deleteSpecialist(s.id)}
+                    className="text-red-400 hover:text-red-300 hover:underline"
+                  >
+                    Изтрий
+                  </button>
+                </div>
+              </div>
+
+              {/* Галерия секция */}
+              {expandedGallery === s.id && (
+                <div className="border-t border-white/10 bg-[#0D0D1A] p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-sm font-semibold text-white">Галерия</h3>
+                    <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs text-yellow-400">
+                      ⚠️ Провери за контактна информация
+                    </span>
+                  </div>
+                  {!s.GalleryImage || s.GalleryImage.length === 0 ? (
+                    <p className="text-sm text-gray-500">Няма качени снимки.</p>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
+                      {s.GalleryImage.map((img) => (
+                        <div key={img.id} className="relative group">
+                          <img
+                            src={img.imageUrl}
+                            alt={img.title || "Галерия"}
+                            className="h-24 w-full rounded-xl object-cover"
+                          />
+                          <button
+                            onClick={() => deleteGalleryImage(s.id, img.id)}
+                            className="absolute top-1 right-1 hidden group-hover:flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs hover:bg-red-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
     </main>
