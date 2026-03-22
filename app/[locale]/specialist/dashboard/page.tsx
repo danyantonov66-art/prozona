@@ -82,7 +82,7 @@ export default function SpecialistDashboard() {
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Моят Dashboard</h1>
           <div className="flex items-center gap-3">
             <div className="rounded-xl border border-[#1DB954]/30 bg-[#1DB954]/10 px-4 py-2">
@@ -96,6 +96,30 @@ export default function SpecialistDashboard() {
               + Купи кредити
             </Link>
           </div>
+        </div>
+
+        {/* Навигация */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <Link href="/bg/specialist/profile"
+            className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
+            <div className="text-2xl mb-1">👤</div>
+            <div className="text-sm font-medium">Профил</div>
+          </Link>
+          <Link href="/bg/specialist/gallery"
+            className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
+            <div className="text-2xl mb-1">🖼️</div>
+            <div className="text-sm font-medium">Галерия</div>
+          </Link>
+          <Link href="/bg/specialist/price-list"
+            className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
+            <div className="text-2xl mb-1">💰</div>
+            <div className="text-sm font-medium">Ценова листа</div>
+          </Link>
+          <Link href="/bg/specialist/buy-credits"
+            className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
+            <div className="text-2xl mb-1">🪙</div>
+            <div className="text-sm font-medium">Купи кредити</div>
+          </Link>
         </div>
 
         <h2 className="text-xl font-semibold mb-4">Запитвания</h2>
