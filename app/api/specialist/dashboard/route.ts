@@ -12,14 +12,21 @@ export async function GET() {
 
     const specialist = await prisma.specialist.findUnique({
       where: { userId: session.user.id },
-      select: { id: true, credits: true }
+      select: {
+        id: true,
+        credits: true,
+        viewsCount: true,
+        inquiryCount: true,
+        completedJobs: true,
+        reviewCount: true,
+        rating: true,
+      }
     })
 
     if (!specialist) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    // Вземи всички запитвания за този специалист
     const inquiries = await prisma.inquiry.findMany({
       where: { specialistId: specialist.id },
       orderBy: { createdAt: 'desc' },
@@ -30,7 +37,6 @@ export async function GET() {
         message: true,
         createdAt: true,
         categoryId: true,
-        // Провери дали е отключено
         InquiryResponse: {
           where: { specialistId: specialist.id },
           select: { id: true }
@@ -51,6 +57,13 @@ export async function GET() {
     return NextResponse.json({
       credits: specialist.credits,
       inquiries: formattedInquiries,
+      stats: {
+        viewsCount: specialist.viewsCount,
+        inquiryCount: specialist.inquiryCount,
+        completedJobs: specialist.completedJobs,
+        reviewCount: specialist.reviewCount,
+        rating: specialist.rating,
+      }
     })
   } catch (error) {
     console.error(error)

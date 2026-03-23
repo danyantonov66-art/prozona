@@ -17,11 +17,20 @@ interface Inquiry {
   phone?: string
 }
 
+interface Stats {
+  viewsCount: number
+  inquiryCount: number
+  completedJobs: number
+  reviewCount: number
+  rating: number
+}
+
 export default function SpecialistDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [credits, setCredits] = useState(0)
+  const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -35,6 +44,7 @@ export default function SpecialistDashboard() {
         .then((data) => {
           setInquiries(data.inquiries || [])
           setCredits(data.credits || 0)
+          setStats(data.stats || null)
           setLoading(false)
         })
     }
@@ -45,17 +55,13 @@ export default function SpecialistDashboard() {
       alert("Нямаш достатъчно кредити. Купи кредити за да продължиш.")
       return
     }
-    const res = await fetch(`/api/specialist/inquiries/${id}/unlock`, {
-      method: "POST"
-    })
+    const res = await fetch(`/api/specialist/inquiries/${id}/unlock`, { method: "POST" })
     const data = await res.json()
     if (res.ok) {
       setCredits((prev) => prev - 1)
       setInquiries((prev) =>
         prev.map((inq) =>
-          inq.id === id
-            ? { ...inq, unlocked: true, email: data.email, phone: data.phone }
-            : inq
+          inq.id === id ? { ...inq, unlocked: true, email: data.email, phone: data.phone } : inq
         )
       )
     } else {
@@ -98,6 +104,34 @@ export default function SpecialistDashboard() {
           </div>
         </div>
 
+        {/* ✅ Статистика */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+            <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
+              <div className="text-2xl font-bold text-[#1DB954]">{stats.viewsCount}</div>
+              <div className="text-xs text-gray-400 mt-1">👁️ Прегледи</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
+              <div className="text-2xl font-bold text-[#1DB954]">{stats.inquiryCount}</div>
+              <div className="text-xs text-gray-400 mt-1">📩 Запитвания</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
+              <div className="text-2xl font-bold text-[#1DB954]">{stats.completedJobs}</div>
+              <div className="text-xs text-gray-400 mt-1">✅ Завършени</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
+              <div className="text-2xl font-bold text-[#1DB954]">{stats.reviewCount}</div>
+              <div className="text-xs text-gray-400 mt-1">⭐ Отзиви</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
+              <div className="text-2xl font-bold text-[#1DB954]">
+                {stats.rating > 0 ? stats.rating.toFixed(1) : '—'}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">🏆 Рейтинг</div>
+            </div>
+          </div>
+        )}
+
         {/* Навигация */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <Link href="/bg/specialist/profile"
@@ -132,23 +166,16 @@ export default function SpecialistDashboard() {
 
         <div className="space-y-4">
           {inquiries.map((inq) => (
-            <div
-              key={inq.id}
-              className="rounded-2xl border border-white/10 bg-[#151528] p-6"
-            >
+            <div key={inq.id} className="rounded-2xl border border-white/10 bg-[#151528] p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium text-[#1DB954]">
-                      📍 {inq.city}
-                    </span>
+                    <span className="text-sm font-medium text-[#1DB954]">📍 {inq.city}</span>
                     <span className="text-xs text-gray-500">
                       {new Date(inq.createdAt).toLocaleDateString("bg-BG")}
                     </span>
                   </div>
-
                   <p className="text-gray-300 mb-3">{inq.message}</p>
-
                   {inq.unlocked ? (
                     <div className="rounded-xl border border-[#1DB954]/30 bg-[#1DB954]/10 p-4 space-y-1">
                       <p className="text-sm">
@@ -158,17 +185,13 @@ export default function SpecialistDashboard() {
                       {inq.email && (
                         <p className="text-sm">
                           <span className="text-gray-400">Имейл: </span>
-                          <a href={`mailto:${inq.email}`} className="text-[#1DB954] hover:underline">
-                            {inq.email}
-                          </a>
+                          <a href={`mailto:${inq.email}`} className="text-[#1DB954] hover:underline">{inq.email}</a>
                         </p>
                       )}
                       {inq.phone && (
                         <p className="text-sm">
                           <span className="text-gray-400">Телефон: </span>
-                          <a href={`tel:${inq.phone}`} className="text-[#1DB954] hover:underline">
-                            {inq.phone}
-                          </a>
+                          <a href={`tel:${inq.phone}`} className="text-[#1DB954] hover:underline">{inq.phone}</a>
                         </p>
                       )}
                     </div>
