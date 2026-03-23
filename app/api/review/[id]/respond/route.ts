@@ -6,9 +6,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -27,7 +28,7 @@ export async function POST(
 
     // Провери дали отзивът е за ТОЗИ специалист
     const review = await prisma.review.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { specialist: true }
     })
 
@@ -44,7 +45,7 @@ export async function POST(
     }
 
     const updated = await prisma.review.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         response: response.trim(),
         responseAt: new Date()
