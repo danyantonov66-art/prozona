@@ -18,6 +18,7 @@ export const categories = [
       { id: "drebni-remonti-dom", name: "Дребни ремонти в дома", slug: "drebni-remonti-dom", icon: "🔨" },
       { id: "remont-banya-kuhnya", name: "Ремонт на баня и кухня", slug: "remont-banya-kuhnya", icon: "🚿" },
       { id: "klimatici", name: "Ремонт, профилактика и инсталация на климатици", slug: "klimatici", icon: "❄️" },
+      { id: "remont-do-klyuch", name: "Ремонт до ключ", slug: "remont-do-klyuch", icon: "🏠" },
     ],
   },
   {

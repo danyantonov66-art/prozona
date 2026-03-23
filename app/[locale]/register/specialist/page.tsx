@@ -14,7 +14,6 @@ export default function RegisterSpecialistPage() {
     password: "",
     confirmPassword: "",
     service: "",
-    description: "",
     categoryId: "",
     subcategoryId: "",
   })
@@ -73,16 +72,18 @@ export default function RegisterSpecialistPage() {
           password: form.password,
           role: "SPECIALIST",
           service: form.service,
-          description: form.description,
           categoryId: form.categoryId,
           subcategoryId: form.subcategoryId,
         }),
       })
 
-      if (!res.ok) throw new Error("Неуспешна регистрация")
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Неуспешна регистрация")
+      }
 
       trackCompleteRegistration("Specialist Registration")
-      setSuccess("Регистрацията е успешна. Можеш да влезеш в профила си.")
+      setSuccess("Регистрацията е успешна! Провери имейла си за потвърждение.")
       setForm({
         name: "",
         email: "",
@@ -91,12 +92,11 @@ export default function RegisterSpecialistPage() {
         password: "",
         confirmPassword: "",
         service: "",
-        description: "",
         categoryId: "",
         subcategoryId: "",
       })
-    } catch (err) {
-      setError("Възникна проблем при регистрацията. Провери данните и опитай отново.")
+    } catch (err: any) {
+      setError(err.message || "Възникна проблем при регистрацията.")
     } finally {
       setLoading(false)
     }
@@ -115,6 +115,7 @@ export default function RegisterSpecialistPage() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Регистрация на специалист
           </h1>
+
           <p className="text-gray-400 mb-8">
             Създай профил в ProZona и започни да получаваш запитвания от клиенти.
           </p>
@@ -216,19 +217,6 @@ export default function RegisterSpecialistPage() {
               </div>
             )}
 
-            {/* Описание */}
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Кратко описание</label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                rows={4}
-                placeholder="Опиши какво предлагаш"
-                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50 resize-none"
-              />
-            </div>
-
             {/* Парола */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
@@ -255,6 +243,11 @@ export default function RegisterSpecialistPage() {
               </div>
             </div>
 
+            {/* Предупреждение */}
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              ⚠️ <strong>Важно:</strong> Не качвай снимки съдържащи телефонен номер, имейл или лого с контакти. Такива снимки ще бъдат <strong>изтрити от администратора</strong> без предупреждение.
+            </div>
+
             {success && (
               <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-green-300">
                 {success}
@@ -265,11 +258,6 @@ export default function RegisterSpecialistPage() {
                 {error}
               </div>
             )}
-
-            {/* Предупреждение за снимки */}
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-           ⚠️ <strong>Важно:</strong> Не качвай снимки съдържащи телефонен номер, имейл или лого с контакти. Такива снимки ще бъдат <strong>изтрити от администратора</strong> без предупреждение. Описанието не може да съдържа контактна информация.
-            </div>  
 
             <button
               type="submit"
