@@ -6,7 +6,8 @@ import crypto from 'crypto'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// ✅ Disposable домейни — блокирани при регистрация
+const REFERRAL_CREDITS = 5
+
 const DISPOSABLE_DOMAINS = new Set([
   'mailinator.com', 'tempmail.com', 'guerrillamail.com', 'guerrillamail.net',
   'guerrillamail.org', 'guerrillamail.biz', 'guerrillamail.de', 'guerrillamail.info',
@@ -19,12 +20,12 @@ const DISPOSABLE_DOMAINS = new Set([
   'spam4.me', 'spamfree24.org', 'spamfree24.de', 'spamfree24.eu', 'spamfree24.info',
   'spamfree24.net', 'spamfree.eu', 'temporaryemail.net', 'tempinbox.com',
   'tempinbox.co.uk', 'fakeinbox.com', 'mailtemp.info', 'sharklasers.com',
-  'guerrillamailblock.com', 'grr.la', 'spam.la', 'mailnull.com', 'maildrop.cc',
+  'guerrillamailblock.com', 'grr.la', 'spam.la', 'maildrop.cc',
   'discard.email', 'spamhereplease.com', 'spamherelots.com', 'spaml.de',
   '10minutemail.com', '10minutemail.net', '10minutemail.org', '10minutemail.de',
   'minutemail.com', 'tempmail.net', 'tempmail.org', 'temp-mail.org', 'temp-mail.io',
-  'tempr.email', 'discard.email', 'crazymailing.com', 'spamgob.com',
-  'mailscrap.com', 'mytemp.email', 'spambox.us', 'getairmail.com',
+  'tempr.email', 'crazymailing.com', 'spamgob.com', 'mailscrap.com',
+  'mytemp.email', 'spambox.us', 'getairmail.com',
 ])
 
 function isDisposableEmail(email: string): boolean {
@@ -49,16 +50,12 @@ function containsContactInfo(text: string): boolean {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, name, role, phone, city, service, description, categoryId, subcategoryId } = body
+    const { email, password, name, role, phone, city, description, categoryId, subcategoryId, ref } = body
 
     if (!email || !password || !name) {
-      return NextResponse.json(
-        { error: 'Липсващи задължителни полета' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Липсващи задължителни полета' }, { status: 400 })
     }
 
-    // ✅ Блокирай disposable имейли
     if (isDisposableEmail(email)) {
       return NextResponse.json(
         { error: 'Моля, използвайте истински имейл адрес. Временни имейли не се приемат.' },
@@ -66,7 +63,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Провери за контактна информация в описанието
     if (description && containsContactInfo(description)) {
       return NextResponse.json(
         { error: 'Описанието не може да съдържа телефон, имейл или линкове.' },
@@ -76,17 +72,20 @@ export async function POST(request: Request) {
 
     const existingUser = await prisma.user.findUnique({ where: { email } })
     if (existingUser) {
-      return NextResponse.json(
-        { error: 'Потребител с този имейл вече съществува' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Потребител с този имейл вече съществува' }, { status: 400 })
+    }
+
+    // ✅ Намери поканващия по refCode
+    let referrer: { id: string } | null = null
+    if (ref && role === 'SPECIALIST') {
+      referrer = await prisma.specialist.findUnique({
+        where: { refCode: ref },
+        select: { id: true }
+      })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Генерирай верификационен токен
     const verifyToken = crypto.randomBytes(32).toString('hex')
-    const verifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 часа
 
     const user = await prisma.user.create({
       data: {
@@ -107,14 +106,40 @@ export async function POST(request: Request) {
           serviceAreas: city ? [city] : [],
           phone: phone || null,
           verified: false,
+          referredBy: referrer ? ref : null,
         }
       })
 
-      // Запиши категорията
-      if (categoryId && subcategoryId) {
-        const dbCategory = await prisma.category.findUnique({
-          where: { slug: categoryId }
+      // ✅ Генерирай refCode за новия специалист
+      const refCode = generateRefCode(name, specialist.id)
+      await prisma.specialist.update({
+        where: { id: specialist.id },
+        data: { refCode }
+      })
+
+      // ✅ Награди поканващия с 5 кредита
+      if (referrer) {
+        await prisma.specialist.update({
+          where: { id: referrer.id },
+          data: {
+            credits: { increment: REFERRAL_CREDITS },
+            referralCount: { increment: 1 },
+            referralCreditsEarned: { increment: REFERRAL_CREDITS },
+          }
         })
+        await prisma.creditTransaction.create({
+          data: {
+            id: crypto.randomUUID(),
+            specialistId: referrer.id,
+            amount: REFERRAL_CREDITS,
+            type: 'BONUS',
+            description: `Реферал бонус — ${name} се регистрира с твоя линк`,
+          }
+        })
+      }
+
+      if (categoryId && subcategoryId) {
+        const dbCategory = await prisma.category.findUnique({ where: { slug: categoryId } })
         if (dbCategory) {
           const dbSubcategory = await prisma.subcategory.findFirst({
             where: { slug: subcategoryId, categoryId: dbCategory.id }
@@ -129,11 +154,9 @@ export async function POST(request: Request) {
         }
       }
 
-      const refCode = generateRefCode(name, user.id)
       const refLink = `https://www.prozona.bg/bg/register/specialist?ref=${refCode}`
       const verifyLink = `https://www.prozona.bg/api/auth/verify-email?token=${verifyToken}&id=${user.id}`
 
-      // Welcome имейл с верификационен линк
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',
         to: email,
@@ -145,32 +168,26 @@ export async function POST(request: Request) {
                 <span style="color: #0D0D1A; font-size: 24px; font-weight: bold;">PZ ProZona</span>
               </div>
             </div>
-            <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">
-              Здравей, ${name}! 👋
-            </h1>
+            <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">Здравей, ${name}! 👋</h1>
             <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">
               Благодарим ти, че се регистрира в <strong style="color: #1DB954;">ProZona</strong>!
               Моля потвърди имейла си за да активираш профила си.
             </p>
             <div style="text-align: center; margin: 32px 0;">
-              <a href="${verifyLink}"
-                style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+              <a href="${verifyLink}" style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
                 ✅ Потвърди имейла си →
               </a>
             </div>
-            <p style="color: #666; font-size: 13px; text-align: center;">
-              Линкът е валиден 24 часа. Ако не си се регистрирал, игнорирай този имейл.
-            </p>
+            <p style="color: #666; font-size: 13px; text-align: center;">Линкът е валиден 24 часа.</p>
             <hr style="border: 1px solid #333; margin: 32px 0;" />
             <div style="background: #151528; border: 1px solid #1DB954; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
-              <p style="color: #888; font-size: 13px; margin: 0 0 8px;">Твоят реферален линк:</p>
+              <p style="color: #888; font-size: 13px; margin: 0 0 8px;">Твоят реферален линк — сподели с колеги:</p>
               <a href="${refLink}" style="color: #1DB954; font-size: 14px; word-break: break-all;">${refLink}</a>
             </div>
           </div>
         `
       })
 
-      // Известие към админа
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',
         to: process.env.ADMIN_EMAIL!,
@@ -182,8 +199,7 @@ export async function POST(request: Request) {
             <li>Имейл: ${email}</li>
             <li>Телефон: ${phone || '—'}</li>
             <li>Град: ${city || '—'}</li>
-            <li>Категория: ${categoryId || '—'}</li>
-            <li>Подкатегория: ${subcategoryId || '—'}</li>
+            <li>Реферал от: ${ref || '—'}</li>
           </ul>
           <a href="https://www.prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
         `
@@ -196,9 +212,6 @@ export async function POST(request: Request) {
     )
   } catch (error) {
     console.error('Registration error:', error)
-    return NextResponse.json(
-      { error: 'Възникна грешка при регистрацията' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Възникна грешка при регистрацията' }, { status: 500 })
   }
 }

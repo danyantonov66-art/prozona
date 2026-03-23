@@ -25,12 +25,21 @@ interface Stats {
   rating: number
 }
 
+interface Referral {
+  refCode: string | null
+  refLink: string | null
+  referralCount: number
+  referralCreditsEarned: number
+}
+
 export default function SpecialistDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [credits, setCredits] = useState(0)
   const [stats, setStats] = useState<Stats | null>(null)
+  const [referral, setReferral] = useState<Referral | null>(null)
+  const [refCopied, setRefCopied] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -47,6 +56,9 @@ export default function SpecialistDashboard() {
           setStats(data.stats || null)
           setLoading(false)
         })
+      fetch("/api/specialist/referral")
+        .then((r) => r.json())
+        .then((data) => setReferral(data))
     }
   }, [status])
 
@@ -155,6 +167,45 @@ export default function SpecialistDashboard() {
             <div className="text-sm font-medium">Купи кредити</div>
           </Link>
         </div>
+
+        {/* ✅ Реферална програма */}
+        {referral && (
+          <div className="rounded-2xl border border-[#1DB954]/20 bg-[#151528] p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">🤝 Реферална програма</h2>
+                <p className="text-sm text-gray-400 mt-1">Покани колеги и спечели 5 кредита за всеки регистриран специалист</p>
+              </div>
+              <div className="flex gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-[#1DB954]">{referral.referralCount}</div>
+                  <div className="text-xs text-gray-400">Поканени</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-[#1DB954]">{referral.referralCreditsEarned}</div>
+                  <div className="text-xs text-gray-400">Спечелени кредити</div>
+                </div>
+              </div>
+            </div>
+            {referral.refLink && (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 rounded-xl border border-white/10 bg-[#0D0D1A] px-4 py-2 text-sm text-gray-300 truncate">
+                  {referral.refLink}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(referral.refLink!)
+                    setRefCopied(true)
+                    setTimeout(() => setRefCopied(false), 2000)
+                  }}
+                  className="rounded-xl bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black hover:bg-[#1ed760] transition whitespace-nowrap"
+                >
+                  {refCopied ? '✅ Копирано!' : '🔗 Копирай'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <h2 className="text-xl font-semibold mb-4">Запитвания</h2>
 
