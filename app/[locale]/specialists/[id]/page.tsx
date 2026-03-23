@@ -4,6 +4,7 @@ import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import InquiryButton from "@/components/InquiryButton"
+import ReviewList from "@/components/reviews/ReviewList"
 import TrackViewContent from "@/components/tracking/TrackViewContent"
 
 interface Props {
@@ -85,6 +86,7 @@ export default async function SpecialistPage({ params }: Props) {
       user: true,
       GalleryImage: true,
       reviews: {
+        include: { User: true },
         orderBy: { createdAt: "desc" },
         take: 5,
       },
@@ -249,22 +251,22 @@ export default async function SpecialistPage({ params }: Props) {
           )}
 
           {/* Отзиви */}
-          {specialist.reviews.length > 0 && (
-            <div className="border-t border-white/10 p-6 md:p-8">
-              <h2 className="mb-4 text-xl font-semibold">Отзиви</h2>
-              <div className="space-y-4">
-                {specialist.reviews.map((review) => (
-                  <div key={review.id} className="rounded-xl border border-white/5 bg-[#0D0D1A] px-4 py-3">
-                    <div className="mb-1 flex items-center gap-2">
-                      <span className="text-yellow-400">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
-                      <span className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString("bg-BG")}</span>
-                    </div>
-                    <p className="text-sm text-gray-300">{review.comment}</p>
-                  </div>
-                ))}
-              </div>
+          <div className="border-t border-white/10 p-6 md:p-8">
+            <h2 className="mb-4 text-xl font-semibold">Отзиви</h2>
+            <ReviewList
+              reviews={specialist.reviews as any}
+              specialistId={specialist.id}
+              specialistUserId={specialist.userId}
+            />
+            <div className="mt-6">
+              <Link
+                href={`/${locale}/specialist/${specialist.id}/review`}
+                className="inline-block rounded-xl bg-[#1DB954] px-6 py-3 text-sm font-semibold text-white hover:bg-[#169b43] transition-colors"
+              >
+                ✍️ Напиши отзив
+              </Link>
             </div>
-          )}
+          </div>
         </div>
       </section>
       <ProZonaFooter locale={locale} />

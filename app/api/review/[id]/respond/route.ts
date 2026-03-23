@@ -6,76 +6,54 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    const { id } = await params
-    
+
     if (!session) {
-      return NextResponse.json(
-        { error: 'Моля, влезте в профила си' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Не сте влезли в профила си' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { response } = body
-
-    if (!response) {
-      return NextResponse.json(
-        { error: 'Моля, въведете отговор' },
-        { status: 400 }
-      )
+    if (session.user.role !== 'SPECIALIST') {
+      return NextResponse.json({ error: 'Само специалисти могат да отговарят на отзиви' }, { status: 403 })
     }
 
-    // Намери отзива
+    const { response } = await request.json()
+
+    if (!response?.trim()) {
+      return NextResponse.json({ error: 'Отговорът не може да е празен' }, { status: 400 })
+    }
+
+    // Провери дали отзивът е за ТОЗИ специалист
     const review = await prisma.review.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: { specialist: true }
     })
 
     if (!review) {
-      return NextResponse.json(
-        { error: 'Отзивът не е намерен' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Отзивът не е намерен' }, { status: 404 })
     }
 
-    // Провери дали потребителят е специалистът, за когото е отзивът
     if (review.specialist.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Можете да отговаряте само на отзиви за вашия профил' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Нямате право да отговаряте на този отзив' }, { status: 403 })
     }
 
-    // Провери дали вече има отговор
     if (review.response) {
-      return NextResponse.json(
-        { error: 'Вече сте отговорили на този отзив' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Вече сте отговорили на този отзив' }, { status: 400 })
     }
 
-    // Добави отговор
-    const updatedReview = await prisma.review.update({
-      where: { id },
+    const updated = await prisma.review.update({
+      where: { id: params.id },
       data: {
-        response,
+        response: response.trim(),
         responseAt: new Date()
       }
     })
 
-    return NextResponse.json(
-      { message: 'Отговорът е изпратен успешно', review: updatedReview },
-      { status: 200 }
-    )
+    return NextResponse.json({ message: 'Отговорът е изпратен успешно', review: updated })
   } catch (error) {
-    console.error('Грешка при отговор на отзив:', error)
-    return NextResponse.json(
-      { error: 'Възникна грешка при изпращане на отговора' },
-      { status: 500 }
-    )
+    console.error('❌ ГРЕШКА:', error)
+    return NextResponse.json({ error: 'Възникна грешка' }, { status: 500 })
   }
 }

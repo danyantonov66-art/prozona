@@ -1,4 +1,3 @@
-// components/reviews/ReviewList.tsx
 'use client'
 
 import { useState } from 'react'
@@ -11,10 +10,10 @@ interface Review {
   response: string | null
   responseAt: string | null
   createdAt: string
-  verified: boolean
-  client: {
+  isVerified: boolean   // ✅ беше "verified"
+  User: {              // ✅ беше "client" — в schema релацията е User
     name: string
-    avatar?: string
+    image?: string | null
   }
 }
 
@@ -46,7 +45,6 @@ export default function ReviewList({ reviews, specialistId, specialistUserId }: 
       if (res.ok) {
         setRespondingTo(null)
         setResponseText('')
-        // Презареди страницата или обнови state-а
         window.location.reload()
       } else {
         const data = await res.json()
@@ -59,6 +57,12 @@ export default function ReviewList({ reviews, specialistId, specialistUserId }: 
     }
   }
 
+  if (reviews.length === 0) {
+    return (
+      <p className="text-gray-400 text-sm">Все още няма отзиви за този специалист.</p>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {reviews.map((review) => (
@@ -66,8 +70,10 @@ export default function ReviewList({ reviews, specialistId, specialistUserId }: 
           <div className="flex justify-between items-start mb-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-white font-semibold">{review.client.name}</span>
-                {review.verified && (
+                <span className="text-white font-semibold">
+                  {review.User?.name || 'Анонимен'}  {/* ✅ беше review.client.name */}
+                </span>
+                {review.isVerified && (  // ✅ беше review.verified
                   <span className="bg-green-500/20 text-green-500 text-xs px-2 py-0.5 rounded-full">
                     ✓ Верифициран клиент
                   </span>
@@ -104,9 +110,11 @@ export default function ReviewList({ reviews, specialistId, specialistUserId }: 
             <div className="mt-4 pl-4 border-l-2 border-[#1DB954]">
               <p className="text-gray-400 text-sm mb-1">Отговор от специалиста:</p>
               <p className="text-white">{review.response}</p>
-              <p className="text-gray-500 text-xs mt-1">
-                {new Date(review.responseAt!).toLocaleDateString('bg-BG')}
-              </p>
+              {review.responseAt && (
+                <p className="text-gray-500 text-xs mt-1">
+                  {new Date(review.responseAt).toLocaleDateString('bg-BG')}
+                </p>
+              )}
             </div>
           )}
 

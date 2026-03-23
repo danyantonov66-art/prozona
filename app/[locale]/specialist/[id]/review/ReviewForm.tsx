@@ -1,4 +1,3 @@
-// app/specialist/[id]/review/ReviewForm.tsx
 'use client'
 
 import { useState } from 'react'
@@ -7,9 +6,10 @@ import { useRouter } from 'next/navigation'
 interface Props {
   specialistId: string
   specialistName: string
+  locale: string  // ✅ добавен locale prop
 }
 
-export default function ReviewForm({ specialistId, specialistName }: Props) {
+export default function ReviewForm({ specialistId, specialistName, locale }: Props) {
   const router = useRouter()
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
@@ -19,7 +19,7 @@ export default function ReviewForm({ specialistId, specialistName }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (rating === 0) {
       setError('Моля, изберете оценка')
       return
@@ -28,27 +28,18 @@ export default function ReviewForm({ specialistId, specialistName }: Props) {
     setLoading(true)
     setError('')
 
-    // 🔍 ПРОВЕРКА КАКВО ИЗПРАЩАМЕ
-    const dataToSend = {
-      specialistId: specialistId,
-      rating: rating,
-      comment: comment
-    }
-    
-    console.log('📤 ИЗПРАЩАМ КЪМ API:', dataToSend)
-
     try {
       const res = await fetch('/api/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend)
+        body: JSON.stringify({ specialistId, rating, comment })
       })
 
       const data = await res.json()
-      console.log('📥 ОТГОВОР ОТ API:', data)
 
       if (res.ok) {
-        router.push(`/specialist/${specialistId}?review=success`)
+        // ✅ беше без locale — сега редиректва правилно
+        router.push(`/${locale}/specialist/${specialistId}?review=success`)
       } else {
         setError(data.error || 'Грешка при изпращане')
       }
@@ -62,18 +53,12 @@ export default function ReviewForm({ specialistId, specialistName }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* ДИАГНОСТИКА - показва ID-то за проверка */}
-      <div className="bg-[#0D0D1A] p-2 rounded text-xs text-gray-400">
-        Specialist ID: {specialistId}
-      </div>
-
       {error && (
         <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-3">
           {error}
         </div>
       )}
 
-      {/* Избор на рейтинг със звезди */}
       <div>
         <label className="block text-gray-300 mb-3">Вашата оценка *</label>
         <div className="flex gap-2">
@@ -104,7 +89,6 @@ export default function ReviewForm({ specialistId, specialistName }: Props) {
         </div>
       </div>
 
-      {/* Коментар */}
       <div>
         <label className="block text-gray-300 mb-2">Вашият коментар</label>
         <textarea
@@ -116,7 +100,6 @@ export default function ReviewForm({ specialistId, specialistName }: Props) {
         />
       </div>
 
-      {/* Бутон за изпращане */}
       <button
         type="submit"
         disabled={loading}
@@ -126,7 +109,7 @@ export default function ReviewForm({ specialistId, specialistName }: Props) {
       </button>
 
       <p className="text-center text-gray-500 text-sm">
-        Вашият отзив ще бъде публикуван веднага и ще помогне на други клиенти.
+        Вашият отзив ще помогне на други клиенти да изберат правилния специалист.
       </p>
     </form>
   )
