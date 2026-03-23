@@ -27,6 +27,7 @@ model User {
   Review        Review[]
   sessions      Session[]
   specialist    Specialist?
+  BlogPost      BlogPost[]
 }
 
 model Account {
@@ -451,4 +452,21 @@ enum TransactionType {
   MONTHLY_RESET
   BONUS
   REFUND
+}
+
+model BlogPost {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  excerpt         String?
+  content         String
+  coverImage      String?
+  published       Boolean   @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  authorId        String
+  metaTitle       String?
+  metaDescription String?
+  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
