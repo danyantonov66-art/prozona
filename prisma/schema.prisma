@@ -282,21 +282,14 @@ model GalleryImage {
   sortOrder    Int        @default(0)
   isPrimary    Boolean    @default(false)
   createdAt    DateTime   @default(now())
+  type         ImageType  @default(NORMAL)
   Specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
 }
 
-model InquiryResponse {
-  id           String     @id
-  inquiryId    String
-  specialistId String
-  message      String
-  createdAt    DateTime   @default(now())
-  creditsSpent Int        @default(1)
-  viewed       Boolean    @default(false)
-  Inquiry      Inquiry    @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
-  Specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-
-  @@unique([inquiryId, specialistId])
+enum ImageType {
+  NORMAL
+  BEFORE
+  AFTER
 }
 
 model Payment {
