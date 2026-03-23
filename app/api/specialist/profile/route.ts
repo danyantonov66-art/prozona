@@ -17,6 +17,11 @@ function containsContactInfo(text: string): boolean {
   return patterns.some((p) => p.test(text))
 }
 
+// ✅ Валидира че URL-ът е YouTube или TikTok
+function isValidVideoUrl(url: string): boolean {
+  return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|tiktok\.com)/.test(url)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -31,7 +36,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Валидация за контактна информация
     if (containsContactInfo(description)) {
       return NextResponse.json(
         { error: "Описанието не може да съдържа телефон, имейл или линкове." },
@@ -137,16 +141,23 @@ export async function PUT(request: NextRequest) {
     }
     const userId = (session.user as any)?.id
     const body = await request.json()
-    const { businessName, description, city, phone, experienceYears, serviceAreas } = body ?? {}
+    const { businessName, description, city, phone, experienceYears, serviceAreas, videoUrl } = body ?? {}
 
     if (!description) {
       return NextResponse.json({ error: "Описанието е задължително" }, { status: 400 })
     }
 
-    // Валидация за контактна информация
     if (containsContactInfo(description)) {
       return NextResponse.json(
         { error: "Описанието не може да съдържа телефон, имейл или линкове." },
+        { status: 400 }
+      )
+    }
+
+    // ✅ Валидирай videoUrl ако е подаден
+    if (videoUrl && !isValidVideoUrl(videoUrl)) {
+      return NextResponse.json(
+        { error: "Моля въведете валиден YouTube или TikTok линк." },
         { status: 400 }
       )
     }
@@ -160,6 +171,7 @@ export async function PUT(request: NextRequest) {
         phone: phone || null,
         experienceYears: experienceYears || null,
         serviceAreas: Array.isArray(serviceAreas) ? serviceAreas : [],
+        videoUrl: videoUrl || null,  // ✅ ново поле
       },
       include: { user: true },
     })

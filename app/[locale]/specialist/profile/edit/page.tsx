@@ -24,6 +24,7 @@ export default function EditProfilePage() {
   const [experience, setExperience] = useState('')
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [serviceAreasInput, setServiceAreasInput] = useState('')
+  const [videoUrl, setVideoUrl] = useState('')  // ✅ ново
 
   useEffect(() => {
     if (status === 'loading') return
@@ -46,6 +47,7 @@ export default function EditProfilePage() {
         setExperience(data.experienceYears?.toString() || '')
         setProfileImage(data.user?.image || null)
         setServiceAreasInput((data.serviceAreas || []).join(', '))
+        setVideoUrl(data.videoUrl || '')  // ✅ ново
       }
     } catch (error) {
       console.error('Error loading profile:', error)
@@ -75,6 +77,7 @@ export default function EditProfilePage() {
           city,
           experienceYears: parseInt(experience) || 0,
           serviceAreas,
+          videoUrl: videoUrl.trim() || null,  // ✅ ново
         })
       })
       if (res.ok) {
@@ -199,9 +202,6 @@ export default function EditProfilePage() {
               placeholder="Пример: Враца, Мездра, Бяла Слатина"
               className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Градовете и районите, в които предоставяш услуги
-            </p>
           </div>
 
           <div>
@@ -226,6 +226,35 @@ export default function EditProfilePage() {
             />
           </div>
 
+          {/* ✅ Видео секция */}
+          <div>
+            <label className="block text-gray-300 mb-2">
+              🎥 Видео за работата ти
+              <span className="ml-2 text-xs text-gray-500">YouTube или TikTok линк</span>
+            </label>
+            <input
+              type="url"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=... или https://www.tiktok.com/..."
+              className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Покажи как работиш — клиентите се доверяват повече на специалисти с видео
+            </p>
+            {/* Preview */}
+            {videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) && (
+              <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl">
+                <iframe
+                  src={getYoutubeEmbedUrl(videoUrl)}
+                  className="h-full w-full"
+                  allowFullScreen
+                  title="Видео преглед"
+                />
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
             disabled={saving}
@@ -246,8 +275,15 @@ export default function EditProfilePage() {
             🗑️ Изтрий профила си
           </button>
         </div>
-
       </div>
     </div>
   )
+}
+
+// ✅ Конвертира YouTube URL към embed URL
+function getYoutubeEmbedUrl(url: string): string {
+  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/
+  const match = url.match(regExp)
+  const videoId = match && match[7].length === 11 ? match[7] : null
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : url
 }

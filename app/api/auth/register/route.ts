@@ -6,6 +6,32 @@ import crypto from 'crypto'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+// ✅ Disposable домейни — блокирани при регистрация
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com', 'tempmail.com', 'guerrillamail.com', 'guerrillamail.net',
+  'guerrillamail.org', 'guerrillamail.biz', 'guerrillamail.de', 'guerrillamail.info',
+  'throwam.com', 'throwaway.email', 'trashmail.com', 'trashmail.me', 'trashmail.net',
+  'trashmail.at', 'trashmail.io', 'trashmail.org', 'yopmail.com', 'yopmail.fr',
+  'yopmail.net', 'cool.fr.nf', 'jetable.fr.nf', 'nospam.ze.tc', 'nomail.xl.cx',
+  'mega.zik.dj', 'speed.1s.fr', 'courriel.fr.nf', 'moncourrier.fr.nf',
+  'monemail.fr.nf', 'monmail.fr.nf', 'dispostable.com', 'mailnesia.com',
+  'mailnull.com', 'spamgourmet.com', 'spamgourmet.net', 'spamgourmet.org',
+  'spam4.me', 'spamfree24.org', 'spamfree24.de', 'spamfree24.eu', 'spamfree24.info',
+  'spamfree24.net', 'spamfree.eu', 'temporaryemail.net', 'tempinbox.com',
+  'tempinbox.co.uk', 'fakeinbox.com', 'mailtemp.info', 'sharklasers.com',
+  'guerrillamailblock.com', 'grr.la', 'spam.la', 'mailnull.com', 'maildrop.cc',
+  'discard.email', 'spamhereplease.com', 'spamherelots.com', 'spaml.de',
+  '10minutemail.com', '10minutemail.net', '10minutemail.org', '10minutemail.de',
+  'minutemail.com', 'tempmail.net', 'tempmail.org', 'temp-mail.org', 'temp-mail.io',
+  'tempr.email', 'discard.email', 'crazymailing.com', 'spamgob.com',
+  'mailscrap.com', 'mytemp.email', 'spambox.us', 'getairmail.com',
+])
+
+function isDisposableEmail(email: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase()
+  return !!domain && DISPOSABLE_DOMAINS.has(domain)
+}
+
 function generateRefCode(name: string, id: string): string {
   return Buffer.from(`${name}-${id}`).toString('base64').slice(0, 8).toUpperCase()
 }
@@ -28,6 +54,14 @@ export async function POST(request: Request) {
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: 'Липсващи задължителни полета' },
+        { status: 400 }
+      )
+    }
+
+    // ✅ Блокирай disposable имейли
+    if (isDisposableEmail(email)) {
+      return NextResponse.json(
+        { error: 'Моля, използвайте истински имейл адрес. Временни имейли не се приемат.' },
         { status: 400 }
       )
     }
