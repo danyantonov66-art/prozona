@@ -4,15 +4,6 @@ import ProZonaFooter from "../../../components/footer/ProZonaFooter"
 import { prisma } from "../../../lib/prisma"
 import SpecialistsMapWrapper from "../../../components/SpecialistsMapWrapper"
 
-  ssr: false,
-  loading: () => (
-    <div className="h-[500px] w-full rounded-2xl bg-[#151528] border border-white/10 flex items-center justify-center text-gray-400">
-      Зареждане на картата...
-    </div>
-  )
-})
-
-// Координати на градовете
 const CITY_COORDS: Record<string, [number, number]> = {
   "София": [42.6977, 23.3219],
   "Пловдив": [42.1354, 24.7453],
@@ -32,7 +23,6 @@ const CITY_COORDS: Record<string, [number, number]> = {
   "Враца": [43.2057, 23.5504],
   "Габрово": [42.8744, 25.3169],
   "Ямбол": [42.4838, 26.5036],
-  "Карнобат": [42.6453, 26.9847],
   "България": [42.7, 25.5],
   "Самоков": [42.3369, 23.5530],
   "Varna": [43.2141, 27.9147],
@@ -47,7 +37,7 @@ export const metadata = {
   description: "Разгледай верифицирани специалисти и майстори близо до теб.",
 }
 
-export const dynamic_export = "force-dynamic"
+export const dynamic = "force-dynamic"
 
 export default async function SpecialistsPage({ params }: Props) {
   const { locale } = await params
@@ -79,17 +69,15 @@ export default async function SpecialistsPage({ params }: Props) {
       <section className="mx-auto max-w-6xl px-4 py-10">
         <h1 className="mb-8 text-3xl font-bold">Специалисти</h1>
 
-        {/* Карта */}
         {mapSpecialists.length > 0 && (
           <div className="mb-10">
             <h2 className="text-lg font-semibold mb-4 text-gray-300">
               📍 Специалисти на картата
             </h2>
-            <SpecialistsMap specialists={mapSpecialists} locale={locale} />
+            <SpecialistsMapWrapper specialists={mapSpecialists} locale={locale} />
           </div>
         )}
 
-        {/* Grid */}
         {specialists.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-6 text-gray-300">
             Няма намерени специалисти.
