@@ -2,9 +2,8 @@
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../components/footer/ProZonaFooter"
 import { prisma } from "../../../lib/prisma"
-import dynamic from "next/dynamic"
+import SpecialistsMapWrapper from "../../../components/SpecialistsMapWrapper"
 
-const SpecialistsMap = dynamic(() => import("../../../components/SpecialistsMap"), {
   ssr: false,
   loading: () => (
     <div className="h-[500px] w-full rounded-2xl bg-[#151528] border border-white/10 flex items-center justify-center text-gray-400">
