@@ -14,6 +14,7 @@ export default function RegisterSpecialistPage() {
     password: "",
     confirmPassword: "",
     service: "",
+    description: "",
     categoryId: "",
     subcategoryId: "",
   })
@@ -72,6 +73,7 @@ export default function RegisterSpecialistPage() {
           password: form.password,
           role: "SPECIALIST",
           service: form.service,
+          description: form.description,
           categoryId: form.categoryId,
           subcategoryId: form.subcategoryId,
         }),
@@ -92,6 +94,7 @@ export default function RegisterSpecialistPage() {
         password: "",
         confirmPassword: "",
         service: "",
+        description: "",
         categoryId: "",
         subcategoryId: "",
       })
@@ -121,6 +124,7 @@ export default function RegisterSpecialistPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+
             {/* Име и Имейл */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
@@ -217,6 +221,19 @@ export default function RegisterSpecialistPage() {
               </div>
             )}
 
+            {/* Описание */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Кратко описание</label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={4}
+                placeholder="Опиши какво предлагаш (без телефон, имейл или линкове)"
+                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50 resize-none"
+              />
+            </div>
+
             {/* Парола */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
@@ -245,7 +262,7 @@ export default function RegisterSpecialistPage() {
 
             {/* Предупреждение */}
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              ⚠️ <strong>Важно:</strong> Не качвай снимки съдържащи телефонен номер, имейл или лого с контакти. Такива снимки ще бъдат <strong>изтрити от администратора</strong> без предупреждение.
+              ⚠️ <strong>Важно:</strong> Не качвай снимки съдържащи телефонен номер, имейл или лого с контакти. Такива снимки ще бъдат <strong>изтрити от администратора</strong> без предупреждение. Описанието не може да съдържа контактна информация.
             </div>
 
             {success && (
