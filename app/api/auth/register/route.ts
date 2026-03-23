@@ -181,8 +181,10 @@ export async function POST(request: Request) {
             <p style="color: #666; font-size: 13px; text-align: center;">Линкът е валиден 24 часа.</p>
             <hr style="border: 1px solid #333; margin: 32px 0;" />
             <div style="background: #151528; border: 1px solid #1DB954; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
-              <p style="color: #888; font-size: 13px; margin: 0 0 8px;">Твоят реферален линк — сподели с колеги:</p>
-              <a href="${refLink}" style="color: #1DB954; font-size: 14px; word-break: break-all;">${refLink}</a>
+              <p style="color: #1DB954; font-size: 15px; font-weight: bold; margin: 0 0 8px;">🤝 Покани колеги и получи бонус!</p>
+              <p style="color: #cccccc; font-size: 13px; margin: 0 0 12px;">Познаваш майстори, електротехници, почистващи фирми или други специалисти?<br/>Покани ги с твоя личен линк и получаваш <strong style="color: #1DB954;">5 кредита</strong> за всеки регистриран специалист!</p>
+              <p style="color: #888; font-size: 12px; margin: 0 0 8px;">Твоят реферален линк:</p>
+              <a href="${refLink}" style="color: #1DB954; font-size: 13px; word-break: break-all;">${refLink}</a>
             </div>
           </div>
         `
