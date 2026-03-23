@@ -6,28 +6,75 @@ import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import InquiryButton from "@/components/InquiryButton"
 import TrackViewContent from "@/components/tracking/TrackViewContent"
 
-export async function generateMetadata({ params }: Props) {
-  const { id } = await params
-  const specialist = await prisma.specialist.findUnique({
-    where: { id },
-    include: { user: true },
-  })
-  const name = specialist?.businessName || specialist?.user?.name || "Специалист"
-  const city = specialist?.city || ""
-  return {
-    title: `${name}${city ? ` — ${city}` : ""}`,
-    description: specialist?.description?.slice(0, 160) || `${name} — верифициран специалист в ProZona.`,
-  }
-}
-
-export const dynamic = 'force-dynamic'
-
 interface Props {
   params: Promise<{
     locale: string
     id: string
   }>
 }
+
+export async function generateMetadata({ params }: Props) {
+  const { locale, id } = await params
+  const specialist = await prisma.specialist.findUnique({
+    where: { id },
+    include: { user: true },
+  })
+
+  if (!specialist) return {}
+
+  const name = specialist.businessName || specialist.user?.name || "Специалист"
+  const city = specialist.city || ""
+  const description = specialist.description?.slice(0, 160) || `${name} — верифициран специалист в ProZona.`
+  const image = specialist.user?.image || null
+  const canonicalUrl = `https://prozona.bg/${locale}/specialists/${id}`
+
+  // Build keyword-rich title e.g. "Иван Петров — ремонт на колани, София | ProZona"
+  const titleCity = city ? `, ${city}` : ""
+  const title = `${name}${titleCity} | ProZona`
+
+  return {
+    title,
+    description,
+    keywords: [
+      name,
+      city,
+      "специалист",
+      "ProZona",
+      specialist.description?.split(" ").slice(0, 5).join(" ") || "",
+    ]
+      .filter(Boolean)
+      .join(", "),
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: "ProZona",
+      locale: locale === "bg" ? "bg_BG" : "en_US",
+      type: "profile",
+      ...(image && {
+        images: [
+          {
+            url: image,
+            width: 800,
+            height: 600,
+            alt: name,
+          },
+        ],
+      }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(image && { images: [image] }),
+    },
+  }
+}
+
+export const dynamic = "force-dynamic"
 
 export default async function SpecialistPage({ params }: Props) {
   const { locale, id } = await params
@@ -49,12 +96,56 @@ export default async function SpecialistPage({ params }: Props) {
 
   const name = specialist.businessName || specialist.user?.name || "Специалист"
   const image = specialist.user?.image || null
-  const avgRating = specialist.reviews.length > 0
-    ? specialist.reviews.reduce((sum, r) => sum + r.rating, 0) / specialist.reviews.length
-    : null
+  const avgRating =
+    specialist.reviews.length > 0
+      ? specialist.reviews.reduce((sum, r) => sum + r.rating, 0) / specialist.reviews.length
+      : null
+
+  const canonicalUrl = `https://prozona.bg/${locale}/specialists/${id}`
+
+  // JSON-LD structured data — tells Google this is a LocalBusiness / Person
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name,
+    url: canonicalUrl,
+    ...(image && { image }),
+    ...(specialist.city && {
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: specialist.city,
+        addressCountry: "BG",
+      },
+    }),
+    ...(specialist.description && { description: specialist.description }),
+    ...(avgRating && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: avgRating.toFixed(1),
+        reviewCount: specialist.reviews.length,
+      },
+    }),
+    ...(specialist.reviews.length > 0 && {
+      review: specialist.reviews.map((r) => ({
+        "@type": "Review",
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: r.rating,
+        },
+        datePublished: r.createdAt.toISOString().split("T")[0],
+        reviewBody: r.comment,
+      })),
+    }),
+  }
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
+      {/* JSON-LD injected into <head> via script tag */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <ProZonaHeader locale={locale} />
       <TrackViewContent name={name} />
       <section className="mx-auto max-w-5xl px-4 py-10">
@@ -134,7 +225,7 @@ export default async function SpecialistPage({ params }: Props) {
                   <img
                     key={img.id}
                     src={img.imageUrl}
-                    alt="Галерия"
+                    alt={`${name} — галерия`}
                     className="h-32 w-full rounded-xl object-cover"
                   />
                 ))}
