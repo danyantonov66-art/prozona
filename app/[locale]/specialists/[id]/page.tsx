@@ -6,6 +6,7 @@ import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import InquiryButton from "@/components/InquiryButton"
 import ReviewList from "@/components/reviews/ReviewList"
 import TrackViewContent from "@/components/tracking/TrackViewContent"
+import ShareButton from "@/components/ShareButton"
 
 interface Props {
   params: Promise<{
@@ -169,7 +170,10 @@ export default async function SpecialistPage({ params }: Props) {
                     <span className="font-semibold text-white">🗺️ Обслужва:</span> {specialist.serviceAreas.join(", ")}
                   </p>
                 )}
-                <InquiryButton specialistId={specialist.id} specialistName={name} />
+                <div className="flex items-center gap-3 mt-4">
+                  <InquiryButton specialistId={specialist.id} specialistName={name} />
+                  <ShareButton url={canonicalUrl} title={`${name} — специалист в ProZona`} />
+                </div>
                 <div className="mt-6">
                   <h2 className="mb-3 text-xl font-semibold">Описание</h2>
                   <p className="leading-7 text-gray-300">{specialist.description || "Няма добавено описание."}</p>
