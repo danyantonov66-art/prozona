@@ -30,6 +30,8 @@ export default function AdminSpecialistsPage() {
   const [filter, setFilter] = useState<"all" | "pending" | "verified">("all")
   const [search, setSearch] = useState("")
   const [expandedGallery, setExpandedGallery] = useState<string | null>(null)
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null)
+  const [emailSent, setEmailSent] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -60,6 +62,30 @@ export default function AdminSpecialistsPage() {
           : s
       )
     )
+  }
+
+  // ✅ Изпрати имейл за попълване на профил
+  async function sendCompleteProfileEmail(s: Specialist) {
+    if (!s.user?.email) return
+    setSendingEmail(s.id)
+    try {
+      await fetch("/api/admin/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: s.user.email,
+          name: s.businessName || s.user.name,
+          type: "complete_profile",
+          specialistId: s.id,
+        })
+      })
+      setEmailSent(s.id)
+      setTimeout(() => setEmailSent(null), 3000)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setSendingEmail(null)
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -163,8 +189,26 @@ export default function AdminSpecialistsPage() {
                   >
                     {s.verified ? "Премахни" : "Верифицирай"}
                   </button>
+
+                  {/* ✅ Бутон за имейл */}
+                  <button
+                    onClick={() => sendCompleteProfileEmail(s)}
+                    disabled={sendingEmail === s.id}
+                    className={`font-medium hover:underline transition ${
+                      emailSent === s.id
+                        ? "text-[#1DB954]"
+                        : "text-orange-400 hover:text-orange-300"
+                    }`}
+                  >
+                    {emailSent === s.id
+                      ? "✅ Изпратен!"
+                      : sendingEmail === s.id
+                      ? "Изпращане..."
+                      : "📧 Попълни профил"}
+                  </button>
+
                   <Link
-                    href={`/${locale}/specialist/${s.id}`}
+                    href={`/${locale}/specialists/${s.id}`}
                     className="text-blue-400 hover:underline"
                     target="_blank"
                   >
