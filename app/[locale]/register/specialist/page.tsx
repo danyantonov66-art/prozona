@@ -59,6 +59,12 @@ export default function RegisterSpecialistPage() {
       return
     }
 
+    // ✅ Задължително описание с минимум 50 символа
+    if (!form.description || form.description.trim().length < 50) {
+      setError("Описанието трябва да е минимум 50 символа. Разкажи на клиентите какво предлагаш.")
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -105,6 +111,8 @@ export default function RegisterSpecialistPage() {
     }
   }
 
+  const formValid = !!form.categoryId && !!form.subcategoryId
+
   return (
     <main className="min-h-screen bg-[#0D0D1A] pt-24 text-white">
       <section className="max-w-3xl mx-auto px-4 py-16">
@@ -128,7 +136,7 @@ export default function RegisterSpecialistPage() {
             {/* Име и Имейл */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">Име и фамилия</label>
+                <label className="block text-sm text-gray-300 mb-2">Име и фамилия <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   name="name"
@@ -139,7 +147,7 @@ export default function RegisterSpecialistPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-300 mb-2">Имейл</label>
+                <label className="block text-sm text-gray-300 mb-2">Имейл <span className="text-red-400">*</span></label>
                 <input
                   type="email"
                   name="email"
@@ -154,7 +162,7 @@ export default function RegisterSpecialistPage() {
             {/* Телефон и Град */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">Телефон</label>
+                <label className="block text-sm text-gray-300 mb-2">Телефон <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   name="phone"
@@ -165,7 +173,7 @@ export default function RegisterSpecialistPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-300 mb-2">Град</label>
+                <label className="block text-sm text-gray-300 mb-2">Град <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   name="city"
@@ -223,7 +231,9 @@ export default function RegisterSpecialistPage() {
 
             {/* Описание */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Кратко описание</label>
+              <label className="block text-sm text-gray-300 mb-2">
+                Кратко описание
+              </label>
               <textarea
                 name="description"
                 value={form.description}
@@ -237,7 +247,7 @@ export default function RegisterSpecialistPage() {
             {/* Парола */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">Парола</label>
+                <label className="block text-sm text-gray-300 mb-2">Парола <span className="text-red-400">*</span></label>
                 <input
                   type="password"
                   name="password"
@@ -248,7 +258,7 @@ export default function RegisterSpecialistPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-300 mb-2">Повтори паролата</label>
+                <label className="block text-sm text-gray-300 mb-2">Повтори паролата <span className="text-red-400">*</span></label>
                 <input
                   type="password"
                   name="confirmPassword"
@@ -262,7 +272,7 @@ export default function RegisterSpecialistPage() {
 
             {/* Предупреждение */}
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              ⚠️ <strong>Важно:</strong> Не качвай снимки съдържащи телефонен номер, имейл или лого с контакти. Такива снимки ще бъдат <strong>изтрити от администратора</strong> без предупреждение. Описанието не може да съдържа контактна информация.
+              ⚠️ <strong>Важно:</strong> Не качвай снимки съдържащи телефонен номер, имейл или лого с контакти. Описанието не може да съдържа контактна информация.
             </div>
 
             {success && (
@@ -278,11 +288,17 @@ export default function RegisterSpecialistPage() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-[#1DB954] text-black font-semibold px-6 py-3 hover:bg-[#1ed760] transition disabled:opacity-60"
+              disabled={loading || !formValid}
+              className="w-full rounded-xl bg-[#1DB954] text-black font-semibold px-6 py-3 hover:bg-[#1ed760] transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? "Регистрация..." : "Регистрирай се като специалист"}
             </button>
+
+            {!formValid && (
+              <p className="text-center text-xs text-gray-500">
+                Избери категория и подкатегория за да активираш бутона за регистрация
+              </p>
+            )}
           </form>
         </div>
       </section>
