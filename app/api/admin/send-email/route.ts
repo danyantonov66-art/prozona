@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
             </div>
 
             <h1 style="color: #ffffff; font-size: 24px; margin-bottom: 16px;">
-              Здравей, ${name}! 👋
+              Здравей, ${name}! ☀️ Хубав и успешен ден ти желаем!
             </h1>
 
             <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin-bottom: 16px;">
