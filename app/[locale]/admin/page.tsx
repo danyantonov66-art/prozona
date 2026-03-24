@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import VerifyToggleButton from "@/components/VerifyToggleButton"
 import DeleteSpecialistButton from "@/components/DeleteSpecialistButton"
+import SendEmailButton from "@/components/SendEmailButton"
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -97,6 +98,10 @@ export default async function AdminPage({ params }: Props) {
             <h2 className="text-lg font-semibold">📋 Предложения за услуги</h2>
             <p className="mt-1 text-sm text-gray-400">{suggestionCount} нови предложения</p>
           </Link>
+          <Link href={`/${locale}/admin/blog`} className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40">
+            <h2 className="text-lg font-semibold">📝 Блог</h2>
+            <p className="mt-1 text-sm text-gray-400">Управлявай статиите в блога</p>
+          </Link>
         </div>
 
         {/* Последно регистрирани специалисти */}
@@ -114,7 +119,13 @@ export default async function AdminPage({ params }: Props) {
                 </div>
                 <div className="flex items-center gap-3">
                   <VerifyToggleButton id={s.id} verified={s.verified} />
-                  <Link href={`/${locale}/specialist/${s.id}`} className="text-sm text-[#1DB954] hover:underline">
+                  {/* ✅ Бутон за имейл */}
+                  <SendEmailButton
+                    email={s.user?.email || ""}
+                    name={s.businessName || s.user?.name || "Специалист"}
+                    specialistId={s.id}
+                  />
+                  <Link href={`/${locale}/specialists/${s.id}`} className="text-sm text-[#1DB954] hover:underline">
                     Виж
                   </Link>
                   <DeleteSpecialistButton id={s.id} />
