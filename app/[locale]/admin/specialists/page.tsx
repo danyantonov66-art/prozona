@@ -14,6 +14,7 @@ interface Specialist {
   id: string
   businessName?: string
   city: string
+  description?: string
   verified: boolean
   subscriptionPlan: string
   createdAt: string
@@ -32,6 +33,10 @@ export default function AdminSpecialistsPage() {
   const [expandedGallery, setExpandedGallery] = useState<string | null>(null)
   const [sendingEmail, setSendingEmail] = useState<string | null>(null)
   const [emailSent, setEmailSent] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDescription, setEditDescription] = useState("")
+  const [editCity, setEditCity] = useState("")
+  const [editSaving, setEditSaving] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -64,7 +69,24 @@ export default function AdminSpecialistsPage() {
     )
   }
 
-  // ✅ Изпрати имейл за попълване на профил
+  function startEdit(s: Specialist) {
+    setEditingId(s.id)
+    setEditDescription(s.description || "")
+    setEditCity(s.city || "")
+  }
+
+  async function saveEdit(id: string) {
+    setEditSaving(true)
+    await fetch(`/api/admin/specialists/${id}/edit`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description: editDescription, city: editCity })
+    })
+    setEditingId(null)
+    setEditSaving(false)
+    load()
+  }
+
   async function sendCompleteProfileEmail(s: Specialist) {
     if (!s.user?.email) return
     setSendingEmail(s.id)
@@ -190,6 +212,14 @@ export default function AdminSpecialistsPage() {
                     {s.verified ? "Премахни" : "Верифицирай"}
                   </button>
 
+                  {/* ✅ Бутон за редактиране */}
+                  <button
+                    onClick={() => editingId === s.id ? setEditingId(null) : startEdit(s)}
+                    className="font-medium text-blue-400 hover:underline"
+                  >
+                    {editingId === s.id ? "Затвори" : "✏️ Редактирай"}
+                  </button>
+
                   {/* ✅ Бутон за имейл */}
                   <button
                     onClick={() => sendCompleteProfileEmail(s)}
@@ -228,6 +258,49 @@ export default function AdminSpecialistsPage() {
                   </button>
                 </div>
               </div>
+
+              {/* ✅ Inline edit форма */}
+              {editingId === s.id && (
+                <div className="border-t border-white/10 bg-[#0D0D1A] p-4 space-y-3">
+                  <h3 className="text-sm font-semibold text-white">✏️ Редактирай профила</h3>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Град</label>
+                    <input
+                      type="text"
+                      value={editCity}
+                      onChange={(e) => setEditCity(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Описание</label>
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none resize-none"
+                    />
+                    {editDescription && /(\+359|08|00359)\s?[\d\s\-]{8,}/.test(editDescription) && (
+                      <p className="text-xs text-red-400 mt-1">⚠️ Описанието съдържа телефонен номер!</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => saveEdit(s.id)}
+                      disabled={editSaving}
+                      className="px-4 py-2 bg-[#1DB954] text-black rounded-lg text-sm font-semibold hover:bg-[#1ed760] disabled:opacity-50"
+                    >
+                      {editSaving ? "Запазване..." : "Запази"}
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg text-sm hover:bg-gray-700"
+                    >
+                      Отказ
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Галерия секция */}
               {expandedGallery === s.id && (
