@@ -106,8 +106,11 @@ export default function EditSpecialistProfileForm({ specialist }: Props) {
           onChange={(e) => setDescription(e.target.value)}
           rows={5}
           className="w-full rounded-lg border border-white/10 bg-[#0D0D1A] px-4 py-3 text-white outline-none transition focus:border-[#1DB954]"
-          placeholder="Опиши услугите, които предлагаш"
+          placeholder="Опиши услугите, които предлагаш – опит, специализация, начин на работа..."
         />
+        <p className="mt-2 text-xs text-gray-500">
+          💡 Съветваме те да не публикуваш телефон или имейл тук – клиентите те намират директно през платформата.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
