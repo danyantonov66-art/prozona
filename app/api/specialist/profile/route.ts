@@ -7,16 +7,6 @@ import { sendNewSpecialistNotification, sendSpecialistRegistrationConfirmation }
 
 const EARLY_PROGRAM_LIMIT = 200
 
-function containsContactInfo(text: string): boolean {
-  const patterns = [
-    /(\+359|08|00359)\s?[\d\s\-]{8,}/,
-    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,
-    /(https?:\/\/|www\.)/i,
-    /facebook\.com|instagram\.com|viber|whatsapp/i,
-  ]
-  return patterns.some((p) => p.test(text))
-}
-
 // ✅ Валидира че URL-ът е YouTube или TikTok
 function isValidVideoUrl(url: string): boolean {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|tiktok\.com)/.test(url)
@@ -34,13 +24,6 @@ export async function POST(request: NextRequest) {
 
     if (!description || !city || !categoryId || !subcategoryId || !phone) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
-
-    if (containsContactInfo(description)) {
-      return NextResponse.json(
-        { error: "Описанието не може да съдържа телефон, имейл или линкове." },
-        { status: 400 }
-      )
     }
 
     const selectedCategory = categories.find((c: any) => c.id === categoryId)
@@ -143,21 +126,10 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { businessName, description, city, phone, experienceYears, serviceAreas, videoUrl } = body ?? {}
 
-    if (!description) {
-      return NextResponse.json({ error: "Описанието е задължително" }, { status: 400 })
-    }
-
-    if (containsContactInfo(description)) {
-      return NextResponse.json(
-        { error: "Описанието не може да съдържа телефон, имейл или линкове." },
-        { status: 400 }
-      )
-    }
-
     // ✅ Валидирай videoUrl ако е подаден
     if (videoUrl && !isValidVideoUrl(videoUrl)) {
       return NextResponse.json(
-        { error: "Моля въведете валиден YouTube или TikTok линк." },
+        { error: "Моля въведете валиден YouTube или TikTок линк." },
         { status: 400 }
       )
     }
@@ -166,12 +138,12 @@ export async function PUT(request: NextRequest) {
       where: { userId },
       data: {
         businessName: businessName || null,
-        description,
+        description: description || null,
         city: city || "",
         phone: phone || null,
         experienceYears: experienceYears || null,
         serviceAreas: Array.isArray(serviceAreas) ? serviceAreas : [],
-        videoUrl: videoUrl || null,  // ✅ ново поле
+        videoUrl: videoUrl || null,
       },
       include: { user: true },
     })
