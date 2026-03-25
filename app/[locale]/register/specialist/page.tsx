@@ -59,12 +59,6 @@ export default function RegisterSpecialistPage() {
       return
     }
 
-    // ✅ Задължително описание с минимум 50 символа
-    if (!form.description || form.description.trim().length < 50) {
-      setError("Описанието трябва да е минимум 50 символа. Разкажи на клиентите какво предлагаш.")
-      return
-    }
-
     setLoading(true)
 
     try {
