@@ -4,6 +4,7 @@ import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import InquiryButton from "@/components/InquiryButton"
+import type { Metadata } from "next"
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,39 @@ interface Props {
     locale: string
     id: string
   }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+
+  const specialist = await prisma.specialist.findUnique({
+    where: { id },
+    include: { user: true },
+  })
+
+  if (!specialist) {
+    return { title: "Специалист не е намерен | ProZona" }
+  }
+
+  const name = specialist.businessName || specialist.user?.name || "Специалист"
+  const city = specialist.city || "България"
+  const description = specialist.description
+    ? `${specialist.description.slice(0, 150)}...`
+    : `${name} – верифициран специалист в ${city}. Намери го на ProZona.bg`
+
+  return {
+    title: `${name} – специалист в ${city} | ProZona`,
+    description,
+    openGraph: {
+      title: `${name} – специалист в ${city} | ProZona`,
+      description,
+      url: `https://www.prozona.bg/bg/specialist/${id}`,
+      siteName: "ProZona",
+      images: specialist.user?.image
+        ? [{ url: specialist.user.image }]
+        : [{ url: "https://www.prozona.bg/og-image.jpg" }],
+    },
+  }
 }
 
 export default async function SpecialistPage({ params }: Props) {
@@ -64,7 +98,6 @@ export default async function SpecialistPage({ params }: Props) {
                   </div>
                 )}
 
-                {/* Рейтинг */}
                 {avgRating && (
                   <div className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-[#0D0D1A] px-4 py-3">
                     <span className="text-yellow-400">★</span>
@@ -110,7 +143,6 @@ export default async function SpecialistPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Галерия */}
           {specialist.GalleryImage.length > 0 && (
             <div className="border-t border-white/10 p-6 md:p-8">
               <h2 className="mb-4 text-xl font-semibold">Галерия</h2>
@@ -127,7 +159,6 @@ export default async function SpecialistPage({ params }: Props) {
             </div>
           )}
 
-          {/* Ценова листа */}
           {specialist.PriceListItem.length > 0 && (
             <div className="border-t border-white/10 p-6 md:p-8">
               <h2 className="mb-4 text-xl font-semibold">Ценова листа</h2>
@@ -142,7 +173,6 @@ export default async function SpecialistPage({ params }: Props) {
             </div>
           )}
 
-          {/* Отзиви */}
           {specialist.reviews.length > 0 && (
             <div className="border-t border-white/10 p-6 md:p-8">
               <h2 className="mb-4 text-xl font-semibold">Отзиви</h2>
