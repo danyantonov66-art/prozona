@@ -52,6 +52,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { email, password, name, role, phone, city, description, categoryId, subcategoryId, ref } = body
 
+    // Основни задължителни полета
     if (!email || !password || !name) {
       return NextResponse.json({ error: 'Липсващи задължителни полета' }, { status: 400 })
     }
@@ -61,6 +62,28 @@ export async function POST(request: Request) {
         { error: 'Моля, използвайте истински имейл адрес. Временни имейли не се приемат.' },
         { status: 400 }
       )
+    }
+
+    // Валидация специфична за специалисти
+    if (role === 'SPECIALIST') {
+      if (!phone) {
+        return NextResponse.json(
+          { error: 'Телефонният номер е задължителен.' },
+          { status: 400 }
+        )
+      }
+      if (!city) {
+        return NextResponse.json(
+          { error: 'Градът е задължителен.' },
+          { status: 400 }
+        )
+      }
+      if (!categoryId || !subcategoryId) {
+        return NextResponse.json(
+          { error: 'Моля, избери категория и подкатегория.' },
+          { status: 400 }
+        )
+      }
     }
 
     if (description && containsContactInfo(description)) {
@@ -75,7 +98,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Потребител с този имейл вече съществува' }, { status: 400 })
     }
 
-    // ✅ Намери поканващия по refCode
+    // Намери поканващия по refCode
     let referrer: { id: string } | null = null
     if (ref && role === 'SPECIALIST') {
       referrer = await prisma.specialist.findUnique({
@@ -101,23 +124,23 @@ export async function POST(request: Request) {
       const specialist = await prisma.specialist.create({
         data: {
           userId: user.id,
-          description: description || 'Профилът предстои да бъде попълнен.',
-          city: city || 'България',
-          serviceAreas: city ? [city] : [],
-          phone: phone || null,
+          description: description || '',
+          city: city,
+          serviceAreas: [city],
+          phone: phone,
           verified: false,
           referredBy: referrer ? ref : null,
         }
       })
 
-      // ✅ Генерирай refCode за новия специалист
+      // Генерирай refCode за новия специалист
       const refCode = generateRefCode(name, specialist.id)
       await prisma.specialist.update({
         where: { id: specialist.id },
         data: { refCode }
       })
 
-      // ✅ Награди поканващия с 5 кредита
+      // Награди поканващия с 5 кредита
       if (referrer) {
         await prisma.specialist.update({
           where: { id: referrer.id },
@@ -138,20 +161,19 @@ export async function POST(request: Request) {
         })
       }
 
-      if (categoryId && subcategoryId) {
-        const dbCategory = await prisma.category.findUnique({ where: { slug: categoryId } })
-        if (dbCategory) {
-          const dbSubcategory = await prisma.subcategory.findFirst({
-            where: { slug: subcategoryId, categoryId: dbCategory.id }
-          })
-          await prisma.specialistCategory.create({
-            data: {
-              specialistId: specialist.id,
-              categoryId: dbCategory.id,
-              subcategoryId: dbSubcategory?.id || null,
-            }
-          })
-        }
+      // Запази категория и подкатегория
+      const dbCategory = await prisma.category.findUnique({ where: { slug: categoryId } })
+      if (dbCategory) {
+        const dbSubcategory = await prisma.subcategory.findFirst({
+          where: { slug: subcategoryId, categoryId: dbCategory.id }
+        })
+        await prisma.specialistCategory.create({
+          data: {
+            specialistId: specialist.id,
+            categoryId: dbCategory.id,
+            subcategoryId: dbSubcategory?.id || null,
+          }
+        })
       }
 
       const refLink = `https://www.prozona.bg/bg/register/specialist?ref=${refCode}`
@@ -201,6 +223,8 @@ export async function POST(request: Request) {
             <li>Имейл: ${email}</li>
             <li>Телефон: ${phone || '—'}</li>
             <li>Град: ${city || '—'}</li>
+            <li>Категория: ${categoryId || '—'}</li>
+            <li>Подкатегория: ${subcategoryId || '—'}</li>
             <li>Реферал от: ${ref || '—'}</li>
           </ul>
           <a href="https://www.prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
