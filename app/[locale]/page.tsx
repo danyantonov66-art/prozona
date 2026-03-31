@@ -4,6 +4,8 @@ import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import { categories } from "@/lib/constants"
+import { prisma } from "@/lib/prisma"
+import SpecialistsMapWrapper from "@/components/SpecialistsMapWrapper"
 
 interface Props {
   params: Promise<{
@@ -67,6 +69,30 @@ const infographicSteps = [
   { icon: "💼", label: "Работа и доход" },
 ]
 
+const CITY_COORDS: Record<string, [number, number]> = {
+  "София": [42.6977, 23.3219],
+  "Пловдив": [42.1354, 24.7453],
+  "Варна": [43.2141, 27.9147],
+  "Бургас": [42.5048, 27.4626],
+  "Русе": [43.8356, 25.9657],
+  "Стара Загора": [42.4257, 25.6345],
+  "Плевен": [43.4170, 24.6069],
+  "Велико Търново": [43.0757, 25.6172],
+  "Благоевград": [42.0135, 23.0942],
+  "Пазарджик": [42.1928, 24.3317],
+  "Хасково": [41.9345, 25.5554],
+  "Шумен": [43.2707, 26.9220],
+  "Перник": [42.6046, 23.0376],
+  "Добрич": [43.5703, 27.8272],
+  "Сливен": [42.6868, 26.3259],
+  "Враца": [43.2057, 23.5504],
+  "Габрово": [42.8744, 25.3169],
+  "Ямбол": [42.4838, 26.5036],
+  "България": [42.7, 25.5],
+  "Самоков": [42.3369, 23.5530],
+  "Varna": [43.2141, 27.9147],
+}
+
 export const metadata = {
   title: "Намери верифициран специалист близо до теб",
   description: "Ремонти, почистване, монтаж и градински услуги на едно място. Безплатна заявка. Верифицирани майстори в целия град.",
@@ -74,6 +100,25 @@ export const metadata = {
 
 export default async function Home({ params }: Props) {
   const { locale } = await params
+
+  const specialists = await prisma.specialist.findMany({
+    where: { verified: true },
+    include: { user: true },
+  })
+
+  const mapSpecialists = specialists
+    .map((s) => {
+      const coords = s.city ? CITY_COORDS[s.city] : null
+      if (!coords) return null
+      return {
+        id: s.id,
+        name: s.businessName || s.user?.name || "Специалист",
+        city: s.city!,
+        lat: coords[0],
+        lng: coords[1],
+      }
+    })
+    .filter(Boolean) as any[]
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
@@ -139,6 +184,19 @@ export default async function Home({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {/* MAP */}
+      {mapSpecialists.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-10">
+          <h2 className="mb-4 text-center text-2xl font-bold">
+            📍 Специалисти в цялата страна
+          </h2>
+          <p className="mb-6 text-center text-sm text-gray-400">
+            Намери верифициран майстор близо до теб
+          </p>
+          <SpecialistsMapWrapper specialists={mapSpecialists} locale={locale} />
+        </section>
+      )}
 
       {/* CATEGORIES */}
       <section className="mx-auto max-w-6xl px-4 py-12">
@@ -326,7 +384,7 @@ export default async function Home({ params }: Props) {
         <div className="flex flex-col justify-center gap-4 md:flex-row">
           <Link
             href={`/${locale}/become-specialist`}
-            className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black transition hover:bg-[#1ed760]"
+            className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black transition hover:bg-[#1ed760]"
           >
             Регистрирай се като специалист
           </Link>
