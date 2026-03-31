@@ -5,10 +5,22 @@ import dynamic from "next/dynamic"
 const SpecialistsMap = dynamic(() => import("./SpecialistsMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-[500px] w-full rounded-2xl bg-[#151528] border border-white/10 flex items-center justify-center text-gray-400">
-      Зареждане на картата...
+    <div
+      style={{
+        height: "500px",
+        width: "100%",
+        borderRadius: "16px",
+        background: "#151528",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#666",
+        fontSize: "14px",
+      }}
+    >
+      Зарежда картата...
     </div>
-  )
+  ),
 })
 
 interface Specialist {
