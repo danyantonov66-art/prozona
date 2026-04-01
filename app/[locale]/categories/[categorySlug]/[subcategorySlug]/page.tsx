@@ -4,16 +4,6 @@ import { categories } from "../../../../../lib/constants"
 import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 
-export async function generateMetadata({ params }: Props) {
-  const { categorySlug, subcategorySlug } = await params
-  const category = categories.find((c) => c.slug === categorySlug)
-  const subcategory = category?.subcategories.find((s) => s.slug === subcategorySlug)
-  return {
-    title: subcategory?.name || "Подкатегория",
-    description: `Намери верифицирани ${subcategory?.name} специалисти близо до теб. Безплатна заявка в ProZona.`,
-  }
-}
-
 interface Props {
   params: Promise<{
     locale: string
@@ -22,10 +12,44 @@ interface Props {
   }>
 }
 
+export async function generateMetadata({ params }: Props) {
+  const { categorySlug, subcategorySlug } = await params
+  const category = categories.find((c) => c.slug === categorySlug)
+  const subcategory = category?.subcategories.find((s) => s.slug === subcategorySlug)
+  const name = subcategory?.name || "Подкатегория"
+  const catName = category?.name || "Услуги"
+
+  const title = `${name} в София | Намери специалист | ProZona`
+  const description = `Търсиш специалист за ${name} в София? Публикувай безплатна заявка в ProZona и получи оферти от верифицирани майстори до часове. Без посредници.`
+
+  return {
+    title,
+    description,
+    keywords: [
+      `${name} София`,
+      `${name} майстор`,
+      `${name} специалист`,
+      `${catName} София`,
+      `намери майстор ${name}`,
+      `ProZona ${name}`,
+    ],
+    openGraph: {
+      title,
+      description,
+      url: `https://www.prozona.bg/bg/categories/${categorySlug}/${subcategorySlug}`,
+      siteName: "ProZona",
+      locale: "bg_BG",
+      type: "website",
+    },
+    alternates: {
+      canonical: `https://www.prozona.bg/bg/categories/${categorySlug}/${subcategorySlug}`,
+    },
+  }
+}
+
 export default async function SubcategoryPage({ params }: Props) {
   const { locale, categorySlug, subcategorySlug } = await params
 
-  // Вземи реалните имена от constants
   const category = categories.find((c) => c.slug === categorySlug)
   const subcategory = category?.subcategories.find((s) => s.slug === subcategorySlug)
   const categoryName = category?.name || categorySlug
@@ -63,7 +87,7 @@ export default async function SubcategoryPage({ params }: Props) {
           <span className="text-white">{subcategoryName}</span>
         </div>
 
-        <h1 className="mb-2 text-3xl font-bold">{subcategoryName}</h1>
+        <h1 className="mb-2 text-3xl font-bold">{subcategoryName} в София</h1>
         <p className="mb-8 text-gray-400">Верифицирани специалисти в категория „{subcategoryName}"</p>
 
         {specialists.length === 0 ? (
@@ -112,6 +136,25 @@ export default async function SubcategoryPage({ params }: Props) {
             })}
           </div>
         )}
+
+        {/* SEO текст блок */}
+        <div className="mt-16 rounded-2xl border border-white/10 bg-[#151528] p-8">
+          <h2 className="mb-4 text-xl font-bold">
+            Намери специалист за {subcategoryName} в София
+          </h2>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            ProZona е платформата, която свързва хора, нуждаещи се от {subcategoryName}, с верифицирани специалисти в София и цяла България.
+            Публикувай безплатна заявка, получи оферти от майстори и избери най-подходящия за теб.
+            Без посредници, без чакане — директна комуникация със специалиста.
+          </p>
+          <Link
+            href={`/${locale}/inquiry/new`}
+            className="mt-6 inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black transition hover:bg-[#1ed760]"
+          >
+            Публикувай безплатна заявка →
+          </Link>
+        </div>
+
       </section>
       <ProZonaFooter locale={locale} />
     </main>
