@@ -23,6 +23,16 @@ export default function RegisterPage() {
   }
 
   const handleRegister = async (role: 'CLIENT' | 'SPECIALIST') => {
+    // Специалистите се регистрират през отделна форма с телефон и детайли
+    if (role === 'SPECIALIST') {
+      // Запази данните в sessionStorage и пренасочи към специалист формата
+      sessionStorage.setItem('register_name', name)
+      sessionStorage.setItem('register_email', email)
+      sessionStorage.setItem('register_password', password)
+      router.push(`/${locale}/register/specialist`)
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -39,19 +49,11 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Грешка при регистрация')
       }
 
-      if (role === 'SPECIALIST') {
-        await signIn('credentials', {
-          email,
-          password,
-          callbackUrl: `/${locale}/specialist/dashboard`
-        })
-      } else {
-        await signIn('credentials', {
-          email,
-          password,
-          callbackUrl: `/${locale}`
-        })
-      }
+      await signIn('credentials', {
+        email,
+        password,
+        callbackUrl: `/${locale}`
+      })
     } catch (error: any) {
       setError(error.message)
       setStep('form')
@@ -86,7 +88,7 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Стъпка 1 — Форма */}
+        {/* Стъпка 1 – Форма */}
         {step === 'form' && (
           <>
             <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -182,7 +184,7 @@ export default function RegisterPage() {
           </>
         )}
 
-        {/* Стъпка 2 — Избор на роля */}
+        {/* Стъпка 2 – Избор на роля */}
         {step === 'role' && (
           <div className="space-y-4">
             {/* Клиент */}
