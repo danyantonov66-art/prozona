@@ -101,10 +101,13 @@ export const metadata = {
 export default async function Home({ params }: Props) {
   const { locale } = await params
 
-  const specialists = await prisma.specialist.findMany({
-    where: { verified: true },
-    include: { user: true },
-  })
+  const [specialists, specialistCount] = await Promise.all([
+    prisma.specialist.findMany({
+      where: { verified: true },
+      include: { user: true },
+    }),
+    prisma.specialist.count({ where: { verified: true } }),
+  ])
 
   const mapSpecialists = specialists
     .map((s) => {
@@ -120,16 +123,24 @@ export default async function Home({ params }: Props) {
     })
     .filter(Boolean) as any[]
 
+  const spotsLeft = Math.max(200 - specialistCount, 0)
+  const progressPercent = Math.min((specialistCount / 200) * 100, 100)
+
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
 
+      {/* БАНЕР */}
       <div className="bg-[#1A1A2E] px-4 py-2 text-center text-white">
         <p className="text-sm">
-          🎉 Стартова оферта: 3 месеца Premium безплатно за всички нови специалисти! Първите 200 получават 6 месеца!
-          <Link href={`/${locale}/how-it-works`} className="ml-2 font-semibold text-[#1DB954] hover:underline">
-            Виж как работи →
+          🎯 Получавай реални запитвания от клиенти още този месец 👉{" "}
+          <Link
+            href={`/${locale}/become-specialist`}
+            className="font-semibold text-[#1DB954] hover:underline"
+          >
+            Регистрирай се безплатно
           </Link>
+          {" "}– първите 200 майстора получават 6 месеца Premium
         </p>
       </div>
 
@@ -181,6 +192,28 @@ export default async function Home({ params }: Props) {
             <span>
               <strong className="text-white">Плащай само за реални клиенти</strong> – 1 кредит = 1 директен контакт. Без абонамент, без скрити такси!
             </span>
+          </div>
+
+          {/* БРОЯЧ */}
+          <div className="mt-8 flex justify-center">
+            <div className="inline-flex flex-col items-center rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 px-10 py-6">
+              <div className="flex items-end gap-1">
+                <span className="text-5xl font-bold text-[#1DB954]">{specialistCount}</span>
+                <span className="mb-1 text-2xl text-gray-400">/200</span>
+              </div>
+              <p className="mt-1 text-sm text-gray-400">
+                майстора вече се възползват от безплатния Premium период
+              </p>
+              <div className="mt-4 h-2 w-64 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-[#1DB954] transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs font-semibold text-[#1DB954]">
+                🔥 {spotsLeft} свободни места остават
+              </p>
+            </div>
           </div>
         </div>
       </section>
