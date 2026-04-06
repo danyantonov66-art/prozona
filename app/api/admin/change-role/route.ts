@@ -13,16 +13,14 @@ export async function POST(request: NextRequest) {
     const { userId } = await request.json()
     if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 })
 
-    // Смени ролята
     await prisma.user.update({
       where: { id: userId },
       data: { role: "SPECIALIST" },
     })
 
-    // Създай Specialist запис ако няма
     const existing = await prisma.specialist.findUnique({ where: { userId } })
-   if (!existing) {
-       await prisma.specialist.create({
+    if (!existing) {
+      await prisma.specialist.create({
         data: {
           user: { connect: { id: userId } },
           verified: false,
@@ -30,6 +28,7 @@ export async function POST(request: NextRequest) {
           city: "",
         },
       })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
