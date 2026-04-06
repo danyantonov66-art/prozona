@@ -10,10 +10,8 @@ export default function ChangeRoleButton({ userId, currentRole }: Props) {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
 
-  if (currentRole !== "CLIENT") return null
-
   async function changeRole() {
-    if (!confirm("Смени ролята на този потребител от Клиент на Специалист?")) return
+    if (!confirm("Смени ролята на този потребител на Специалист?")) return
     setLoading(true)
     try {
       await fetch("/api/admin/change-role", {

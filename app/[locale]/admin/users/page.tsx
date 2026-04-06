@@ -78,8 +78,8 @@ export default async function AdminUsersPage({ params }: Props) {
                           Виж профил
                         </Link>
                       )}
-                      {u.role === "CLIENT" && (
-                        <ChangeRoleButton userId={u.id} currentRole={u.role} />
+                      {(u.role === "CLIENT" || (u.role === "SPECIALIST" && !u.specialist)) && (
+                      <ChangeRoleButton userId={u.id} currentRole={u.role} />
                       )}
                       {u.role === "CLIENT" && (
                         <SendEmailButton
