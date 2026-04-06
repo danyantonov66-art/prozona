@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
 
     // Създай Specialist запис ако няма
     const existing = await prisma.specialist.findUnique({ where: { userId } })
-    if (!existing) {
+   if (!existing) {
       await prisma.specialist.create({
         data: {
-          userId,
+          user: { connect: { id: userId } },
           verified: false,
         },
       })
