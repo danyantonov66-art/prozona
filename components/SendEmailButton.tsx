@@ -1,14 +1,14 @@
 "use client"
-
 import { useState } from "react"
 
 interface Props {
   email: string
   name: string
-  specialistId: string
+  specialistId?: string
+  type?: "complete_profile" | "wrong_role"
 }
 
-export default function SendEmailButton({ email, name, specialistId }: Props) {
+export default function SendEmailButton({ email, name, specialistId, type = "complete_profile" }: Props) {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
 
@@ -18,12 +18,7 @@ export default function SendEmailButton({ email, name, specialistId }: Props) {
       await fetch("/api/admin/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: email,
-          name,
-          type: "complete_profile",
-          specialistId,
-        })
+        body: JSON.stringify({ to: email, name, type, specialistId }),
       })
       setSent(true)
       setTimeout(() => setSent(false), 3000)
@@ -34,6 +29,8 @@ export default function SendEmailButton({ email, name, specialistId }: Props) {
     }
   }
 
+  const label = type === "wrong_role" ? "📧 Покани като специалист" : "📧 Попълни профил"
+
   return (
     <button
       onClick={sendEmail}
@@ -41,11 +38,12 @@ export default function SendEmailButton({ email, name, specialistId }: Props) {
       className={`rounded-full px-3 py-1 text-xs font-medium transition cursor-pointer ${
         sent
           ? "bg-[#1DB954]/20 text-[#1DB954]"
+          : type === "wrong_role"
+          ? "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
           : "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
       }`}
-      title="Изпрати имейл за попълване на профил"
     >
-      {sent ? "✅ Изпратен!" : sending ? "..." : "📧 Попълни профил"}
+      {sent ? "✅ Изпратен!" : sending ? "..." : label}
     </button>
   )
 }

@@ -148,12 +148,18 @@ export default async function AdminPage({ params }: Props) {
                   <p className="font-medium">{u.name}</p>
                   <p className="text-sm text-gray-400">{u.email}</p>
                 </div>
-                <p className="text-xs text-gray-500">{new Date(u.createdAt).toLocaleDateString("bg-BG")}</p>
+                <div className="flex items-center gap-3">
+                  <p className="text-xs text-gray-500">{new Date(u.createdAt).toLocaleDateString("bg-BG")}</p>
+                  <SendEmailButton
+                    email={u.email || ""}
+                    name={u.name || "Потребител"}
+                    type="wrong_role"
+                  />
+                </div>
               </div>
             ))}
           </div>
         </div>
-
       </section>
     </main>
   )
