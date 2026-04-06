@@ -4,6 +4,7 @@ import Link from "next/link"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import DeleteUserButton from "@/components/DeleteUserButton"
+import SendEmailButton from "@/components/SendEmailButton"
 
 interface Props {
   params: Promise<{ locale: string }>
