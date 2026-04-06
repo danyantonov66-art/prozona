@@ -94,8 +94,8 @@ const CITY_COORDS: Record<string, [number, number]> = {
 }
 
 export const metadata = {
-  title: "Намери верифициран специалист близо до теб",
-  description: "Ремонти, почистване, монтаж и градински услуги на едно място. Безплатна заявка. Верифицирани майстори в целия град.",
+  title: "Намери нови клиенти за услугите си | ProZona",
+  description: "Регистрирай се в ProZona и започни да получаваш реални запитвания от клиенти още днес. Безплатен старт, без посредници.",
 }
 
 export default async function Home({ params }: Props) {
@@ -106,7 +106,7 @@ export default async function Home({ params }: Props) {
       where: { verified: true },
       include: { user: true },
     }),
-    prisma.specialist.count({ where: { verified: true } }),
+    prisma.specialist.count(),
   ])
 
   const mapSpecialists = specialists
@@ -130,7 +130,7 @@ export default async function Home({ params }: Props) {
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
 
-      {/* БАНЕР */}
+      {/* TOP BAR */}
       <div className="bg-[#1A1A2E] px-4 py-2 text-center text-white">
         <p className="text-sm">
           🎯 Получавай реални запитвания от клиенти още този месец 👉{" "}
@@ -140,7 +140,8 @@ export default async function Home({ params }: Props) {
           >
             Регистрирай се безплатно
           </Link>
-          {" "}– първите 200 майстора получават 6 месеца Premium
+          {" "}– първите 200 майстора получават 6 месеца Premium{" "}
+          <span className="text-[#1DB954] font-semibold">⏳ Остават {spotsLeft} места</span>
         </p>
       </div>
 
@@ -153,66 +154,79 @@ export default async function Home({ params }: Props) {
             ProZona.bg
           </div>
 
-          <h1 className="mb-6 text-4xl font-bold leading-tight md:text-6xl">
-            Намери верифициран специалист
-            <span className="block text-[#1DB954]">близо до теб</span>
+          {/* H1 — фокус върху резултат за майстора */}
+          <h1 className="mb-4 text-4xl font-bold leading-tight md:text-6xl">
+            Намери нови клиенти
+            <span className="block text-[#1DB954]">за услугите си</span>
           </h1>
 
+          {/* Подзаглавие */}
           <p className="mx-auto mb-8 max-w-2xl text-base text-gray-300 md:text-lg">
-            Ремонти, почистване, монтаж и градински услуги на едно място.
+            Регистрирай се в ProZona и започни да получаваш реални запитвания още днес.
           </p>
 
-          <div className="flex justify-center">
-            <SearchBar locale={locale} />
-          </div>
-
-          <div className="mt-6 text-sm text-gray-400">
-            Пример: ВиК, почистване, хамали, косене, София
-          </div>
-
-          {/* CTA бутони */}
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href={`/${locale}/request`}
-              className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black transition hover:bg-[#1ed760] text-base w-full sm:w-auto"
-            >
-              🚀 Публикувай безплатна заявка
-            </Link>
+          {/* CTA бутони — специалистът е приоритет */}
+          <div className="mt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href={`/${locale}/become-specialist`}
-              className="inline-flex items-center justify-center rounded-xl border border-white/20 px-8 py-3 font-semibold text-white transition hover:bg-white/10 text-base w-full sm:w-auto"
+              className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black transition hover:bg-[#1ed760] text-base w-full sm:w-auto"
             >
               🔧 Регистрирай се като специалист
             </Link>
+            <Link
+              href={`/${locale}/request`}
+              className="inline-flex items-center justify-center rounded-xl border border-white/20 px-8 py-3 font-semibold text-white transition hover:bg-white/10 text-base w-full sm:w-auto"
+            >
+              🚀 Публикувай заявка
+            </Link>
           </div>
 
-          {/* Кредитна система badge */}
-          <div className="mt-8 inline-flex items-center gap-2 rounded-2xl border border-[#1DB954]/20 bg-[#1DB954]/5 px-6 py-3 text-sm text-gray-300">
-            <span className="text-xl">🪙</span>
-            <span>
-              <strong className="text-white">Плащай само за реални клиенти</strong> – 1 кредит = 1 директен контакт. Без абонамент, без скрити такси!
+          {/* Trust елементи */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
+            <span className="flex items-center gap-1">
+              <span className="text-[#1DB954] font-bold">✔</span> Безплатен старт
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-[#1DB954] font-bold">✔</span> Реални клиентски запитвания
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-[#1DB954] font-bold">✔</span> Без посредници
             </span>
           </div>
 
-          {/* БРОЯЧ */}
+          {/* Search bar — вторичен елемент */}
           <div className="mt-8 flex justify-center">
+            <SearchBar locale={locale} />
+          </div>
+          <div className="mt-3 text-sm text-gray-500">
+            Пример: ВиК, почистване, хамали, косене, София
+          </div>
+
+          {/* БРОЯЧ — social proof + urgency */}
+          <div className="mt-10 flex justify-center">
             <div className="inline-flex flex-col items-center rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 px-10 py-6">
+              <p className="text-sm text-gray-400 mb-2">
+                +{specialistCount} майстора вече се регистрираха
+              </p>
               <div className="flex items-end gap-1">
                 <span className="text-5xl font-bold text-[#1DB954]">{specialistCount}</span>
                 <span className="mb-1 text-2xl text-gray-400">/200</span>
               </div>
-              <p className="mt-1 text-sm text-gray-400">
-                майстора вече се възползват от безплатния Premium период
-              </p>
               <div className="mt-4 h-2 w-64 overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full bg-[#1DB954] transition-all"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs font-semibold text-[#1DB954]">
-                🔥 {spotsLeft} свободни места остават
+              <p className="mt-3 text-sm font-semibold text-[#1DB954]">
+                🔥 Само {spotsLeft} места остават за безплатен Premium
               </p>
+              <Link
+                href={`/${locale}/become-specialist`}
+                className="mt-4 inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-6 py-2 text-sm font-semibold text-black transition hover:bg-[#1ed760]"
+              >
+                Регистрирай се сега →
+              </Link>
             </div>
           </div>
         </div>
@@ -359,7 +373,8 @@ export default async function Home({ params }: Props) {
             ))}
           </div>
           <p className="mt-6 text-center text-sm text-gray-400">
-            Плащаш само когато решиш да се свържеш с клиента. <strong className="text-white">Без абонамент. Без скрити такси.</strong>
+            Плащаш само когато решиш да се свържеш с клиента.{" "}
+            <strong className="text-white">Без абонамент. Без скрити такси.</strong>
           </p>
         </div>
 
