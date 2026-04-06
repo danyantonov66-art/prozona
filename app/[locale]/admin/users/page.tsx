@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import DeleteUserButton from "@/components/DeleteUserButton"
 import SendEmailButton from "@/components/SendEmailButton"
+import ChangeRoleButton from "@/components/ChangeRoleButton"
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -33,7 +34,6 @@ export default async function AdminUsersPage({ params }: Props) {
           </Link>
         </div>
         <h1 className="mb-8 text-3xl font-bold">Потребители ({users.length})</h1>
-
         <div className="rounded-2xl border border-white/10 bg-[#151528] overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-white/10 bg-[#0D0D1A]">
@@ -69,7 +69,7 @@ export default async function AdminUsersPage({ params }: Props) {
                     {new Date(u.createdAt).toLocaleDateString("bg-BG")}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {u.specialist && (
                         <Link
                           href={`/${locale}/specialist/${u.specialist.id}`}
@@ -77,6 +77,16 @@ export default async function AdminUsersPage({ params }: Props) {
                         >
                           Виж профил
                         </Link>
+                      )}
+                      {u.role === "CLIENT" && (
+                        <ChangeRoleButton userId={u.id} currentRole={u.role} />
+                      )}
+                      {u.role === "CLIENT" && (
+                        <SendEmailButton
+                          email={u.email || ""}
+                          name={u.name || "Потребител"}
+                          type="wrong_role"
+                        />
                       )}
                       {u.role !== "ADMIN" && (
                         <DeleteUserButton id={u.id} />
