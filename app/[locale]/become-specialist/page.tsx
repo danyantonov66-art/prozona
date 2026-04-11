@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { categories } from "../../../lib/constants"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
@@ -22,6 +22,7 @@ export default function BecomeSpecialistPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
+  const [spotsLeft, setSpotsLeft] = useState<number | null>(null)
   const [form, setForm] = useState({
     businessName: "",
     phone: "",
@@ -31,6 +32,13 @@ export default function BecomeSpecialistPage() {
     description: "",
     city: ""
   })
+
+  useEffect(() => {
+    fetch("/api/specialists/count")
+      .then(r => r.json())
+      .then(data => setSpotsLeft(Math.max(0, 200 - (data.count || 0))))
+      .catch(() => setSpotsLeft(143))
+  }, [])
 
   const subcategories = useMemo(() => {
     const selectedCategory = categories.find((c) => c.id === form.categoryId)
@@ -94,7 +102,7 @@ export default function BecomeSpecialistPage() {
             <div className="mb-2 inline-block rounded-full bg-[#1DB954] px-4 py-1 text-sm font-bold text-black">🎉 Стартова оферта</div>
             <h2 className="mt-3 text-2xl font-bold">3 месеца Premium безплатно</h2>
             <p className="mt-2 text-gray-300">Регистрирай се сега и получи <strong className="text-white">Premium план безплатно за 3 месеца</strong> — топ позиция, неограничени снимки и 20 стартови кредита.</p>
-            <p className="mt-2 text-sm text-[#1DB954]">⚡ Първите 200 специалисти получават 6 месеца безплатно!</p>
+            <p className="mt-2 text-sm text-[#1DB954] font-semibold">⚡ Остават само {spotsLeft ?? "..."} места за безплатен Premium!</p>
           </div>
           <div className="bg-[#151528] border border-white/10 rounded-2xl p-8 md:p-10 text-center">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">Трябва да сте влезли в профила си</h1>
@@ -127,7 +135,7 @@ export default function BecomeSpecialistPage() {
               <div className="mb-1 inline-block rounded-full bg-[#1DB954] px-3 py-0.5 text-xs font-bold text-black">Стартова оферта</div>
               <h2 className="text-xl font-bold">3 месеца Premium безплатно</h2>
               <p className="mt-1 text-sm text-gray-300">Регистрирай се сега и получи <strong className="text-white">Premium план безплатно за 3 месеца</strong> — топ позиция, неограничени снимки и 20 стартови кредита. Без кредитна карта.</p>
-              <p className="mt-2 text-sm text-[#1DB954] font-semibold">⚡ Остават само 148 места за безплатен Premium!</p>
+              <p className="mt-2 text-sm text-[#1DB954] font-semibold">⚡ Остават само {spotsLeft ?? "..."} места за безплатен Premium!</p>
             </div>
           </div>
         </div>
@@ -151,7 +159,6 @@ export default function BecomeSpecialistPage() {
               <h1 className="text-3xl md:text-4xl font-bold mb-2">Регистрирай се за 30 секунди</h1>
               <p className="text-gray-400 mb-6">и започни да получаваш клиенти</p>
 
-              {/* Trust signals */}
               <div className="flex flex-wrap gap-3 mb-8">
                 <span className="text-sm text-gray-300">✔ Безплатна регистрация</span>
                 <span className="text-sm text-gray-300">✔ Реални клиентски запитвания</span>

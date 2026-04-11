@@ -223,6 +223,16 @@ export default function RegisterSpecialistPage() {
               </div>
             )}
 
+            {/* Предложи нова услуга */}
+            <div className="text-right">
+              <Link
+                href="/bg/specialist/suggest-category"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 transition"
+              >
+                + Предложи нова услуга
+              </Link>
+            </div>
+
             {/* Описание */}
             <div>
               <label className="block text-sm text-gray-300 mb-2">
