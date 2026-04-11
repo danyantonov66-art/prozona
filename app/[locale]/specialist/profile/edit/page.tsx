@@ -24,7 +24,10 @@ export default function EditProfilePage() {
   const [experience, setExperience] = useState('')
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [serviceAreasInput, setServiceAreasInput] = useState('')
-  const [videoUrl, setVideoUrl] = useState('')  // ✅ ново
+  const [videoUrl, setVideoUrl] = useState('')
+  const [dbCategories, setDbCategories] = useState<any[]>([])
+  const [categoryId, setCategoryId] = useState<number | null>(null)
+  const [subcategoryId, setSubcategoryId] = useState<number | null>(null)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -32,6 +35,7 @@ export default function EditProfilePage() {
       router.push(`/${locale}/login`)
     } else {
       loadProfile()
+      fetch('/api/categories').then(r => r.json()).then(setDbCategories)
     }
   }, [session, status])
 
@@ -47,7 +51,7 @@ export default function EditProfilePage() {
         setExperience(data.experienceYears?.toString() || '')
         setProfileImage(data.user?.image || null)
         setServiceAreasInput((data.serviceAreas || []).join(', '))
-        setVideoUrl(data.videoUrl || '')  // ✅ ново
+        setVideoUrl(data.videoUrl || '')
       }
     } catch (error) {
       console.error('Error loading profile:', error)
@@ -77,7 +81,9 @@ export default function EditProfilePage() {
           city,
           experienceYears: parseInt(experience) || 0,
           serviceAreas,
-          videoUrl: videoUrl.trim() || null,  // ✅ ново
+          videoUrl: videoUrl.trim() || null,
+          categoryId: categoryId || null,
+          subcategoryId: subcategoryId || null,
         })
       })
       if (res.ok) {
@@ -160,28 +166,18 @@ export default function EditProfilePage() {
           <h2 className="text-white font-semibold mb-2">Основна информация</h2>
 
           <div>
-            <label className="block text-gray-300 mb-2">Име на фирма</label>
+            <label className="block text-gray-300 mb-2">Име на фирма / бизнес (по избор)</label>
             <input
               type="text"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
+              placeholder="Например: Иван Иванов ЕООД"
               className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-2">Описание *</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              required
-              className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-300 mb-2">Град</label>
+            <label className="block text-gray-300 mb-2">Град *</label>
             <input
               type="text"
               value={city}
@@ -189,6 +185,48 @@ export default function EditProfilePage() {
               className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
             />
           </div>
+
+          <div>
+            <label className="block text-gray-300 mb-2">Телефон *</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
+            />
+          </div>
+
+          {/* Категория */}
+          <div>
+            <label className="block text-gray-300 mb-2">Категория *</label>
+            <select
+              value={categoryId ?? ""}
+              onChange={(e) => { setCategoryId(Number(e.target.value)); setSubcategoryId(null) }}
+              className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
+            >
+              <option value="">-- Избери категория --</option>
+              {dbCategories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Подкатегория */}
+          {categoryId && (
+            <div>
+              <label className="block text-gray-300 mb-2">Подкатегория</label>
+              <select
+                value={subcategoryId ?? ""}
+                onChange={(e) => setSubcategoryId(Number(e.target.value))}
+                className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
+              >
+                <option value="">-- Избери подкатегория --</option>
+                {dbCategories.find(c => c.id === categoryId)?.Subcategory?.map((sub: any) => (
+                  <option key={sub.id} value={sub.id}>{sub.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-gray-300 mb-2">
@@ -205,16 +243,6 @@ export default function EditProfilePage() {
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-2">Телефон</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
-            />
-          </div>
-
-          <div>
             <label className="block text-gray-300 mb-2">Години опит</label>
             <input
               type="number"
@@ -226,7 +254,19 @@ export default function EditProfilePage() {
             />
           </div>
 
-          {/* ✅ Видео секция */}
+          <div>
+            <label className="block text-gray-300 mb-2">Описание *</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              required
+              placeholder="Опиши услугите си (минимум 20 символа)..."
+              className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
+            />
+            <p className="mt-1 text-xs text-amber-400">⚠ Описанието не може да съдържа телефон, имейл или линкове.</p>
+          </div>
+
           <div>
             <label className="block text-gray-300 mb-2">
               🎥 Видео за работата ти
@@ -236,13 +276,9 @@ export default function EditProfilePage() {
               type="url"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=... или https://www.tiktok.com/..."
+              placeholder="https://www.youtube.com/watch?v=..."
               className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Покажи как работиш — клиентите се доверяват повече на специалисти с видео
-            </p>
-            {/* Preview */}
             {videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) && (
               <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl">
                 <iframe
@@ -280,7 +316,6 @@ export default function EditProfilePage() {
   )
 }
 
-// ✅ Конвертира YouTube URL към embed URL
 function getYoutubeEmbedUrl(url: string): string {
   const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/
   const match = url.match(regExp)
