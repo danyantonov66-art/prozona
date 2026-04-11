@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import VerifyToggleButton from "@/components/VerifyToggleButton"
 import DeleteSpecialistButton from "@/components/DeleteSpecialistButton"
 import SendEmailButton from "@/components/SendEmailButton"
+import SuggestionActions from "@/components/SuggestionActions"
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -31,6 +32,13 @@ export default async function AdminPage({ params }: Props) {
     take: 10,
     orderBy: { createdAt: "desc" },
     include: { user: true },
+  })
+
+  const pendingSuggestions = await prisma.categorySuggestion.findMany({
+    take: 5,
+    where: { status: "PENDING" },
+    orderBy: { createdAt: "desc" },
+    include: { Specialist: { include: { user: true } } },
   })
 
   const recentUsers = await prisma.user.findMany({
@@ -103,6 +111,28 @@ export default async function AdminPage({ params }: Props) {
             <p className="mt-1 text-sm text-gray-400">Управлявай статиите в блога</p>
           </Link>
         </div>
+        
+        {/* Чакащи предложения за услуги */}
+        {pendingSuggestions.length > 0 && (
+          <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">📋 Чакащи предложения за услуги</h2>
+              <Link href={`/${locale}/admin/suggestions`} className="text-sm text-[#1DB954] hover:underline">Виж всички →</Link>
+            </div>
+            <div className="space-y-3">
+              {pendingSuggestions.map((s) => (
+                <div key={s.id} className="flex items-center justify-between rounded-xl border border-white/5 bg-[#0D0D1A] px-4 py-3">
+                  <div>
+                    <p className="font-medium">{s.name}</p>
+                    {s.parentName && <p className="text-xs text-gray-400">Категория: {s.parentName}</p>}
+                    <p className="text-xs text-gray-500 mt-1">{s.Specialist?.user?.name} · {new Date(s.createdAt).toLocaleDateString("bg-BG")}</p>
+                  </div>
+                  <SuggestionActions id={s.id} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Последно регистрирани специалисти */}
         <div className="rounded-2xl border border-white/10 bg-[#151528] p-6 mb-6">
