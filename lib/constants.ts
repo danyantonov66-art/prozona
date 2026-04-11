@@ -1,88 +1,126 @@
-import Link from "next/link"
-import ProZonaHeader from "../../../components/header/ProZonaHeader"
-import ProZonaFooter from "../../../components/footer/ProZonaFooter"
-import { prisma } from "../../../lib/prisma"
-import { categories as staticCategories } from "../../../lib/constants"
+export const categories = [
+  {
+    id: "remonti",
+    slug: "remonti",
+    name: "Ремонти и майстори",
+    nameEn: "Repairs & Handymen",
+    description: "ВиК, електро, боядисване и довършителни ремонти",
+    icon: "/images/categories/stroitelstvo.png",
+    color: "#FF6B6B",
+    subcategories: [
+      { id: "vik", name: "ВиК и канализация", slug: "vik", icon: "🔧" },
+      { id: "elektro", name: "Електроинсталации и осветление", slug: "elektro", icon: "⚡" },
+      { id: "boyadisvane", name: "Боядисване и шпакловане", slug: "boyadisvane", icon: "🎨" },
+      { id: "gipsokarton", name: "Гипсокартон и сухо строителство", slug: "gipsokarton", icon: "🪚" },
+      { id: "podovi-nastilki", name: "Подови настилки (ламинат, паркет, теракот)", slug: "podovi-nastilki", icon: "🪵" },
+      { id: "klyucharski", name: "Ключарски услуги", slug: "klyucharski", icon: "🔑" },
+      { id: "dovarshitelni-remonti", name: "Довършителни ремонти", slug: "dovarshitelni-remonti", icon: "🏠" },
+      { id: "drebni-remonti-dom", name: "Дребни ремонти в дома", slug: "drebni-remonti-dom", icon: "🔨" },
+      { id: "remont-banya-kuhnya", name: "Ремонт на баня и кухня", slug: "remont-banya-kuhnya", icon: "🚿" },
+      { id: "klimatici", name: "Ремонт, профилактика и инсталация на климатици", slug: "klimatici", icon: "❄️" },
+      { id: "remont-do-klyuch", name: "Ремонт до ключ", slug: "remont-do-klyuch", icon: "🏠" },
+      { id: "remont-pokrivi", name: "Ремонт на покриви", slug: "remont-pokrivi", icon: "🏚️" },
+    ],
+  },
+  {
+    id: "pochistvane",
+    slug: "pochistvane",
+    name: "Почистване",
+    nameEn: "Cleaning",
+    description: "Домашно, основно и офис почистване",
+    icon: "/images/categories/pochistvane.png",
+    color: "#27AE60",
+    subcategories: [
+      { id: "domashno", name: "Почистване на дом", slug: "domashno", icon: "🧹" },
+      { id: "ofis-targovski", name: "Почистване на офис и търговски обекти", slug: "ofis-targovski", icon: "🏢" },
+      { id: "sled-remont", name: "Почистване след ремонт", slug: "sled-remont", icon: "🧽" },
+      { id: "prozortsi-fasadi", name: "Почистване на прозорци и фасади", slug: "prozortsi-fasadi", icon: "🪟" },
+      { id: "tapicerii-kilimi", name: "Почистване на тапицерии и килими", slug: "tapicerii-kilimi", icon: "🛋️" },
+      { id: "generalno", name: "Генерално почистване", slug: "generalno", icon: "✨" },
+      { id: "imoti-napuskane", name: "Почистване на имоти след напускане", slug: "imoti-napuskane", icon: "📦" },
+      { id: "avto-detailing", name: "Авто почистване и детайлинг", slug: "avto-detailing", icon: "🚗" },
+      { id: "gruming", name: "Груминг за домашни любимци", slug: "gruming", icon: "🐾" },
+    ],
+  },
+  {
+    id: "montaj",
+    slug: "montaj",
+    name: "Монтаж и дребни услуги",
+    nameEn: "Assembly & Small Jobs",
+    description: "Мебели, техника, хамали и дребни ремонти",
+    icon: "/images/categories/mebeli.png",
+    color: "#8E44AD",
+    subcategories: [
+      { id: "mebeli", name: "Изработка и монтаж на мебели", slug: "mebeli", icon: "🪑" },
+      { id: "bitova-tehnika", name: "Монтаж на битова техника", slug: "bitova-tehnika", icon: "🍳" },
+      { id: "premestvane-hamali", name: "Хамалски услуги и преместване", slug: "premestvane-hamali", icon: "🚛" },
+      { id: "vrati-prozortsi-shtori", name: "Монтаж на врати, прозорци и щори", slug: "vrati-prozortsi-shtori", icon: "🚪" },
+      { id: "drebni-bitovi", name: "Дребни битови услуги (рафтове, картини, корнизи)", slug: "drebni-bitovi", icon: "🔩" },
+      { id: "elektro-osvetlenie", name: "Монтаж на осветление и електроуреди", slug: "elektro-osvetlenie", icon: "💡" },
+    ],
+  },
+  {
+    id: "gradina",
+    slug: "gradina",
+    name: "Градина и двор",
+    nameEn: "Garden & Yard",
+    description: "Косене, поддръжка и озеленяване",
+    icon: "/images/categories/gradina.png",
+    color: "#2ECC71",
+    subcategories: [
+      { id: "kosene", name: "Косене и поддръжка на трева", slug: "kosene", icon: "🌱" },
+      { id: "podryazvane", name: "Подрязване на дървета и храсти", slug: "podryazvane", icon: "✂️" },
+      { id: "ozelenyavane", name: "Озеленяване и цветни лехи", slug: "ozelenyavane", icon: "🌿" },
+      { id: "pochistvane-dvor", name: "Почистване на двор и тераса", slug: "pochistvane-dvor", icon: "🍂" },
+      { id: "aleyi", name: "Изграждане и поддръжка на алеи", slug: "aleyi", icon: "🏡" },
+      { id: "baseini", name: "Поддръжка на басейни и външни пространства", slug: "baseini", icon: "🏊" },
+    ],
+  },
+]
 
-interface Props {
-  params: Promise<{ locale: string }>
+export const homepageBanners = [
+  {
+    title: "Провери профили на специалисти в твоя район",
+    description: "Разгледай верифицирани майстори и услуги близо до теб.",
+    cta: "Виж специалисти",
+    href: "/bg/specialists",
+    image: "/images/banners/specialists.jpg",
+  },
+  {
+    title: "Стани специалист в ProZona",
+    description: "Създай профил и получавай запитвания от клиенти.",
+    cta: "Създай профил",
+    href: "/bg/become-specialist",
+    image: "/images/banners/become-specialist.jpg",
+  },
+]
+
+export const homepageHero = {
+  title: "Намери верифициран специалист близо до теб",
+  subtitle: "Ремонти, почистване, монтаж и градински услуги на едно място.",
+  searchPlaceholder: "Каква услуга търсите?",
+  cta: "Намери специалист",
 }
 
-export default async function CategoriesPage({ params }: Props) {
-  const { locale } = await params
-
-  const dbCategories = await prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: "asc" },
-  })
-
-  // Намери статичната снимка по slug
-  function getIcon(slug: string): string | null {
-    return staticCategories.find(c => c.slug === slug)?.icon || null
-  }
-
-  return (
-    <main className="min-h-screen bg-[#0D0D1A] text-white">
-      <ProZonaHeader locale={locale} />
-
-      <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-        <div className="mb-6 text-sm text-gray-400">
-          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">Начало</Link>
-          <span className="mx-2 text-gray-500">/</span>
-          <span className="text-white">Категории</span>
-        </div>
-
-        <div className="mb-12">
-          <h1 className="mb-4 text-4xl font-bold md:text-5xl">Всички категории</h1>
-          <p className="max-w-3xl text-lg text-gray-400">
-            Избери категория и намери подходящ специалист за дома, бизнеса или ежедневните услуги.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {dbCategories.map((category) => {
-            const icon = getIcon(category.slug)
-            return (
-              <Link
-                key={category.slug}
-                href={`/${locale}/categories/${category.slug}`}
-                className="group relative min-h-[260px] overflow-hidden rounded-3xl border border-white/10"
-              >
-                {icon ? (
-                  <img
-                    src={icon}
-                    alt={category.name}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#1DB954]/20 to-[#151528]" />
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
-
-                <div className="relative z-10 flex h-full flex-col justify-between p-6">
-                  <div>
-                    <span className="inline-flex rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-medium text-[#86efac]">
-                      Категория
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="mb-3 text-3xl font-bold leading-tight text-white">{category.name}</h2>
-                    {category.description && (
-                      <p className="mb-6 max-w-md text-base text-gray-200">{category.description}</p>
-                    )}
-                    <span className="inline-flex items-center text-base font-medium text-[#1DB954]">
-                      Разгледай →
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      </section>
-
-      <ProZonaFooter locale={locale} />
-    </main>
-  )
-}
+export const cities = [
+  "София",
+  "Пловдив",
+  "Варна",
+  "Бургас",
+  "Русе",
+  "Стара Загора",
+  "Плевен",
+  "Видин",
+  "Велико Търново",
+  "Благоевград",
+  "Перник",
+  "Хасково",
+  "Ямбол",
+  "Пазарджик",
+  "Добрич",
+  "Шумен",
+  "Сливен",
+  "Враца",
+  "Габрово",
+  "Кърджали",
+]
