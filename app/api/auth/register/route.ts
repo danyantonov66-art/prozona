@@ -50,7 +50,7 @@ function containsContactInfo(text: string): boolean {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, name, role, phone, city, description, categoryId, subcategoryId, ref } = body
+    const { email, password, name, role, phone, city, description, categoryId, subcategoryId, ref, suggestedService } = body
 
     // Основни задължителни полета
     if (!email || !password || !name) {
@@ -78,9 +78,9 @@ export async function POST(request: Request) {
           { status: 400 }
         )
       }
-      if (!categoryId || !subcategoryId) {
+      if (!suggestedService && (!categoryId || !subcategoryId)) {
         return NextResponse.json(
-          { error: 'Моля, избери категория и подкатегория.' },
+          { error: 'Моля, избери категория и подкатегория или предложи нова услуга.' },
           { status: 400 }
         )
       }
@@ -140,6 +140,18 @@ export async function POST(request: Request) {
         data: { refCode }
       })
 
+      // Запази предложената услуга ако има такава
+      if (suggestedService) {
+        await prisma.categorySuggestion.create({
+          data: {
+            name: suggestedService,
+            description: description || `Предложена от ${name}`,
+            specialistId: specialist.id,
+            updatedAt: new Date(),
+          }
+        })
+      }
+
       // Награди поканващия с 5 кредита
       if (referrer) {
         await prisma.specialist.update({
@@ -162,18 +174,20 @@ export async function POST(request: Request) {
       }
 
       // Запази категория и подкатегория
-      const dbCategory = await prisma.category.findUnique({ where: { slug: categoryId } })
-      if (dbCategory) {
-        const dbSubcategory = await prisma.subcategory.findFirst({
-          where: { slug: subcategoryId, categoryId: dbCategory.id }
-        })
-        await prisma.specialistCategory.create({
-          data: {
-            specialistId: specialist.id,
-            categoryId: dbCategory.id,
-            subcategoryId: dbSubcategory?.id || null,
-          }
-        })
+      if (categoryId && subcategoryId) {
+        const dbCategory = await prisma.category.findUnique({ where: { slug: categoryId } })
+        if (dbCategory) {
+          const dbSubcategory = await prisma.subcategory.findFirst({
+            where: { slug: subcategoryId, categoryId: dbCategory.id }
+          })
+          await prisma.specialistCategory.create({
+            data: {
+              specialistId: specialist.id,
+              categoryId: dbCategory.id,
+              subcategoryId: dbSubcategory?.id || null,
+            }
+          })
+        }
       }
 
       const refLink = `https://www.prozona.bg/bg/register/specialist?ref=${refCode}`
@@ -225,6 +239,7 @@ export async function POST(request: Request) {
             <li>Град: ${city || '—'}</li>
             <li>Категория: ${categoryId || '—'}</li>
             <li>Подкатегория: ${subcategoryId || '—'}</li>
+            <li>Предложена услуга: ${suggestedService || '—'}</li>
             <li>Реферал от: ${ref || '—'}</li>
           </ul>
           <a href="https://www.prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
