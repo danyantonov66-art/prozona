@@ -17,6 +17,7 @@ export default function RegisterSpecialistPage() {
     description: "",
     categoryId: "",
     subcategoryId: "",
+    suggestedService: "",
   })
 
   const [loading, setLoading] = useState(false)
@@ -54,8 +55,8 @@ export default function RegisterSpecialistPage() {
       return
     }
 
-    if (!form.categoryId || !form.subcategoryId) {
-      setError("Моля, избери категория и подкатегория.")
+    if (!form.suggestedService && (!form.categoryId || !form.subcategoryId)) {
+      setError("Моля, избери категория и подкатегория или предложи нова услуга.")
       return
     }
 
@@ -74,8 +75,9 @@ export default function RegisterSpecialistPage() {
           role: "SPECIALIST",
           service: form.service,
           description: form.description,
-          categoryId: form.categoryId,
-          subcategoryId: form.subcategoryId,
+          categoryId: form.categoryId || null,
+          subcategoryId: form.subcategoryId || null,
+          suggestedService: form.suggestedService || null,
         }),
       })
 
@@ -97,6 +99,7 @@ export default function RegisterSpecialistPage() {
         description: "",
         categoryId: "",
         subcategoryId: "",
+        suggestedService: "",
       })
     } catch (err: any) {
       setError(err.message || "Възникна проблем при регистрацията.")
@@ -105,7 +108,7 @@ export default function RegisterSpecialistPage() {
     }
   }
 
-  const formValid = !!form.categoryId && !!form.subcategoryId
+  const formValid = (!!form.categoryId && !!form.subcategoryId) || !!form.suggestedService
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] pt-24 text-white">
@@ -182,14 +185,14 @@ export default function RegisterSpecialistPage() {
             {/* Категория */}
             <div>
               <label className="block text-sm text-gray-300 mb-2">
-                Категория <span className="text-red-400">*</span>
+                Категория
               </label>
               <select
                 name="categoryId"
                 value={form.categoryId}
                 onChange={handleChange}
-                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
-                required
+                disabled={!!form.suggestedService}
+                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50 disabled:opacity-40"
               >
                 <option value="">-- Избери категория --</option>
                 {categories.map((cat) => (
@@ -201,7 +204,7 @@ export default function RegisterSpecialistPage() {
             </div>
 
             {/* Подкатегория */}
-            {selectedCategory && (
+            {selectedCategory && !form.suggestedService && (
               <div>
                 <label className="block text-sm text-gray-300 mb-2">
                   Подкатегория <span className="text-red-400">*</span>
@@ -211,7 +214,6 @@ export default function RegisterSpecialistPage() {
                   value={form.subcategoryId}
                   onChange={handleChange}
                   className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
-                  required
                 >
                   <option value="">-- Избери подкатегория --</option>
                   {selectedCategory.subcategories.map((sub) => (
@@ -224,13 +226,23 @@ export default function RegisterSpecialistPage() {
             )}
 
             {/* Предложи нова услуга */}
-            <div className="text-right">
-              <Link
-                href="/bg/specialist/suggest-category"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 transition"
-              >
-                + Предложи нова услуга
-              </Link>
+            <div className="rounded-xl border border-[#1DB954]/20 bg-[#1DB954]/5 p-4">
+              <p className="text-sm text-gray-300 mb-2">
+                Не намираш услугата си? Предложи нова:
+              </p>
+              <input
+                type="text"
+                name="suggestedService"
+                value={form.suggestedService}
+                onChange={handleChange}
+                placeholder="Напр: Монтаж на климатик, Дървена декорация..."
+                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+              />
+              {form.suggestedService && (
+                <p className="mt-2 text-xs text-[#1DB954]">
+                  ✓ Ще бъдеш регистриран и услугата ще изчака одобрение от администратор.
+                </p>
+              )}
             </div>
 
             {/* Описание */}
@@ -300,7 +312,7 @@ export default function RegisterSpecialistPage() {
 
             {!formValid && (
               <p className="text-center text-xs text-gray-500">
-                Избери категория и подкатегория за да активираш бутона за регистрация
+                Избери категория и подкатегория или предложи нова услуга
               </p>
             )}
           </form>
