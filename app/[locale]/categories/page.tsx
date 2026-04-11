@@ -1,16 +1,19 @@
 import Link from "next/link"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../components/footer/ProZonaFooter"
-import { categories } from "../../../lib/constants"
+import { prisma } from "../../../lib/prisma"
 
 interface Props {
-  params: Promise<{
-    locale: string
-  }>
+  params: Promise<{ locale: string }>
 }
 
 export default async function CategoriesPage({ params }: Props) {
   const { locale } = await params
+
+  const categories = await prisma.category.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+  })
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
@@ -18,21 +21,15 @@ export default async function CategoriesPage({ params }: Props) {
 
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div className="mb-6 text-sm text-gray-400">
-          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">
-            Начало
-          </Link>
+          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">Начало</Link>
           <span className="mx-2 text-gray-500">/</span>
           <span className="text-white">Категории</span>
         </div>
 
         <div className="mb-12">
-          <h1 className="mb-4 text-4xl font-bold md:text-5xl">
-            Всички категории
-          </h1>
-
+          <h1 className="mb-4 text-4xl font-bold md:text-5xl">Всички категории</h1>
           <p className="max-w-3xl text-lg text-gray-400">
-            Избери категория и намери подходящ специалист за дома, бизнеса или
-            ежедневните услуги.
+            Избери категория и намери подходящ специалист за дома, бизнеса или ежедневните услуги.
           </p>
         </div>
 
@@ -43,11 +40,15 @@ export default async function CategoriesPage({ params }: Props) {
               href={`/${locale}/categories/${category.slug}`}
               className="group relative min-h-[260px] overflow-hidden rounded-3xl border border-white/10"
             >
-              <img
-                src={category.icon}
-                alt={category.name}
-                className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
-              />
+              {category.icon ? (
+                <img
+                  src={category.icon}
+                  alt={category.name}
+                  className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[#1DB954]/20 to-[#151528]" />
+              )}
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
 
@@ -57,16 +58,11 @@ export default async function CategoriesPage({ params }: Props) {
                     Категория
                   </span>
                 </div>
-
                 <div>
-                  <h2 className="mb-3 text-3xl font-bold leading-tight text-white">
-                    {category.name}
-                  </h2>
-
-                  <p className="mb-6 max-w-md text-base text-gray-200">
-                    {category.description}
-                  </p>
-
+                  <h2 className="mb-3 text-3xl font-bold leading-tight text-white">{category.name}</h2>
+                  {category.description && (
+                    <p className="mb-6 max-w-md text-base text-gray-200">{category.description}</p>
+                  )}
                   <span className="inline-flex items-center text-base font-medium text-[#1DB954]">
                     Разгледай →
                   </span>
