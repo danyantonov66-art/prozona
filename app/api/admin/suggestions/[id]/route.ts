@@ -3,8 +3,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-const THRESHOLD = 10 // Брой одобрения за автоматично създаване на категория
-
 function toSlug(text: string): string {
   return text
     .toLowerCase()
@@ -25,89 +23,102 @@ export async function PATCH(
   const { id } = await params
   const { status } = await request.json()
 
-  // Обнови статуса на предложението
   const suggestion = await prisma.categorySuggestion.update({
     where: { id },
     data: { status },
   })
 
-  // Ако е одобрено — провери дали трябва да се създаде категория
   if (status === 'APPROVED') {
     const name = suggestion.name
     const parentName = suggestion.parentName
+    const slugBase = toSlug(name)
 
-    // Брой одобрени предложения със същото име
-    const approvedCount = await prisma.categorySuggestion.count({
-      where: {
-        name: { equals: name, mode: 'insensitive' },
-        status: 'APPROVED',
-      },
-    })
+    if (parentName) {
+      // Намери или създай parent категория
+      let parent = await prisma.category.findFirst({
+        where: { name: { equals: parentName, mode: 'insensitive' } },
+      })
+      if (!parent) {
+        parent = await prisma.category.create({
+          data: {
+            name: parentName,
+            slug: toSlug(parentName),
+            description: `Категория ${parentName}`,
+            updatedAt: new Date(),
+          },
+        })
+      }
 
-    if (approvedCount >= THRESHOLD) {
-      // Провери дали категорията вече съществува
-      const existingCategory = await prisma.category.findFirst({
+      // Намери или създай подкатегория
+      let sub = await prisma.subcategory.findFirst({
+        where: { categoryId: parent.id, slug: slugBase },
+      })
+      if (!sub) {
+        sub = await prisma.subcategory.create({
+          data: {
+            categoryId: parent.id,
+            name,
+            slug: slugBase,
+            description: suggestion.description,
+            updatedAt: new Date(),
+          },
+        })
+      }
+
+      // Свържи специалиста
+      if (suggestion.specialistId) {
+        await prisma.specialistCategory.upsert({
+          where: {
+            specialistId_categoryId_subcategoryId: {
+              specialistId: suggestion.specialistId,
+              categoryId: parent.id,
+              subcategoryId: sub.id,
+            },
+          },
+          create: {
+            specialistId: suggestion.specialistId,
+            categoryId: parent.id,
+            subcategoryId: sub.id,
+          },
+          update: {},
+        })
+      }
+    } else {
+      // Създай главна категория
+      let cat = await prisma.category.findFirst({
         where: { name: { equals: name, mode: 'insensitive' } },
       })
+      if (!cat) {
+        cat = await prisma.category.create({
+          data: {
+            name,
+            slug: slugBase,
+            description: suggestion.description,
+            updatedAt: new Date(),
+          },
+        })
+      }
 
-      if (!existingCategory) {
-        if (parentName) {
-          // Намери или създай parent категория
-          let parent = await prisma.category.findFirst({
-            where: { name: { equals: parentName, mode: 'insensitive' } },
-          })
-
-          if (!parent) {
-            parent = await prisma.category.create({
-              data: {
-                name: parentName,
-                slug: toSlug(parentName),
-                description: `Категория ${parentName}`,
-                updatedAt: new Date(),
-              },
-            })
-          }
-
-          // Създай подкатегория
-          const slugBase = toSlug(name)
-          const existingSub = await prisma.subcategory.findFirst({
-            where: {
-              categoryId: parent.id,
-              slug: slugBase,
+      // Свържи специалиста
+      if (suggestion.specialistId) {
+        await prisma.specialistCategory.upsert({
+          where: {
+            specialistId_categoryId_subcategoryId: {
+              specialistId: suggestion.specialistId,
+              categoryId: cat.id,
+              subcategoryId: null,
             },
-          })
-
-          if (!existingSub) {
-            await prisma.subcategory.create({
-              data: {
-                categoryId: parent.id,
-                name,
-                slug: slugBase,
-                description: suggestion.description,
-                updatedAt: new Date(),
-              },
-            })
-          }
-        } else {
-          // Създай главна категория
-          await prisma.category.create({
-            data: {
-              name,
-              slug: toSlug(name),
-              description: suggestion.description,
-              updatedAt: new Date(),
-            },
-          })
-        }
+          },
+          create: {
+            specialistId: suggestion.specialistId,
+            categoryId: cat.id,
+          },
+          update: {},
+        })
       }
     }
 
-    return NextResponse.json({
-      ...suggestion,
-      autoCreated: approvedCount >= THRESHOLD,
-      approvedCount,
-      threshold: THRESHOLD,
-    })
+    return NextResponse.json({ ...suggestion, autoCreated: true })
   }
 
   return NextResponse.json(suggestion)
