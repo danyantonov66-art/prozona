@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { UploadButton } from '@/lib/uploadthing'
 
@@ -35,6 +35,13 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
   const [city, setCity] = useState(specialist.city)
   const [phone, setPhone] = useState(specialist.phone)
   const [experienceYears, setExperienceYears] = useState(specialist.experienceYears?.toString() || '')
+  const [dbCategories, setDbCategories] = useState<any[]>([])
+  const [categoryId, setCategoryId] = useState<number | null>(null)
+  const [subcategoryId, setSubcategoryId] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/categories').then(r => r.json()).then(setDbCategories)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +51,15 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
       const res = await fetch('/api/specialist/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessName, description, city, phone, experienceYears: parseInt(experienceYears) || 0 })
+        body: JSON.stringify({
+          businessName,
+          description,
+          city,
+          phone,
+          experienceYears: parseInt(experienceYears) || 0,
+          categoryId: categoryId || null,
+          subcategoryId: subcategoryId || null,
+        })
       })
       if (res.ok) {
         setMessage('Профилът е обновен успешно!')
@@ -118,11 +133,8 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
 
         <div>
           <label className="block text-gray-300 mb-2">Град</label>
-          <select
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
-          >
+          <select value={city} onChange={(e) => setCity(e.target.value)}
+            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none">
             <option value="">Изберете град</option>
             {BULGARIAN_CITIES.map(c => (
               <option key={c} value={c}>{c}</option>
@@ -135,6 +147,30 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
           <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
             className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
         </div>
+
+        <div>
+          <label className="block text-gray-300 mb-2">Категория</label>
+          <select value={categoryId ?? ""} onChange={(e) => { setCategoryId(Number(e.target.value)); setSubcategoryId(null) }}
+            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none">
+            <option value="">-- Избери категория --</option>
+            {dbCategories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {categoryId && (
+          <div>
+            <label className="block text-gray-300 mb-2">Подкатегория</label>
+            <select value={subcategoryId ?? ""} onChange={(e) => setSubcategoryId(Number(e.target.value))}
+              className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none">
+              <option value="">-- Избери подкатегория --</option>
+              {dbCategories.find(c => c.id === categoryId)?.Subcategory?.map((sub: any) => (
+                <option key={sub.id} value={sub.id}>{sub.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="block text-gray-300 mb-2">Години опит</label>
