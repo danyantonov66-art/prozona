@@ -44,6 +44,20 @@ export default async function CategoryPage({ params }: Props) {
     )
   }
 
+  // Брой специалисти за всяка подкатегория
+  const specialistCounts = await prisma.specialistCategory.groupBy({
+    by: ['subcategoryId'],
+    where: {
+      subcategoryId: { in: category.Subcategory.map(s => s.id) },
+      Specialist: { verified: true }
+    },
+    _count: { specialistId: true }
+  })
+
+  const countMap = Object.fromEntries(
+    specialistCounts.map(c => [c.subcategoryId, c._count.specialistId])
+  )
+
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
@@ -57,27 +71,37 @@ export default async function CategoryPage({ params }: Props) {
           <span className="text-white">{category.name}</span>
         </div>
 
-        <div className="mb-12">
-          <h1 className="mb-4 text-4xl font-bold md:text-5xl">{category.name}</h1>
-          {category.description && (
-            <p className="max-w-3xl text-lg text-gray-400">{category.description}</p>
-          )}
-        </div>
+        <h1 className="mb-4 text-4xl font-bold md:text-5xl">{category.name}</h1>
+        {category.description && (
+          <p className="mb-12 max-w-3xl text-lg text-gray-400">{category.description}</p>
+        )}
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {category.Subcategory.map((sub) => (
-            <Link
-              key={sub.slug}
-              href={`/${locale}/categories/${category.slug}/${sub.slug}`}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#151528] p-6 transition hover:border-[#1DB954]/40"
-            >
-              <div className="mb-4 text-3xl">🔧</div>
-              <h2 className="mb-2 text-xl font-bold text-white">{sub.name}</h2>
-              <span className="inline-flex items-center text-sm font-medium text-[#1DB954]">
-                Виж специалисти →
-              </span>
-            </Link>
-          ))}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {category.Subcategory.map((sub) => {
+            const count = countMap[sub.id] || 0
+            return (
+              <Link
+                key={sub.slug}
+                href={`/${locale}/categories/${category.slug}/${sub.slug}`}
+                className={`group relative overflow-hidden rounded-2xl border p-6 transition ${
+                  count > 0
+                    ? "border-white/10 bg-[#151528] hover:border-[#1DB954]/40"
+                    : "border-white/5 bg-[#0F0F1E] opacity-60"
+                }`}
+              >
+                <div className="mb-3 text-2xl">🔧</div>
+                <h2 className="mb-1 text-lg font-bold text-white">{sub.name}</h2>
+                {count > 0 ? (
+                  <p className="text-sm text-[#1DB954] font-medium">{count} специалист{count === 1 ? "" : "а"}</p>
+                ) : (
+                  <p className="text-sm text-gray-500">Няма специалисти</p>
+                )}
+                <span className="mt-3 inline-flex items-center text-sm font-medium text-[#1DB954]">
+                  Виж специалисти →
+                </span>
+              </Link>
+            )
+          })}
         </div>
       </section>
 
