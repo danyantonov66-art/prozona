@@ -2,25 +2,11 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 async function main() {
-  const existing = await prisma.subcategory.findFirst({
-    where: { categoryId: 4, slug: 'gtp' }
-  })
-
-  if (!existing) {
-    await prisma.subcategory.create({
-      data: {
-        categoryId: 4,
-        name: 'ГТП (Годишни технически прегледи)',
-        slug: 'gtp',
-        description: 'Годишни технически прегледи на автомобили',
-        updatedAt: new Date(),
-      }
-    })
-    console.log('Добавено!')
-  } else {
-    console.log('Вече съществува!')
-  }
-
+  await prisma.category.updateMany({ where: { slug: 'remonti' }, data: { icon: '/images/categories/stroitelstvo.png' } })
+  await prisma.category.updateMany({ where: { slug: 'pochistvane' }, data: { icon: '/images/categories/pochistvane.png' } })
+  await prisma.category.updateMany({ where: { slug: 'montaj' }, data: { icon: '/images/categories/mebeli.png' } })
+  await prisma.category.updateMany({ where: { slug: 'gradina' }, data: { icon: '/images/categories/gradina.png' } })
+  console.log('Done!')
   await prisma.$disconnect()
 }
 
