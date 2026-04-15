@@ -2,11 +2,14 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 async function main() {
-  await prisma.category.updateMany({ where: { slug: 'remonti' }, data: { icon: '/images/categories/stroitelstvo.png' } })
-  await prisma.category.updateMany({ where: { slug: 'pochistvane' }, data: { icon: '/images/categories/pochistvane.png' } })
-  await prisma.category.updateMany({ where: { slug: 'montaj' }, data: { icon: '/images/categories/mebeli.png' } })
-  await prisma.category.updateMany({ where: { slug: 'gradina' }, data: { icon: '/images/categories/gradina.png' } })
-  console.log('Done!')
+  // Провери всички подкатегории с кирилски slug
+  const subs = await prisma.subcategory.findMany({
+    select: { id: true, name: true, slug: true, categoryId: true }
+  })
+  
+  const bad = subs.filter(s => /[а-яА-ЯёЁ]/.test(s.slug))
+  console.log('Подкатегории с кирилски slug:', JSON.stringify(bad, null, 2))
+  
   await prisma.$disconnect()
 }
 
