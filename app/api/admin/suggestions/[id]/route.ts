@@ -44,60 +44,37 @@ export async function PATCH(
     let finalCategoryId: number | null = categoryId ?? null
     let finalSubcategoryId: number | null = subcategoryId ?? null
 
-    // Създай нова главна категория ако е поискано
     if (newCategoryName && !finalCategoryId) {
       const slug = toSlug(newCategoryName)
       let cat = await prisma.category.findFirst({ where: { slug } })
       if (!cat) {
         cat = await prisma.category.create({
-          data: {
-            name: newCategoryName,
-            slug,
-            description: suggestion.description ?? '',
-            updatedAt: new Date(),
-          },
+          data: { name: newCategoryName, slug, description: suggestion.description ?? '', updatedAt: new Date() },
         })
       }
       finalCategoryId = cat.id
     }
 
-    // Създай нова подкатегория ако е поискано
     if (newSubcategoryName && finalCategoryId && !finalSubcategoryId) {
       const slug = toSlug(newSubcategoryName)
-      let sub = await prisma.subcategory.findFirst({
-        where: { categoryId: finalCategoryId, slug },
-      })
+      let sub = await prisma.subcategory.findFirst({ where: { categoryId: finalCategoryId, slug } })
       if (!sub) {
         sub = await prisma.subcategory.create({
-          data: {
-            categoryId: finalCategoryId,
-            name: newSubcategoryName,
-            slug,
-            description: suggestion.description ?? '',
-            updatedAt: new Date(),
-          },
+          data: { categoryId: finalCategoryId, name: newSubcategoryName, slug, description: suggestion.description ?? '', updatedAt: new Date() },
         })
       }
       finalSubcategoryId = sub.id
     }
 
-    // Свържи специалиста
     if (suggestion.specialistId && finalCategoryId) {
-      await prisma.specialistCategory.upsert({
-        where: {
-          specialistId_categoryId_subcategoryId: {
-            specialistId: suggestion.specialistId,
-            categoryId: finalCategoryId,
-            subcategoryId: finalSubcategoryId ?? null,
-          },
-        },
-        create: {
-          specialistId: suggestion.specialistId,
-          categoryId: finalCategoryId,
-          subcategoryId: finalSubcategoryId ?? null,
-        },
-        update: {},
+      const existing = await prisma.specialistCategory.findFirst({
+        where: { specialistId: suggestion.specialistId, categoryId: finalCategoryId, subcategoryId: finalSubcategoryId ?? null },
       })
+      if (!existing) {
+        await prisma.specialistCategory.create({
+          data: { specialistId: suggestion.specialistId, categoryId: finalCategoryId, subcategoryId: finalSubcategoryId ?? null },
+        })
+      }
     }
 
     return NextResponse.json({ ...suggestion, autoCreated: true })
