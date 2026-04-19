@@ -31,13 +31,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const city = specialist.city || "България"
   const description = specialist.description
     ? `${specialist.description.slice(0, 150)}...`
-    : `${name} – верифициран специалист в ${city}. Намери го на ProZona.bg`
+    : `${name} — верифициран специалист в ${city}. Намери го на ProZona.bg`
 
   return {
-    title: `${name} – специалист в ${city}`,
+    title: `${name} — специалист в ${city}`,
     description,
+    alternates: {
+      canonical: `https://www.prozona.bg/bg/specialist/${id}`,
+    },
     openGraph: {
-      title: `${name} – специалист в ${city} | ProZona`,
+      title: `${name} — специалист в ${city} | ProZona`,
       description,
       url: `https://www.prozona.bg/bg/specialist/${id}`,
       siteName: "ProZona",
@@ -100,7 +103,7 @@ export default async function SpecialistPage({ params }: Props) {
 
                 {avgRating && (
                   <div className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-[#0D0D1A] px-4 py-3">
-                    <span className="text-yellow-400">★</span>
+                    <span className="text-yellow-400">⭐</span>
                     <span className="font-semibold">{avgRating.toFixed(1)}</span>
                     <span className="text-sm text-gray-400">({specialist.reviews.length} отзива)</span>
                   </div>
@@ -119,7 +122,7 @@ export default async function SpecialistPage({ params }: Props) {
 
                 {specialist.experienceYears && (
                   <p className="mb-2 text-gray-300">
-                    <span className="font-semibold text-white">⏳ Опит:</span>{" "}
+                    <span className="font-semibold text-white">⏱ Опит:</span>{" "}
                     {specialist.experienceYears} години
                   </p>
                 )}
@@ -180,7 +183,7 @@ export default async function SpecialistPage({ params }: Props) {
                 {specialist.reviews.map((review) => (
                   <div key={review.id} className="rounded-xl border border-white/5 bg-[#0D0D1A] px-4 py-3">
                     <div className="mb-1 flex items-center gap-2">
-                      <span className="text-yellow-400">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
+                      <span className="text-yellow-400">{"⭐".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
                       <span className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString("bg-BG")}</span>
                     </div>
                     <p className="text-sm text-gray-300">{review.comment}</p>
