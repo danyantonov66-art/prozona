@@ -128,53 +128,45 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
         </div>
 
         {/* Филтри */}
-        <div className="mb-8 flex flex-wrap gap-3">
-          {/* Филтър по град */}
-          <form method="GET" className="flex gap-3 flex-wrap">
-            <select
-              name="city"
-              defaultValue={city || ""}
-              onChange={(e) => {
-                const url = new URL(window.location.href)
-                if (e.target.value) url.searchParams.set("city", e.target.value)
-                else url.searchParams.delete("city")
-                window.location.href = url.toString()
-              }}
-              className="rounded-xl border border-white/10 bg-[#151528] px-4 py-2 text-sm text-white focus:border-[#1DB954] focus:outline-none"
-            >
-              <option value="">📍 Всички градове</option>
-              {cities.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+        <form method="GET" action={`/${locale}/specialists`} className="mb-8 flex flex-wrap gap-3">
+          <select
+            name="city"
+            defaultValue={city || ""}
+            className="rounded-xl border border-white/10 bg-[#151528] px-4 py-2 text-sm text-white focus:border-[#1DB954] focus:outline-none"
+          >
+            <option value="">📍 Всички градове</option>
+            {cities.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
 
-            <select
-              name="category"
-              defaultValue={category || ""}
-              onChange={(e) => {
-                const url = new URL(window.location.href)
-                if (e.target.value) url.searchParams.set("category", e.target.value)
-                else url.searchParams.delete("category")
-                window.location.href = url.toString()
-              }}
-              className="rounded-xl border border-white/10 bg-[#151528] px-4 py-2 text-sm text-white focus:border-[#1DB954] focus:outline-none"
-            >
-              <option value="">🔧 Всички категории</option>
-              {categories.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+          <select
+            name="category"
+            defaultValue={category || ""}
+            className="rounded-xl border border-white/10 bg-[#151528] px-4 py-2 text-sm text-white focus:border-[#1DB954] focus:outline-none"
+          >
+            <option value="">🔧 Всички категории</option>
+            {categories.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
 
-            {(city || category) && (
-              <a
-                href={`/${locale}/specialists`}
-                className="rounded-xl border border-white/20 px-4 py-2 text-sm text-gray-400 hover:text-white transition"
-              >
-                ✕ Изчисти филтрите
-              </a>
-            )}
-          </form>
-        </div>
+          <button
+            type="submit"
+            className="rounded-xl bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black hover:bg-[#1ed760] transition"
+          >
+            Филтрирай
+          </button>
+
+          {(city || category) && (
+            <a
+              href={`/${locale}/specialists`}
+              className="rounded-xl border border-white/20 px-4 py-2 text-sm text-gray-400 hover:text-white transition"
+            >
+              ✕ Изчисти
+            </a>
+          )}
+        </form>
 
         {mapSpecialists.length > 0 && (
           <div className="mb-10">
