@@ -58,7 +58,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
     include: {
       user: true,
       SpecialistCategory: {
-        include: { category: true },
+        include: { Category: true },
       },
     },
     orderBy: { createdAt: "desc" },
@@ -80,7 +80,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
   const categories = Array.from(
     new Set(
       filledSpecialists.flatMap(s =>
-        s.SpecialistCategory.map(sc => sc.category?.name).filter(Boolean)
+        s.SpecialistCategory.map(sc => sc.Category?.name).filter(Boolean)
       )
     )
   ).sort() as string[]
@@ -89,7 +89,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
   const specialists = filledSpecialists.filter(s => {
     if (city && s.city !== city) return false
     if (category) {
-      const hasCat = s.SpecialistCategory.some(sc => sc.category?.name === category)
+      const hasCat = s.SpecialistCategory.some(sc => sc.Category?.name === category)
       if (!hasCat) return false
     }
     return true
@@ -201,7 +201,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
               const image = specialist.user?.image || null
               const name = specialist.businessName || specialist.user?.name || "Специалист"
               const cats = specialist.SpecialistCategory
-                .map(sc => sc.category?.name)
+                .map(sc => sc.Category?.name)
                 .filter(Boolean)
                 .slice(0, 2)
 
