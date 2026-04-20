@@ -23,29 +23,76 @@ const CITY_COORDS: Record<string, [number, number]> = {
   "Враца": [43.2057, 23.5504],
   "Габрово": [42.8744, 25.3169],
   "Ямбол": [42.4838, 26.5036],
-  "България": [42.7, 25.5],
   "Самоков": [42.3369, 23.5530],
+  "Видин": [43.9906, 22.8779],
+  "Монтана": [43.4083, 23.2256],
+  "Кюстендил": [42.2833, 22.6833],
+  "Елин Пелин": [42.6667, 23.6],
+  "Карнобат": [42.6500, 26.9833],
+  "Банановци": [42.8, 23.5],
   "Varna": [43.2141, 27.9147],
+  "Sofia": [42.6977, 23.3219],
+  "Burgas": [42.5048, 27.4626],
+  "Sofiq": [42.6977, 23.3219],
 }
 
 interface Props {
   params: Promise<{ locale: string }>
+  searchParams: Promise<{ city?: string; category?: string }>
 }
 
 export const metadata = {
-  title: "Специалисти",
+  title: "Специалисти | ProZona",
   description: "Разгледай верифицирани специалисти и майстори близо до теб.",
 }
 
 export const dynamic = "force-dynamic"
 
-export default async function SpecialistsPage({ params }: Props) {
+export default async function SpecialistsPage({ params, searchParams }: Props) {
   const { locale } = await params
+  const { city, category } = await searchParams
 
-  const specialists = await prisma.specialist.findMany({
+  // Вземи само верифицирани специалисти с попълнено описание
+  const allSpecialists = await prisma.specialist.findMany({
     where: { verified: true },
-    include: { user: true },
+    include: {
+      user: true,
+      specialistCategories: {
+        include: { category: true },
+      },
+    },
     orderBy: { createdAt: "desc" },
+  })
+
+  // Скрий непопълнени профили — трябва описание и град
+  const filledSpecialists = allSpecialists.filter(s =>
+    s.description &&
+    s.description.trim().length > 20 &&
+    s.description !== "Профилът предстои да бъде попълнен."
+  )
+
+  // Уникални градове за филтъра
+  const cities = Array.from(
+    new Set(filledSpecialists.map(s => s.city).filter(Boolean))
+  ).sort() as string[]
+
+  // Уникални категории за филтъра
+  const categories = Array.from(
+    new Set(
+      filledSpecialists.flatMap(s =>
+        s.specialistCategories.map(sc => sc.category?.name).filter(Boolean)
+      )
+    )
+  ).sort() as string[]
+
+  // Приложи филтри
+  const specialists = filledSpecialists.filter(s => {
+    if (city && s.city !== city) return false
+    if (category) {
+      const hasCat = s.specialistCategories.some(sc => sc.category?.name === category)
+      if (!hasCat) return false
+    }
+    return true
   })
 
   const mapSpecialists = specialists
@@ -67,7 +114,67 @@ export default async function SpecialistsPage({ params }: Props) {
       <ProZonaHeader locale={locale} />
 
       <section className="mx-auto max-w-6xl px-4 py-10">
-        <h1 className="mb-8 text-3xl font-bold">Специалисти</h1>
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
+          <h1 className="text-3xl font-bold">
+            Специалисти
+            <span className="ml-3 text-lg font-normal text-gray-400">({specialists.length})</span>
+          </h1>
+          <Link
+            href={`/${locale}/become-specialist`}
+            className="rounded-xl bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black hover:bg-[#1ed760] transition"
+          >
+            + Стани специалист
+          </Link>
+        </div>
+
+        {/* Филтри */}
+        <div className="mb-8 flex flex-wrap gap-3">
+          {/* Филтър по град */}
+          <form method="GET" className="flex gap-3 flex-wrap">
+            <select
+              name="city"
+              defaultValue={city || ""}
+              onChange={(e) => {
+                const url = new URL(window.location.href)
+                if (e.target.value) url.searchParams.set("city", e.target.value)
+                else url.searchParams.delete("city")
+                window.location.href = url.toString()
+              }}
+              className="rounded-xl border border-white/10 bg-[#151528] px-4 py-2 text-sm text-white focus:border-[#1DB954] focus:outline-none"
+            >
+              <option value="">📍 Всички градове</option>
+              {cities.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+
+            <select
+              name="category"
+              defaultValue={category || ""}
+              onChange={(e) => {
+                const url = new URL(window.location.href)
+                if (e.target.value) url.searchParams.set("category", e.target.value)
+                else url.searchParams.delete("category")
+                window.location.href = url.toString()
+              }}
+              className="rounded-xl border border-white/10 bg-[#151528] px-4 py-2 text-sm text-white focus:border-[#1DB954] focus:outline-none"
+            >
+              <option value="">🔧 Всички категории</option>
+              {categories.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+
+            {(city || category) && (
+              <a
+                href={`/${locale}/specialists`}
+                className="rounded-xl border border-white/20 px-4 py-2 text-sm text-gray-400 hover:text-white transition"
+              >
+                ✕ Изчисти филтрите
+              </a>
+            )}
+          </form>
+        </div>
 
         {mapSpecialists.length > 0 && (
           <div className="mb-10">
@@ -79,20 +186,30 @@ export default async function SpecialistsPage({ params }: Props) {
         )}
 
         {specialists.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-[#151528] p-6 text-gray-300">
-            Няма намерени специалисти.
+          <div className="rounded-2xl border border-white/10 bg-[#151528] p-10 text-center text-gray-300">
+            <p className="text-lg mb-2">Няма намерени специалисти</p>
+            <p className="text-sm text-gray-500">Опитай с различни филтри или разгледай всички специалисти.</p>
+            {(city || category) && (
+              <a href={`/${locale}/specialists`} className="mt-4 inline-block text-[#1DB954] hover:underline text-sm">
+                Виж всички специалисти →
+              </a>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {specialists.map((specialist) => {
               const image = specialist.user?.image || null
               const name = specialist.businessName || specialist.user?.name || "Специалист"
+              const cats = specialist.specialistCategories
+                .map(sc => sc.category?.name)
+                .filter(Boolean)
+                .slice(0, 2)
 
               return (
                 <Link
                   key={specialist.id}
                   href={`/${locale}/specialist/${specialist.id}`}
-                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
+                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40 flex flex-col"
                 >
                   <div className="mb-4">
                     {image ? (
@@ -103,13 +220,25 @@ export default async function SpecialistsPage({ params }: Props) {
                       </div>
                     )}
                   </div>
-                  <h2 className="mb-2 text-xl font-semibold">{name}</h2>
+                  <h2 className="mb-1 text-xl font-semibold">{name}</h2>
                   {specialist.city && (
                     <p className="mb-2 text-sm text-gray-400">📍 {specialist.city}</p>
                   )}
-                  <p className="line-clamp-3 text-sm text-gray-300">
-                    {specialist.description || "Няма добавено описание."}
+                  {cats.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      {cats.map(c => (
+                        <span key={c} className="rounded-full bg-[#1DB954]/10 px-2 py-0.5 text-xs text-[#1DB954]">
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="line-clamp-3 text-sm text-gray-300 flex-1">
+                    {specialist.description}
                   </p>
+                  <div className="mt-3 text-xs text-[#1DB954] font-medium">
+                    Виж профил →
+                  </div>
                 </Link>
               )
             })}
