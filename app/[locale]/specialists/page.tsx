@@ -231,7 +231,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                   </p>
 
                   {/* Бутони */}
-                  <div className="mt-auto flex gap-2">
+                  <div className="mt-4 flex gap-2">
                     <Link
                       href={`/${locale}/specialist/${specialist.id}#inquiry`}
                       className="flex-1 rounded-lg bg-[#1DB954] px-3 py-2 text-center text-xs font-semibold text-black hover:bg-[#1ed760] transition"
