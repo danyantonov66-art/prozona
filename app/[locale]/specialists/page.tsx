@@ -196,7 +196,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
               return (
                 <div
                   key={specialist.id}
-                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40 flex flex-col"
+                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40 flex flex-col min-h-[360px]"
                 >
                   {/* Снимка — клик отива на профила */}
                   <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-4 block">
