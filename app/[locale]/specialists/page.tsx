@@ -228,8 +228,17 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                   <p className="line-clamp-3 text-sm text-gray-300 flex-1">
                     {specialist.description}
                   </p>
-                  <div className="mt-3 text-xs text-[#1DB954] font-medium">
-                    Виж профил →
+                  <div className="mt-3 flex gap-2">
+                    <Link
+                      href={`/${locale}/request?specialistId=${specialist.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 rounded-lg border border-[#1DB954]/40 px-3 py-2 text-center text-xs font-semibold text-[#1DB954] hover:bg-[#1DB954]/10 transition"
+                    >
+                      Изпрати запитване
+                    </Link>
+                    <span className="flex-1 rounded-lg bg-[#1DB954]/10 px-3 py-2 text-center text-xs font-semibold text-[#1DB954]">
+                      Виж профил →
+                    </span>
                   </div>
                 </Link>
               )
