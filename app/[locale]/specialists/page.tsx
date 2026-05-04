@@ -52,7 +52,6 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
   const { locale } = await params
   const { city, category } = await searchParams
 
-  // Вземи само верифицирани специалисти с попълнено описание
   const allSpecialists = await prisma.specialist.findMany({
     where: { verified: true },
     include: {
@@ -64,19 +63,16 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
     orderBy: { createdAt: "desc" },
   })
 
-  // Скрий непопълнени профили — трябва описание и град
   const filledSpecialists = allSpecialists.filter(s =>
     s.description &&
     s.description.trim().length > 20 &&
     s.description !== "Профилът предстои да бъде попълнен."
   )
 
-  // Уникални градове за филтъра
   const cities = Array.from(
     new Set(filledSpecialists.map(s => s.city).filter(Boolean))
   ).sort() as string[]
 
-  // Уникални категории за филтъра
   const categories = Array.from(
     new Set(
       filledSpecialists.flatMap(s =>
@@ -85,7 +81,6 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
     )
   ).sort() as string[]
 
-  // Приложи филтри
   const specialists = filledSpecialists.filter(s => {
     if (city && s.city !== city) return false
     if (category) {
@@ -192,18 +187,19 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
             {specialists.map((specialist) => {
               const image = specialist.user?.image || null
               const name = specialist.businessName || specialist.user?.name || "Специалист"
-              const cats = specialist.SpecialistCategory
-                .map(sc => sc.Category?.name)
-                .filter(Boolean)
-                .slice(0, 2)
+              const cats = Array.from(new Set(
+                specialist.SpecialistCategory
+                  .map(sc => sc.Category?.name)
+                  .filter(Boolean)
+              )).slice(0, 2) as string[]
 
               return (
-                <Link
+                <div
                   key={specialist.id}
-                  href={`/${locale}/specialist/${specialist.id}`}
                   className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40 flex flex-col"
                 >
-                  <div className="mb-4">
+                  {/* Снимка — клик отива на профила */}
+                  <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-4 block">
                     {image ? (
                       <img src={image} alt={name} className="h-40 w-full rounded-xl object-cover" />
                     ) : (
@@ -211,8 +207,13 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                         {name.charAt(0).toUpperCase()}
                       </div>
                     )}
-                  </div>
-                  <h2 className="mb-1 text-xl font-semibold">{name}</h2>
+                  </Link>
+
+                  {/* Заглавие — клик отива на профила */}
+                  <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-1 block hover:text-[#1DB954] transition">
+                    <h2 className="text-xl font-semibold">{name}</h2>
+                  </Link>
+
                   {specialist.city && (
                     <p className="mb-2 text-sm text-gray-400">📍 {specialist.city}</p>
                   )}
@@ -225,22 +226,26 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                       ))}
                     </div>
                   )}
-                  <p className="line-clamp-3 text-sm text-gray-300 flex-1">
+                  <p className="line-clamp-3 text-sm text-gray-300 flex-1 mb-4">
                     {specialist.description}
                   </p>
-                  <div className="mt-3 flex gap-2">
+
+                  {/* Бутони */}
+                  <div className="mt-auto flex gap-2">
                     <Link
-                      href={`/${locale}/request?specialistId=${specialist.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex-1 rounded-lg border border-[#1DB954]/40 px-3 py-2 text-center text-xs font-semibold text-[#1DB954] hover:bg-[#1DB954]/10 transition"
+                      href={`/${locale}/specialist/${specialist.id}#inquiry`}
+                      className="flex-1 rounded-lg bg-[#1DB954] px-3 py-2 text-center text-xs font-semibold text-black hover:bg-[#1ed760] transition"
                     >
-                      Изпрати запитване
+                      📩 Изпрати запитване
                     </Link>
-                    <span className="flex-1 rounded-lg bg-[#1DB954]/10 px-3 py-2 text-center text-xs font-semibold text-[#1DB954]">
+                    <Link
+                      href={`/${locale}/specialist/${specialist.id}`}
+                      className="flex-1 rounded-lg border border-white/20 px-3 py-2 text-center text-xs font-semibold text-gray-300 hover:border-[#1DB954]/40 hover:text-white transition"
+                    >
                       Виж профил →
-                    </span>
+                    </Link>
                   </div>
-                </Link>
+                </div>
               )
             })}
           </div>
