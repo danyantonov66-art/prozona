@@ -117,7 +117,6 @@ export default async function ServiceCityPage({ params }: Props) {
     where: {
       verified: true,
       city: { equals: cityBg, mode: "insensitive" },
-      NOT: { description: null },
     },
     include: {
       user: true,
