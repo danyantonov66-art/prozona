@@ -118,15 +118,6 @@ export default async function ServiceCityPage({ params }: Props) {
       verified: true,
       city: { equals: cityBg, mode: "insensitive" },
       description: { not: null },
-      ...(categoryName ? {
-        SpecialistCategory: {
-          some: {
-            Category: {
-              name: { contains: categoryName, mode: "insensitive" }
-            }
-          }
-        }
-      } : {}),
     },
     include: {
       user: true,
