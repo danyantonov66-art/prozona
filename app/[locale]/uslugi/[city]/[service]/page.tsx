@@ -117,6 +117,9 @@ export default async function ServiceCityPage({ params }: Props) {
     where: {
       verified: true,
       city: { equals: cityBg, mode: "insensitive" },
+      OR: svc.keywords.map(k => ({
+        description: { contains: k, mode: "insensitive" }
+      })),
     },
     include: {
       user: true,
