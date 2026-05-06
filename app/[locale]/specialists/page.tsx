@@ -1,4 +1,5 @@
 ﻿import Link from "next/link"
+import Image from "next/image"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../components/footer/ProZonaFooter"
 import { prisma } from "../../../lib/prisma"
@@ -198,10 +199,17 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                   key={specialist.id}
                   className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40 flex flex-col min-h-[360px]"
                 >
-                  {/* Снимка — клик отива на профила */}
                   <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-4 block">
                     {image ? (
-                      <img src={image} alt={name} className="h-40 w-full rounded-xl object-cover" />
+                      <div className="relative h-40 w-full rounded-xl overflow-hidden">
+                        <Image
+                          src={image}
+                          alt={name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      </div>
                     ) : (
                       <div className="flex h-40 w-full items-center justify-center rounded-xl bg-[#23233A] text-4xl font-bold text-[#1DB954]">
                         {name.charAt(0).toUpperCase()}
@@ -209,7 +217,6 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                     )}
                   </Link>
 
-                  {/* Заглавие — клик отива на профила */}
                   <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-1 block hover:text-[#1DB954] transition">
                     <h2 className="text-xl font-semibold">{name}</h2>
                   </Link>
@@ -230,7 +237,6 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                     {specialist.description}
                   </p>
 
-                  {/* Бутони */}
                   <div className="mt-4 flex gap-2">
                     <Link
                       href={`/${locale}/specialist/${specialist.id}#inquiry`}
