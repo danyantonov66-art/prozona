@@ -138,6 +138,21 @@ export default async function Home({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "ProZona.bg",
+            url: "https://prozona.bg",
+            logo: "https://prozona.bg/logo.png",
+            description: "Платформа за намиране на верифицирани специалисти в България",
+            areaServed: "Bulgaria",
+            sameAs: [],
+          }),
+        }}
+      />
       <ProZonaHeader locale={locale} />
 
       {/* TOP BAR */}
