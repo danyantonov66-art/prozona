@@ -67,30 +67,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ]
 
   const serviceSlugs = [
-    "vik",
-    "elektro",
-    "boyadisvane",
-    "shpaklovka-zidariya",
-    "remont-banya",
-    "gipsokarton",
-    "dovarshitelni-remonti",
-    "domashno",
-    "osnovno",
-    "sled-remont",
-    "ofis",
-    "naem",
-    "mebeli",
-    "klimatici",
-    "osvetlenie",
-    "elektrouredi",
-    "drebni-remonti",
-    "premestvane-hamali",
-    "kosene",
-    "poddrazhka-dvor",
-    "podryazvane",
-    "ozelenyavane",
-    "pochistvane-dvor",
-  ]
+  "elektrotehnik",
+  "vik",
+  "pochistvane",
+  "pokrivi",
+  "hamali",
+  "klimatik",
+  "shpaklovka",
+  "gradina",
+]
 
   const staticPages: MetadataRoute.Sitemap = [
     {
