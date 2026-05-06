@@ -244,6 +244,33 @@ export default async function Home({ params }: Props) {
         <PopularCities locale={locale} />
       </section>
 
+      {/* POPULAR CITY SERVICES */}
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <h2 className="mb-2 text-center text-2xl font-bold">Популярни услуги по град</h2>
+        <p className="mb-8 text-center text-sm text-gray-400">Намери специалист близо до теб</p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            { city: "sofia", cityLabel: "София", service: "elektro", serviceLabel: "Електротехник" },
+            { city: "sofia", cityLabel: "София", service: "vik", serviceLabel: "ВиК майстор" },
+            { city: "sofia", cityLabel: "София", service: "pochistvane-dvor", serviceLabel: "Почистване" },
+            { city: "plovdiv", cityLabel: "Пловдив", service: "elektro", serviceLabel: "Електротехник" },
+            { city: "plovdiv", cityLabel: "Пловдив", service: "vik", serviceLabel: "ВиК майстор" },
+            { city: "varna", cityLabel: "Варна", service: "elektro", serviceLabel: "Електротехник" },
+            { city: "varna", cityLabel: "Варна", service: "remont-banya", serviceLabel: "Ремонт баня" },
+            { city: "burgas", cityLabel: "Бургас", service: "vik", serviceLabel: "ВиК майстор" },
+          ].map(({ city, cityLabel, service, serviceLabel }) => (
+            <Link
+              key={`${city}-${service}`}
+              href={`/${locale}/uslugi/${city}/${service}`}
+              className="rounded-xl border border-white/10 bg-[#151528] px-4 py-3 text-sm transition hover:border-[#1DB954]/40 hover:bg-[#1b1b31]"
+            >
+              <span className="block font-semibold text-white">{serviceLabel}</span>
+              <span className="text-gray-400">{cityLabel}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* CTA CARDS */}
       <section className="mx-auto max-w-6xl px-4 py-8">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
