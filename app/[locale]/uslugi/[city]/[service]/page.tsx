@@ -110,16 +110,14 @@ export default async function ServiceCityPage({ params }: Props) {
   const cityBg = CITY_MAP[city] || decodeURIComponent(city)
   const svc = SERVICE_MAP[service]
   const serviceName = svc?.name || decodeURIComponent(service)
-  const categoryName = svc?.categoryName
 
-  // Намери специалисти по категория и град
   const specialists = await prisma.specialist.findMany({
     where: {
       verified: true,
       city: { equals: cityBg, mode: "insensitive" },
-      OR: svc.keywords.map(k => ({
+      OR: svc ? svc.keywords.map(k => ({
         description: { contains: k, mode: "insensitive" }
-      })),
+      })) : undefined,
     },
     include: {
       user: true,
@@ -128,13 +126,11 @@ export default async function ServiceCityPage({ params }: Props) {
     orderBy: { createdAt: "desc" },
   })
 
-  // Филтрирай непопълнени
   const filled = specialists.filter(s =>
     s.description && s.description.trim().length > 20 &&
     s.description !== "Профилът предстои да бъде попълнен."
   )
 
-  // Свързани услуги за вътрешни линкове
   const relatedServices = Object.entries(SERVICE_MAP)
     .filter(([slug]) => slug !== service)
     .slice(0, 4)
