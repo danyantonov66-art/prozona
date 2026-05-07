@@ -4,7 +4,6 @@ import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 import type { Metadata } from "next"
 
-// Мапинг slug → категория и текст
 const SERVICE_MAP: Record<string, {
   name: string
   categoryName: string
@@ -61,7 +60,6 @@ const SERVICE_MAP: Record<string, {
   },
 }
 
-// Мапинг slug → правилно Bulgarian city
 const CITY_MAP: Record<string, string> = {
   "sofia": "София",
   "plovdiv": "Пловдив",
@@ -150,7 +148,6 @@ export default async function ServiceCityPage({ params }: Props) {
           <span className="text-white">{serviceName} в {cityBg}</span>
         </div>
 
-        {/* H1 + описание */}
         <h1 className="mb-4 text-4xl font-bold">
           {serviceName} в {cityBg}
         </h1>
@@ -161,7 +158,6 @@ export default async function ServiceCityPage({ params }: Props) {
           </p>
         )}
 
-        {/* Статистика */}
         <div className="mb-8 flex items-center gap-4">
           <span className="rounded-full bg-[#1DB954]/10 px-4 py-1.5 text-sm text-[#1DB954] font-medium">
             {filled.length} специалиста намерени
@@ -169,17 +165,45 @@ export default async function ServiceCityPage({ params }: Props) {
           <span className="text-sm text-gray-500">в {cityBg}</span>
         </div>
 
-        {/* Специалисти */}
         {filled.length === 0 ? (
-          <div className="mb-10 rounded-2xl border border-white/10 bg-[#151528] p-10 text-center">
-            <p className="mb-2 text-lg text-gray-300">Няма специалисти за тази услуга в {cityBg} в момента.</p>
-            <p className="mb-6 text-sm text-gray-500">Публикувай запитване и специалисти ще се свържат с теб.</p>
-            <Link
-              href={`/${locale}/request`}
-              className="rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black hover:bg-[#1ed760] transition"
-            >
-              📩 Публикувай запитване
-            </Link>
+          <div className="mb-10 space-y-6">
+            {/* За клиенти */}
+            <div className="rounded-2xl border border-white/10 bg-[#151528] p-10 text-center">
+              <p className="mb-2 text-lg text-gray-300">
+                Няма намерени специалисти за {serviceName} в {cityBg} в момента.
+              </p>
+              <p className="mb-6 text-sm text-gray-500">
+                Публикувай запитване и специалисти ще се свържат с теб.
+              </p>
+              <Link
+                href={`/${locale}/request`}
+                className="rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black hover:bg-[#1ed760] transition"
+              >
+                📩 Публикувай запитване
+              </Link>
+            </div>
+
+            {/* За специалисти — CTA за набиране */}
+            <div className="rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 p-10 text-center">
+              <div className="mb-3 text-4xl">🔧</div>
+              <h2 className="mb-3 text-2xl font-bold text-white">
+                Търсим {serviceName} в {cityBg}!
+              </h2>
+              <p className="mb-2 text-gray-300 max-w-xl mx-auto">
+                Бъди първият специалист за{" "}
+                <strong className="text-[#1DB954]">{serviceName}</strong>{" "}
+                в <strong className="text-[#1DB954]">{cityBg}</strong> в ProZona.
+              </p>
+              <p className="mb-6 text-sm text-gray-400">
+                Безплатна регистрация · Първите 200 получават 6 месеца Premium · Без абонамент
+              </p>
+              <Link
+                href={`/${locale}/become-specialist`}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black hover:bg-[#1ed760] transition text-base"
+              >
+                ✅ Регистрирай се безплатно →
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -247,10 +271,12 @@ export default async function ServiceCityPage({ params }: Props) {
           </div>
         )}
 
-        {/* CTA */}
+        {/* CTA — винаги видим */}
         <div className="mb-10 rounded-2xl border border-[#1DB954]/20 bg-[#1DB954]/5 p-8 text-center">
           <h2 className="mb-2 text-2xl font-bold">Не намери подходящ специалист?</h2>
-          <p className="mb-6 text-gray-400">Публикувай запитване и специалисти от {cityBg} ще се свържат с теб директно.</p>
+          <p className="mb-6 text-gray-400">
+            Публикувай запитване и специалисти от {cityBg} ще се свържат с теб директно.
+          </p>
           <Link
             href={`/${locale}/request`}
             className="rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black hover:bg-[#1ed760] transition"
