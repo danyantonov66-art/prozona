@@ -1,95 +1,38 @@
 import { MetadataRoute } from "next"
 
-function cityToSlug(city: string) {
-  return city
-    .trim()
-    .toLowerCase()
-    .replace(/а/g, "a")
-    .replace(/б/g, "b")
-    .replace(/в/g, "v")
-    .replace(/г/g, "g")
-    .replace(/д/g, "d")
-    .replace(/е/g, "e")
-    .replace(/ж/g, "zh")
-    .replace(/з/g, "z")
-    .replace(/и/g, "i")
-    .replace(/й/g, "y")
-    .replace(/к/g, "k")
-    .replace(/л/g, "l")
-    .replace(/м/g, "m")
-    .replace(/н/g, "n")
-    .replace(/о/g, "o")
-    .replace(/п/g, "p")
-    .replace(/р/g, "r")
-    .replace(/с/g, "s")
-    .replace(/т/g, "t")
-    .replace(/у/g, "u")
-    .replace(/ф/g, "f")
-    .replace(/х/g, "h")
-    .replace(/ц/g, "ts")
-    .replace(/ч/g, "ch")
-    .replace(/ш/g, "sh")
-    .replace(/щ/g, "sht")
-    .replace(/ъ/g, "a")
-    .replace(/ь/g, "y")
-    .replace(/ю/g, "yu")
-    .replace(/я/g, "ya")
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-}
-
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://prozona.bg"
 
   const cities = [
-    "София",
-    "Пловдив",
-    "Варна",
-    "Бургас",
-    "Русе",
-    "Стара Загора",
-    "Плевен",
-    "Видин",
-    "Велико Търново",
-    "Благоевград",
-    "Перник",
-    "Хасково",
-    "Ямбол",
-    "Пазарджик",
-    "Добрич",
-    "Шумен",
-    "Сливен",
-    "Враца",
-    "Габрово",
-    "Кърджали",
+    "sofia",
+    "plovdiv",
+    "varna",
+    "burgas",
+    "ruse",
+    "stara-zagora",
+    "pleven",
+    "veliko-tarnovo",
+    "blagoevgrad",
+    "pazardzhik",
+    "haskovo",
+    "shumen",
+    "pernik",
+    "dobrich",
+    "sliven",
+    "vratsa",
+    "gabrovo",
+    "yambol",
   ]
 
   const serviceSlugs = [
+    "elektrotehnik",
     "vik",
-    "elektro",
-    "boyadisvane",
-    "shpaklovka-zidariya",
-    "remont-banya",
-    "gipsokarton",
-    "dovarshitelni-remonti",
-    "domashno",
-    "osnovno",
-    "sled-remont",
-    "ofis",
-    "naem",
-    "mebeli",
-    "klimatici",
-    "osvetlenie",
-    "elektrouredi",
-    "drebni-remonti",
-    "premestvane-hamali",
-    "kosene",
-    "poddrazhka-dvor",
-    "podryazvane",
-    "ozelenyavane",
-    "pochistvane-dvor",
+    "pochistvane",
+    "pokrivi",
+    "hamali",
+    "klimatik",
+    "shpaklovka",
+    "gradina",
   ]
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -234,16 +177,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       }))
     )
 
-  const cityServicePages: MetadataRoute.Sitemap = cities.flatMap((city) => {
-    const citySlug = cityToSlug(city)
-
-    return serviceSlugs.map((serviceSlug) => ({
-      url: `${baseUrl}/bg/uslugi/${citySlug}/${serviceSlug}`,
+  const cityServicePages: MetadataRoute.Sitemap = cities.flatMap((city) =>
+    serviceSlugs.map((serviceSlug) => ({
+      url: `${baseUrl}/bg/uslugi/${city}/${serviceSlug}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     }))
-  })
+  )
 
   return [
     ...staticPages,

@@ -15,7 +15,9 @@ export async function generateMetadata({ params }: Props) {
   const category = await prisma.category.findUnique({ where: { slug: categorySlug } })
   return {
     title: category?.name || "Категория",
-    description: `Намери верифицирани специалисти в категория ${category?.name}. Безплатна заявка в ProZona.`,
+   description: category?.name
+  ? `Намери верифицирани ${category.name} специалисти в ProZona. Безплатна заявка.`
+  : `Намери верифицирани специалисти в ProZona. Безплатна заявка.`,
   }
 }
 
