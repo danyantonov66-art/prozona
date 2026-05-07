@@ -1,3 +1,5 @@
+"use client"
+
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import Link from "next/link"
@@ -20,7 +22,7 @@ export default async function AdminInquiriesPage({ params }: Props) {
     take: 100,
     include: {
       Category: { select: { name: true } },
-      specialist: { include: { user: { select: { name: true } } } },
+      specialist: { include: { user: { select: { name: true, email: true } } } },
       User: { select: { name: true, email: true } },
     },
   })
@@ -43,7 +45,7 @@ export default async function AdminInquiriesPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <section className="mx-auto max-w-7xl px-4 py-10">
         <div className="mb-6">
           <Link href={`/${locale}/admin`} className="text-[#1DB954] hover:underline text-sm">
             ← Админ панел
@@ -51,7 +53,7 @@ export default async function AdminInquiriesPage({ params }: Props) {
         </div>
         <h1 className="mb-8 text-3xl font-bold">Запитвания ({inquiries.length})</h1>
 
-        <div className="rounded-2xl border border-white/10 bg-[#151528] overflow-hidden">
+        <div className="rounded-2xl border border-white/10 bg-[#151528] overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-white/10 bg-[#0D0D1A]">
               <tr>
@@ -61,6 +63,7 @@ export default async function AdminInquiriesPage({ params }: Props) {
                 <th className="px-4 py-3 text-left text-gray-400">Специалист</th>
                 <th className="px-4 py-3 text-left text-gray-400">Статус</th>
                 <th className="px-4 py-3 text-left text-gray-400">Дата</th>
+                <th className="px-4 py-3 text-left text-gray-400">Действия</th>
               </tr>
             </thead>
             <tbody>
@@ -91,6 +94,29 @@ export default async function AdminInquiriesPage({ params }: Props) {
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">
                     {new Date(inq.createdAt).toLocaleDateString("bg-BG")}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {/* Виж запитване */}
+                      <Link
+                        href={`/${locale}/admin/inquiries/${inq.id}`}
+                        className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20 transition"
+                      >
+                        👁 Виж
+                      </Link>
+
+                      {/* Напомни на специалиста */}
+                      {inq.specialist && inq.status === "PENDING" && (
+                        <form action={`/api/admin/inquiries/${inq.id}/remind`} method="POST">
+                          <button
+                            type="submit"
+                            className="rounded-lg bg-[#1DB954]/20 px-3 py-1.5 text-xs font-medium text-[#1DB954] hover:bg-[#1DB954]/30 transition"
+                          >
+                            🔔 Напомни
+                          </button>
+                        </form>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
