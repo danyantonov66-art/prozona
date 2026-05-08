@@ -1,0 +1,1 @@
+﻿const {PrismaClient}=require("@prisma/client");const p=new PrismaClient();p.category.update({where:{id:12},data:{description:"Техника, хамали и дребни ремонти"}}).then(r=>console.log("OK:",r.name)).finally(()=>p.$disconnect())

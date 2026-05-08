@@ -26,6 +26,10 @@ interface Specialist {
   createdAt: string
   user?: { name: string; email: string }
   GalleryImage?: GalleryImage[]
+  SpecialistCategory?: {
+    category: { id: number; name: string }
+    subcategory?: { id: number; name: string } | null
+  }[]
 }
 
 export default function AdminSpecialistsPage() {
@@ -203,12 +207,26 @@ export default function AdminSpecialistsPage() {
           {filtered.map((s) => (
             <div key={s.id} className="rounded-2xl border border-white/10 bg-[#151528] overflow-hidden">
               <div className="flex flex-wrap items-center justify-between px-4 py-3 gap-3">
-                <div className="flex flex-wrap items-center gap-4 text-sm">
+                <div className="flex flex-wrap items-center gap-3 text-sm">
                   <span className="font-medium text-white">
                     {s.businessName || s.user?.name || "—"}
                   </span>
                   <span className="text-gray-400">{s.user?.email}</span>
                   <span className="text-gray-400">{s.city}</span>
+
+                  {/* Категории */}
+                  {s.SpecialistCategory && s.SpecialistCategory.length > 0 ? (
+                    s.SpecialistCategory.map((sc, i) => (
+                      <span key={i} className="text-xs bg-[#1DB954]/20 text-[#1DB954] px-2 py-1 rounded-full">
+                        {sc.category.name}{sc.subcategory ? ` / ${sc.subcategory.name}` : ""}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">
+                      ⚠️ Без категория
+                    </span>
+                  )}
+
                   <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
                     s.subscriptionPlan === "PREMIUM"
                       ? "bg-yellow-500/20 text-yellow-400"
@@ -229,6 +247,7 @@ export default function AdminSpecialistsPage() {
                     {new Date(s.createdAt).toLocaleDateString("bg-BG")}
                   </span>
                 </div>
+
                 <div className="flex items-center gap-3 text-xs">
                   <button
                     onClick={() => toggleVerify(s.id)}
@@ -297,7 +316,6 @@ export default function AdminSpecialistsPage() {
                       />
                     </div>
 
-                    {/* Категория */}
                     <div>
                       <label className="text-xs text-gray-400 mb-1 block">Категория</label>
                       <select
@@ -315,7 +333,6 @@ export default function AdminSpecialistsPage() {
                       </select>
                     </div>
 
-                    {/* Подкатегория — показва се само ако е избрана категория */}
                     {selectedCategory && selectedCategory.Subcategory?.length > 0 && (
                       <div>
                         <label className="text-xs text-gray-400 mb-1 block">Подкатегория</label>

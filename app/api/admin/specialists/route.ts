@@ -6,7 +6,6 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session || (session.user as any)?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -24,7 +23,13 @@ export async function GET() {
             id: true,
             imageUrl: true,
             title: true,
-          }
+          },
+        },
+        SpecialistCategory: {
+          select: {
+            category: { select: { id: true, name: true } },
+            subcategory: { select: { id: true, name: true } },
+          },
         },
       },
       orderBy: {
