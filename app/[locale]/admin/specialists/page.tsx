@@ -10,6 +10,12 @@ interface GalleryImage {
   title?: string
 }
 
+interface Category {
+  id: number
+  name: string
+  Subcategory: { id: number; name: string }[]
+}
+
 interface Specialist {
   id: string
   businessName?: string
@@ -36,7 +42,10 @@ export default function AdminSpecialistsPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDescription, setEditDescription] = useState("")
   const [editCity, setEditCity] = useState("")
+  const [editCategoryId, setEditCategoryId] = useState<number | "">("")
+  const [editSubcategoryId, setEditSubcategoryId] = useState<number | "">("")
   const [editSaving, setEditSaving] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
 
   async function load() {
     setLoading(true)
@@ -44,6 +53,12 @@ export default function AdminSpecialistsPage() {
     const data = await res.json()
     setItems(Array.isArray(data) ? data : (data.specialists ?? []))
     setLoading(false)
+  }
+
+  async function loadCategories() {
+    const res = await fetch("/api/categories?withSubcategories=true")
+    const data = await res.json()
+    setCategories(Array.isArray(data) ? data : (data.categories ?? []))
   }
 
   async function toggleVerify(id: string) {
@@ -73,6 +88,8 @@ export default function AdminSpecialistsPage() {
     setEditingId(s.id)
     setEditDescription(s.description || "")
     setEditCity(s.city || "")
+    setEditCategoryId("")
+    setEditSubcategoryId("")
   }
 
   async function saveEdit(id: string) {
@@ -80,7 +97,12 @@ export default function AdminSpecialistsPage() {
     await fetch(`/api/admin/specialists/${id}/edit`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ description: editDescription, city: editCity })
+      body: JSON.stringify({
+        description: editDescription,
+        city: editCity,
+        ...(editCategoryId !== "" && { categoryId: editCategoryId }),
+        ...(editSubcategoryId !== "" && { subcategoryId: editSubcategoryId }),
+      }),
     })
     setEditingId(null)
     setEditSaving(false)
@@ -99,7 +121,7 @@ export default function AdminSpecialistsPage() {
           name: s.businessName || s.user.name,
           type: "complete_profile",
           specialistId: s.id,
-        })
+        }),
       })
       setEmailSent(s.id)
       setTimeout(() => setEmailSent(null), 3000)
@@ -110,7 +132,10 @@ export default function AdminSpecialistsPage() {
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    loadCategories()
+  }, [])
 
   const filtered = items
     .filter((s) => {
@@ -128,6 +153,8 @@ export default function AdminSpecialistsPage() {
         s.businessName?.toLowerCase().includes(q)
       )
     })
+
+  const selectedCategory = categories.find((c) => c.id === editCategoryId)
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
@@ -211,16 +238,12 @@ export default function AdminSpecialistsPage() {
                   >
                     {s.verified ? "Премахни" : "Верифицирай"}
                   </button>
-
-                  {/* ✅ Бутон за редактиране */}
                   <button
                     onClick={() => editingId === s.id ? setEditingId(null) : startEdit(s)}
                     className="font-medium text-blue-400 hover:underline"
                   >
                     {editingId === s.id ? "Затвори" : "✏️ Редактирай"}
                   </button>
-
-                  {/* ✅ Бутон за имейл */}
                   <button
                     onClick={() => sendCompleteProfileEmail(s)}
                     disabled={sendingEmail === s.id}
@@ -236,7 +259,6 @@ export default function AdminSpecialistsPage() {
                       ? "Изпращане..."
                       : "📧 Попълни профил"}
                   </button>
-
                   <Link
                     href={`/${locale}/specialists/${s.id}`}
                     className="text-blue-400 hover:underline"
@@ -259,19 +281,58 @@ export default function AdminSpecialistsPage() {
                 </div>
               </div>
 
-              {/* ✅ Inline edit форма */}
+              {/* Inline edit форма */}
               {editingId === s.id && (
                 <div className="border-t border-white/10 bg-[#0D0D1A] p-4 space-y-3">
                   <h3 className="text-sm font-semibold text-white">✏️ Редактирай профила</h3>
-                  <div>
-                    <label className="text-xs text-gray-400 mb-1 block">Град</label>
-                    <input
-                      type="text"
-                      value={editCity}
-                      onChange={(e) => setEditCity(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
-                    />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Град</label>
+                      <input
+                        type="text"
+                        value={editCity}
+                        onChange={(e) => setEditCity(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
+                      />
+                    </div>
+
+                    {/* Категория */}
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Категория</label>
+                      <select
+                        value={editCategoryId}
+                        onChange={(e) => {
+                          setEditCategoryId(e.target.value ? Number(e.target.value) : "")
+                          setEditSubcategoryId("")
+                        }}
+                        className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
+                      >
+                        <option value="">— Избери категория —</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Подкатегория — показва се само ако е избрана категория */}
+                    {selectedCategory && selectedCategory.Subcategory?.length > 0 && (
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Подкатегория</label>
+                        <select
+                          value={editSubcategoryId}
+                          onChange={(e) => setEditSubcategoryId(e.target.value ? Number(e.target.value) : "")}
+                          className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
+                        >
+                          <option value="">— Избери подкатегория —</option>
+                          {selectedCategory.Subcategory.map((sc) => (
+                            <option key={sc.id} value={sc.id}>{sc.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
+
                   <div>
                     <label className="text-xs text-gray-400 mb-1 block">Описание</label>
                     <textarea
@@ -284,6 +345,7 @@ export default function AdminSpecialistsPage() {
                       <p className="text-xs text-red-400 mt-1">⚠️ Описанието съдържа телефонен номер!</p>
                     )}
                   </div>
+
                   <div className="flex gap-2">
                     <button
                       onClick={() => saveEdit(s.id)}
@@ -296,7 +358,7 @@ export default function AdminSpecialistsPage() {
                       onClick={() => setEditingId(null)}
                       className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg text-sm hover:bg-gray-700"
                     >
-                      Отказ
+                      Откажи
                     </button>
                   </div>
                 </div>
