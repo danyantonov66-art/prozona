@@ -27,9 +27,30 @@ interface Specialist {
   user?: { name: string; email: string }
   GalleryImage?: GalleryImage[]
   SpecialistCategory?: {
-    category: { id: number; name: string }
-    subcategory?: { id: number; name: string } | null
+    Category: { id: number; name: string }
+    Subcategory?: { id: number; name: string } | null
   }[]
+}
+
+function containsPhone(text: string): boolean {
+  const patterns = [
+    /(\+359|00359)\s?[\d\s\-]{8,}/,
+    /08\d[\d\s\-]{7,}/,
+    /0\d{9}/,
+    /\b\d{10}\b/,
+    /\d{3,4}[\s\-]\d{3}[\s\-]\d{3,4}/,
+  ]
+  return patterns.some((p) => p.test(text))
+}
+
+function removePhones(text: string): string {
+  return text
+    .replace(/(\+359|00359)\s?[\d\s\-]{8,}/g, "")
+    .replace(/08\d[\d\s\-]{7,}/g, "")
+    .replace(/\b\d{10}\b/g, "")
+    .replace(/\d{3,4}[\s\-]\d{3}[\s\-]\d{3,4}/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim()
 }
 
 export default function AdminSpecialistsPage() {
@@ -38,7 +59,7 @@ export default function AdminSpecialistsPage() {
 
   const [items, setItems] = useState<Specialist[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<"all" | "pending" | "verified">("all")
+  const [filter, setFilter] = useState<"all" | "pending" | "verified" | "phone">("all")
   const [search, setSearch] = useState("")
   const [expandedGallery, setExpandedGallery] = useState<string | null>(null)
   const [sendingEmail, setSendingEmail] = useState<string | null>(null)
@@ -46,9 +67,8 @@ export default function AdminSpecialistsPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDescription, setEditDescription] = useState("")
   const [editCity, setEditCity] = useState("")
-  const [editCategoryId, setEditCategoryId] = useState<number | "">("")
-  const [editSubcategoryId, setEditSubcategoryId] = useState<number | "">("")
   const [editSaving, setEditSaving] = useState(false)
+  const [cleaning, setCleaning] = useState<string | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
 
   async function load() {
@@ -92,8 +112,6 @@ export default function AdminSpecialistsPage() {
     setEditingId(s.id)
     setEditDescription(s.description || "")
     setEditCity(s.city || "")
-    setEditCategoryId("")
-    setEditSubcategoryId("")
   }
 
   async function saveEdit(id: string) {
@@ -101,15 +119,23 @@ export default function AdminSpecialistsPage() {
     await fetch(`/api/admin/specialists/${id}/edit`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        description: editDescription,
-        city: editCity,
-        ...(editCategoryId !== "" && { categoryId: editCategoryId }),
-        ...(editSubcategoryId !== "" && { subcategoryId: editSubcategoryId }),
-      }),
+      body: JSON.stringify({ description: editDescription, city: editCity })
     })
     setEditingId(null)
     setEditSaving(false)
+    load()
+  }
+
+  async function cleanPhone(s: Specialist) {
+    if (!s.description) return
+    const cleaned = removePhones(s.description)
+    setCleaning(s.id)
+    await fetch(`/api/admin/specialists/${s.id}/edit`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description: cleaned })
+    })
+    setCleaning(null)
     load()
   }
 
@@ -125,7 +151,7 @@ export default function AdminSpecialistsPage() {
           name: s.businessName || s.user?.name,
           type: "complete_profile",
           specialistId: s.id,
-        }),
+        })
       })
       setEmailSent(s.id)
       setTimeout(() => setEmailSent(null), 3000)
@@ -145,6 +171,7 @@ export default function AdminSpecialistsPage() {
     .filter((s) => {
       if (filter === "pending") return !s.verified
       if (filter === "verified") return s.verified
+      if (filter === "phone") return containsPhone(s.description || "")
       return true
     })
     .filter((s) => {
@@ -158,7 +185,7 @@ export default function AdminSpecialistsPage() {
       )
     })
 
-  const selectedCategory = categories.find((c) => c.id === editCategoryId)
+  const phoneCount = items.filter(s => containsPhone(s.description || "")).length
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
@@ -171,21 +198,26 @@ export default function AdminSpecialistsPage() {
 
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Специалисти ({filtered.length})</h1>
+          {phoneCount > 0 && (
+            <span className="rounded-full bg-red-500/20 px-3 py-1 text-sm font-semibold text-red-400">
+              ⚠️ {phoneCount} с телефон в описанието
+            </span>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-3 mb-6">
-          <div className="flex gap-2">
-            {(["all", "pending", "verified"] as const).map((f) => (
+          <div className="flex gap-2 flex-wrap">
+            {(["all", "pending", "verified", "phone"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
                   filter === f
-                    ? "bg-[#1DB954] text-black"
+                    ? f === "phone" ? "bg-red-500 text-white" : "bg-[#1DB954] text-black"
                     : "bg-[#151528] text-gray-400 hover:text-white border border-white/10"
                 }`}
               >
-                {f === "all" ? "Всички" : f === "pending" ? "Чакащи" : "Верифицирани"}
+                {f === "all" ? "Всички" : f === "pending" ? "Чакащи" : f === "verified" ? "Верифицирани" : `📞 С телефон (${phoneCount})`}
               </button>
             ))}
           </div>
@@ -204,108 +236,108 @@ export default function AdminSpecialistsPage() {
         )}
 
         <div className="space-y-4">
-          {filtered.map((s) => (
-            <div key={s.id} className="rounded-2xl border border-white/10 bg-[#151528] overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between px-4 py-3 gap-3">
-                <div className="flex flex-wrap items-center gap-3 text-sm">
-                  <span className="font-medium text-white">
-                    {s.businessName || s.user?.name || "—"}
-                  </span>
-                  <span className="text-gray-400">{s.user?.email}</span>
-                  <span className="text-gray-400">{s.city}</span>
-
-                  {/* Категории */}
-                  {s.SpecialistCategory && s.SpecialistCategory.length > 0 ? (
-                    s.SpecialistCategory.map((sc, i) => (
-                      <span key={i} className="text-xs bg-[#1DB954]/20 text-[#1DB954] px-2 py-1 rounded-full">
-                        {sc.category.name}{sc.subcategory ? ` / ${sc.subcategory.name}` : ""}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">
-                      ⚠️ Без категория
+          {filtered.map((s) => {
+            const hasPhone = containsPhone(s.description || "")
+            return (
+              <div key={s.id} className={`rounded-2xl border overflow-hidden ${hasPhone ? "border-red-500/40 bg-[#1a1015]" : "border-white/10 bg-[#151528]"}`}>
+                <div className="flex flex-wrap items-center justify-between px-4 py-3 gap-3">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <span className="font-medium text-white">
+                      {s.businessName || s.user?.name || "—"}
                     </span>
-                  )}
+                    <span className="text-gray-400">{s.user?.email}</span>
+                    <span className="text-gray-400">{s.city}</span>
 
-                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                    s.subscriptionPlan === "PREMIUM"
-                      ? "bg-yellow-500/20 text-yellow-400"
-                      : s.subscriptionPlan === "BASIC"
-                      ? "bg-blue-500/20 text-blue-400"
-                      : "bg-gray-500/20 text-gray-400"
-                  }`}>
-                    {s.subscriptionPlan}
-                  </span>
-                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                    s.verified
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-yellow-500/20 text-yellow-400"
-                  }`}>
-                    {s.verified ? "Верифициран" : "Чакащ"}
-                  </span>
-                  <span className="text-gray-500 text-xs">
-                    {new Date(s.createdAt).toLocaleDateString("bg-BG")}
-                  </span>
+                    {s.SpecialistCategory && s.SpecialistCategory.length > 0 ? (
+                      s.SpecialistCategory.map((sc, i) => (
+                        <span key={i} className="text-xs bg-[#1DB954]/20 text-[#1DB954] px-2 py-1 rounded-full">
+                          {sc.Category?.name}{sc.Subcategory ? ` / ${sc.Subcategory.name}` : ""}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full">
+                        ⚠️ Без категория
+                      </span>
+                    )}
+
+                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                      s.subscriptionPlan === "PREMIUM"
+                        ? "bg-yellow-500/20 text-yellow-400"
+                        : s.subscriptionPlan === "BASIC"
+                        ? "bg-blue-500/20 text-blue-400"
+                        : "bg-gray-500/20 text-gray-400"
+                    }`}>
+                      {s.subscriptionPlan}
+                    </span>
+                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                      s.verified
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-yellow-500/20 text-yellow-400"
+                    }`}>
+                      {s.verified ? "Верифициран" : "Чакащ"}
+                    </span>
+                    {hasPhone && (
+                      <span className="rounded-full bg-red-500/20 px-2 py-1 text-xs font-semibold text-red-400">
+                        📞 Телефон!
+                      </span>
+                    )}
+                    <span className="text-gray-500 text-xs">
+                      {new Date(s.createdAt).toLocaleDateString("bg-BG")}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs flex-wrap">
+                    <button
+                      onClick={() => toggleVerify(s.id)}
+                      className={`font-medium hover:underline ${s.verified ? "text-yellow-400" : "text-[#1DB954]"}`}
+                    >
+                      {s.verified ? "Премахни" : "Верифицирай"}
+                    </button>
+                    <button
+                      onClick={() => editingId === s.id ? setEditingId(null) : startEdit(s)}
+                      className="font-medium text-blue-400 hover:underline"
+                    >
+                      {editingId === s.id ? "Затвори" : "✏️ Редактирай"}
+                    </button>
+                    {hasPhone && (
+                      <button
+                        onClick={() => cleanPhone(s)}
+                        disabled={cleaning === s.id}
+                        className="font-medium text-red-400 hover:text-red-300 hover:underline disabled:opacity-50"
+                      >
+                        {cleaning === s.id ? "Почиства..." : "🧹 Изчисти телефона"}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => sendCompleteProfileEmail(s)}
+                      disabled={sendingEmail === s.id}
+                      className={`font-medium hover:underline transition ${
+                        emailSent === s.id ? "text-[#1DB954]" : "text-orange-400 hover:text-orange-300"
+                      }`}
+                    >
+                      {emailSent === s.id ? "✅ Изпратен!" : sendingEmail === s.id ? "Изпращане..." : "📧 Попълни профил"}
+                    </button>
+                    <Link href={`/${locale}/specialists/${s.id}`} className="text-blue-400 hover:underline" target="_blank">
+                      Виж
+                    </Link>
+                    <button
+                      onClick={() => setExpandedGallery(expandedGallery === s.id ? null : s.id)}
+                      className="text-purple-400 hover:underline"
+                    >
+                      🖼️ Галерия ({s.GalleryImage?.length || 0})
+                    </button>
+                    <button
+                      onClick={() => deleteSpecialist(s.id)}
+                      className="text-red-400 hover:text-red-300 hover:underline"
+                    >
+                      Изтрий
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3 text-xs">
-                  <button
-                    onClick={() => toggleVerify(s.id)}
-                    className={`font-medium hover:underline ${
-                      s.verified ? "text-yellow-400" : "text-[#1DB954]"
-                    }`}
-                  >
-                    {s.verified ? "Премахни" : "Верифицирай"}
-                  </button>
-                  <button
-                    onClick={() => editingId === s.id ? setEditingId(null) : startEdit(s)}
-                    className="font-medium text-blue-400 hover:underline"
-                  >
-                    {editingId === s.id ? "Затвори" : "✏️ Редактирай"}
-                  </button>
-                  <button
-                    onClick={() => sendCompleteProfileEmail(s)}
-                    disabled={sendingEmail === s.id}
-                    className={`font-medium hover:underline transition ${
-                      emailSent === s.id
-                        ? "text-[#1DB954]"
-                        : "text-orange-400 hover:text-orange-300"
-                    }`}
-                  >
-                    {emailSent === s.id
-                      ? "✅ Изпратен!"
-                      : sendingEmail === s.id
-                      ? "Изпращане..."
-                      : "📧 Попълни профил"}
-                  </button>
-                  <Link
-                    href={`/${locale}/specialists/${s.id}`}
-                    className="text-blue-400 hover:underline"
-                    target="_blank"
-                  >
-                    Виж
-                  </Link>
-                  <button
-                    onClick={() => setExpandedGallery(expandedGallery === s.id ? null : s.id)}
-                    className="text-purple-400 hover:underline"
-                  >
-                    🖼️ Галерия ({s.GalleryImage?.length || 0})
-                  </button>
-                  <button
-                    onClick={() => deleteSpecialist(s.id)}
-                    className="text-red-400 hover:text-red-300 hover:underline"
-                  >
-                    Изтрий
-                  </button>
-                </div>
-              </div>
-
-              {/* Inline edit форма */}
-              {editingId === s.id && (
-                <div className="border-t border-white/10 bg-[#0D0D1A] p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-white">✏️ Редактирай профила</h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {editingId === s.id && (
+                  <div className="border-t border-white/10 bg-[#0D0D1A] p-4 space-y-3">
+                    <h3 className="text-sm font-semibold text-white">✏️ Редактирай профила</h3>
                     <div>
                       <label className="text-xs text-gray-400 mb-1 block">Град</label>
                       <input
@@ -315,106 +347,74 @@ export default function AdminSpecialistsPage() {
                         className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
                       />
                     </div>
-
                     <div>
-                      <label className="text-xs text-gray-400 mb-1 block">Категория</label>
-                      <select
-                        value={editCategoryId}
-                        onChange={(e) => {
-                          setEditCategoryId(e.target.value ? Number(e.target.value) : "")
-                          setEditSubcategoryId("")
-                        }}
-                        className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
-                      >
-                        <option value="">— Избери категория —</option>
-                        {categories.map((c) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
+                      <label className="text-xs text-gray-400 mb-1 block">Описание</label>
+                      <textarea
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none resize-none"
+                      />
+                      {editDescription && containsPhone(editDescription) && (
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xs text-red-400">⚠️ Описанието съдържа телефонен номер!</p>
+                          <button
+                            onClick={() => setEditDescription(removePhones(editDescription))}
+                            className="text-xs text-red-400 hover:text-red-300 underline"
+                          >
+                            Изчисти автоматично
+                          </button>
+                        </div>
+                      )}
                     </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => saveEdit(s.id)}
+                        disabled={editSaving}
+                        className="px-4 py-2 bg-[#1DB954] text-black rounded-lg text-sm font-semibold hover:bg-[#1ed760] disabled:opacity-50"
+                      >
+                        {editSaving ? "Запазване..." : "Запази"}
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg text-sm hover:bg-gray-700"
+                      >
+                        Откажи
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-                    {selectedCategory && selectedCategory.Subcategory?.length > 0 && (
-                      <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Подкатегория</label>
-                        <select
-                          value={editSubcategoryId}
-                          onChange={(e) => setEditSubcategoryId(e.target.value ? Number(e.target.value) : "")}
-                          className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
-                        >
-                          <option value="">— Избери подкатегория —</option>
-                          {selectedCategory.Subcategory.map((sc) => (
-                            <option key={sc.id} value={sc.id}>{sc.name}</option>
-                          ))}
-                        </select>
+                {expandedGallery === s.id && (
+                  <div className="border-t border-white/10 bg-[#0D0D1A] p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <h3 className="text-sm font-semibold text-white">Галерия</h3>
+                      <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs text-yellow-400">
+                        ⚠️ Провери за контактна информация
+                      </span>
+                    </div>
+                    {!s.GalleryImage || s.GalleryImage.length === 0 ? (
+                      <p className="text-sm text-gray-500">Няма качени снимки.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
+                        {s.GalleryImage.map((img) => (
+                          <div key={img.id} className="relative group">
+                            <img src={img.imageUrl} alt={img.title || "Галерия"} className="h-24 w-full rounded-xl object-cover" />
+                            <button
+                              onClick={() => deleteGalleryImage(s.id, img.id)}
+                              className="absolute top-1 right-1 hidden group-hover:flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs hover:bg-red-600"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
-
-                  <div>
-                    <label className="text-xs text-gray-400 mb-1 block">Описание</label>
-                    <textarea
-                      value={editDescription}
-                      onChange={(e) => setEditDescription(e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none resize-none"
-                    />
-                    {editDescription && /(\+359|08|00359)\s?[\d\s\-]{8,}/.test(editDescription) && (
-                      <p className="text-xs text-red-400 mt-1">⚠️ Описанието съдържа телефонен номер!</p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => saveEdit(s.id)}
-                      disabled={editSaving}
-                      className="px-4 py-2 bg-[#1DB954] text-black rounded-lg text-sm font-semibold hover:bg-[#1ed760] disabled:opacity-50"
-                    >
-                      {editSaving ? "Запазване..." : "Запази"}
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg text-sm hover:bg-gray-700"
-                    >
-                      Откажи
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Галерия секция */}
-              {expandedGallery === s.id && (
-                <div className="border-t border-white/10 bg-[#0D0D1A] p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h3 className="text-sm font-semibold text-white">Галерия</h3>
-                    <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs text-yellow-400">
-                      ⚠️ Провери за контактна информация
-                    </span>
-                  </div>
-                  {!s.GalleryImage || s.GalleryImage.length === 0 ? (
-                    <p className="text-sm text-gray-500">Няма качени снимки.</p>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
-                      {s.GalleryImage.map((img) => (
-                        <div key={img.id} className="relative group">
-                          <img
-                            src={img.imageUrl}
-                            alt={img.title || "Галерия"}
-                            className="h-24 w-full rounded-xl object-cover"
-                          />
-                          <button
-                            onClick={() => deleteGalleryImage(s.id, img.id)}
-                            className="absolute top-1 right-1 hidden group-hover:flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs hover:bg-red-600"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            )
+          })}
         </div>
       </section>
     </main>
