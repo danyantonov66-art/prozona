@@ -122,7 +122,7 @@ export default function AdminSpecialistsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: s.user.email,
-          name: s.businessName || s.user.name,
+          name: s.businessName || s.user?.name,
           type: "complete_profile",
           specialistId: s.id,
         }),
