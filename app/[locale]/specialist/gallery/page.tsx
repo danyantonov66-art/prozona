@@ -321,8 +321,11 @@ export default function GalleryPage() {
               )}
             </div>
 
-            <div className="flex justify-center">
-              <UploadButton
+            <div className="mb-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400">
+  ⚠️ <strong>Важно:</strong> Не качвай снимки с телефонни номера, имейли или контактна информация. Такива снимки ще бъдат изтрити от администратор без предупреждение.
+</div>
+<div className="flex justify-center">
+  <UploadButton
                 endpoint="galleryImages"
                 onClientUploadComplete={async (files) => {
                   // After upload, update the type of the newly added image
