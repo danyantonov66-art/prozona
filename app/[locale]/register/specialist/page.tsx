@@ -258,6 +258,14 @@ export default function RegisterSpecialistPage() {
                 placeholder="Опиши какво предлагаш (без телефон, имейл или линкове)"
                 className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50 resize-none"
               />
+              <p className="mt-1 text-xs text-yellow-400">
+  ⚠️ Не поставяй телефон, имейл или линкове в описанието — контактната информация ще бъде автоматично изтрита.
+</p>
+{form.description && /08\d[\d\s\-]{7,}|(\+359|00359)\s?[\d\s\-]{8,}/.test(form.description) && (
+  <p className="mt-1 text-xs text-red-400">
+    ❌ Открит телефонен номер! Моля премахни го — профилът ти може да бъде редактиран от администратор.
+  </p>
+)}
             </div>
 
             {/* Парола */}
