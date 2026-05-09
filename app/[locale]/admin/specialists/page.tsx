@@ -162,6 +162,17 @@ export default function AdminSpecialistsPage() {
     }
   }
 
+  async function autoAssignCategory(id: string) {
+  const res = await fetch(`/api/admin/specialists/${id}/auto-category`, { method: "POST" })
+  const data = await res.json()
+  if (data.success) {
+    alert("✅ Категорията е зададена автоматично!")
+    load()
+  } else {
+    alert(data.error || data.message || "Неуспешно")
+  }
+}
+
   useEffect(() => {
     load()
     loadCategories()
@@ -299,6 +310,12 @@ export default function AdminSpecialistsPage() {
                     >
                       {editingId === s.id ? "Затвори" : "✏️ Редактирай"}
                     </button>
+                    <button
+  onClick={() => autoAssignCategory(s.id)}
+  className="font-medium text-purple-400 hover:underline"
+>
+  🤖 Авто категория
+</button>
                     {hasPhone && (
                       <button
                         onClick={() => cleanPhone(s)}
