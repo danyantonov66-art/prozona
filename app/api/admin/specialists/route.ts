@@ -27,8 +27,8 @@ export async function GET() {
         },
         SpecialistCategory: {
           select: {
-            category: { select: { id: true, name: true } },
-            subcategory: { select: { id: true, name: true } },
+            Category: { select: { id: true, name: true } },
+            Subcategory: { select: { id: true, name: true } },
           },
         },
       },
