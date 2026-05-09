@@ -25,16 +25,32 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const { description, city, businessName } = await request.json()
+    const { description, city, businessName, categoryId, subcategoryId } = await request.json()
 
+    // Обнови основните полета на специалиста
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
         ...(description !== undefined && { description }),
         ...(city !== undefined && { city }),
         ...(businessName !== undefined && { businessName }),
-      }
+      },
     })
+
+    // Ако е подадена категория — обнови SpecialistCategory
+    if (categoryId !== undefined) {
+      // Изтрий старите категории
+      await prisma.specialistCategory.deleteMany({ where: { specialistId: id } })
+
+      // Добави новата категория
+      await prisma.specialistCategory.create({
+        data: {
+          specialistId: id,
+          categoryId: Number(categoryId),
+          ...(subcategoryId ? { subcategoryId: Number(subcategoryId) } : {}),
+        },
+      })
+    }
 
     return NextResponse.json({ success: true, specialist })
   } catch (error) {
