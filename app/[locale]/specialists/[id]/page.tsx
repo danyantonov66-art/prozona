@@ -48,7 +48,6 @@ export async function generateMetadata({ params }: Props) {
 
 export const dynamic = "force-dynamic"
 
-// ✅ Конвертира YouTube URL към embed URL
 function getYoutubeEmbedUrl(url: string): string {
   const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/
   const match = url.match(regExp)
@@ -56,7 +55,6 @@ function getYoutubeEmbedUrl(url: string): string {
   return videoId ? `https://www.youtube.com/embed/${videoId}` : url
 }
 
-// ✅ Конвертира TikTok URL към embed
 function getTikTokEmbedUrl(url: string): string | null {
   const match = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/)
   return match ? `https://www.tiktok.com/embed/${match[1]}` : null
@@ -76,6 +74,12 @@ export default async function SpecialistPage({ params }: Props) {
         take: 5,
       },
       PriceListItem: true,
+      SpecialistCategory: {
+        include: {
+          Category: true,
+          Subcategory: true,
+        },
+      },
     },
   })
 
@@ -88,7 +92,6 @@ export default async function SpecialistPage({ params }: Props) {
     : null
   const canonicalUrl = `https://prozona.bg/${locale}/specialists/${id}`
 
-  // Видео embed
   const videoUrl = (specialist as any).videoUrl as string | null
   const isYoutube = videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))
   const isTikTok = videoUrl && videoUrl.includes('tiktok.com')
@@ -170,6 +173,25 @@ export default async function SpecialistPage({ params }: Props) {
                     <span className="font-semibold text-white">🗺️ Обслужва:</span> {specialist.serviceAreas.join(", ")}
                   </p>
                 )}
+
+                {/* Категории */}
+                {specialist.SpecialistCategory && specialist.SpecialistCategory.length > 0 && (
+                  <div className="mt-3 mb-2">
+                    <span className="font-semibold text-white text-sm">🔧 Услуги: </span>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {specialist.SpecialistCategory.map((sc: any) => (
+                        <span
+                          key={sc.id}
+                          className="rounded-full bg-[#1DB954]/10 px-3 py-1 text-xs text-[#1DB954] border border-[#1DB954]/20"
+                        >
+                          {sc.Category?.name}
+                          {sc.Subcategory ? ` › ${sc.Subcategory.name}` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3 mt-4">
                   <InquiryButton specialistId={specialist.id} specialistName={name} />
                   <ShareButton url={canonicalUrl} title={`${name} — специалист в ProZona`} />
@@ -182,7 +204,7 @@ export default async function SpecialistPage({ params }: Props) {
             </div>
           </div>
 
-          {/* ✅ Видео секция */}
+          {/* Видео секция */}
           {embedUrl && (
             <div className="border-t border-white/10 p-6 md:p-8">
               <h2 className="mb-4 text-xl font-semibold">🎥 Видео</h2>
@@ -239,7 +261,7 @@ export default async function SpecialistPage({ params }: Props) {
                 href={`/${locale}/specialist/${specialist.id}/review`}
                 className="inline-block rounded-xl bg-[#1DB954] px-6 py-3 text-sm font-semibold text-white hover:bg-[#169b43] transition-colors"
               >
-                ✍️ Напиши отзив
+                ✏️ Напиши отзив
               </Link>
             </div>
           </div>
