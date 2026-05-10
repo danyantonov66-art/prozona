@@ -107,8 +107,24 @@ export default async function BlogPostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
+        {/* CTA към специалисти */}
+        <div className="mt-12 p-6 bg-[#151528] border border-[#1DB954]/20 rounded-2xl text-center">
+          <h3 className="text-xl font-bold text-white mb-2">
+            Търсиш специалист?
+          </h3>
+          <p className="text-gray-400 mb-4">
+            Намери проверен майстор близо до теб — безплатно и без регистрация.
+          </p>
+          <Link
+            href={`/${locale}/search`}
+            className="inline-block bg-[#1DB954] text-[#0D0D1A] font-bold px-8 py-3 rounded-xl hover:bg-[#17a847] transition-colors"
+          >
+            Намери специалист →
+          </Link>
+        </div>
+
         {/* Back to blog */}
-        <div className="mt-12 pt-8 border-t border-white/10">
+        <div className="mt-8 pt-8 border-t border-white/10">
           <Link
             href={`/${locale}/blog`}
             className="inline-flex items-center gap-2 text-[#1DB954] hover:underline"
@@ -116,6 +132,7 @@ export default async function BlogPostPage({ params }: Props) {
             ← Обратно към блога
           </Link>
         </div>
+
       </article>
       <ProZonaFooter locale={locale} />
     </main>
