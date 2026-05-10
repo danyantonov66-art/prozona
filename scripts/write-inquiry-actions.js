@@ -1,4 +1,116 @@
-import { getServerSession } from 'next-auth'
+const fs = require("fs");
+
+const actions = `'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+interface Props {
+  inquiryId: string
+  status: string
+  credits: number
+  hasReplied: boolean
+}
+
+export default function InquiryActions({ inquiryId, status, credits, hasReplied }: Props) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [reply, setReply] = useState('')
+  const [showReply, setShowReply] = useState(false)
+  const [error, setError] = useState('')
+
+  const markAsViewed = async () => {
+    setLoading(true)
+    await fetch(\`/api/specialist/inquiries/\${inquiryId}/viewed\`, { method: 'POST' })
+    router.refresh()
+    setLoading(false)
+  }
+
+  const sendReply = async () => {
+    if (!reply.trim()) return
+    if (credits < 1) {
+      setError('Нямате достатъчно кредити. Купете кредити от таблото.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    const res = await fetch(\`/api/specialist/inquiries/\${inquiryId}/reply\`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: reply })
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Грешка при изпращане')
+      setLoading(false)
+      return
+    }
+    setReply('')
+    setShowReply(false)
+    router.refresh()
+    setLoading(false)
+  }
+
+  return (
+    <div className="mt-2">
+      {error && (
+        <p className="text-red-400 text-sm mb-2">{error}</p>
+      )}
+
+      {showReply && (
+        <div className="mb-3">
+          <textarea
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
+            rows={3}
+            placeholder="Напишете отговор... (1 кредит)"
+            className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white mb-2 text-sm resize-none focus:border-[#1DB954] outline-none"
+          />
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={sendReply}
+              disabled={loading || !reply.trim() || credits < 1}
+              className="px-4 py-2 bg-[#1DB954] text-black font-medium rounded-lg hover:bg-[#169b43] disabled:opacity-50 text-sm"
+            >
+              {loading ? 'Изпращане...' : 'Изпрати отговор'}
+            </button>
+            <button
+              onClick={() => { setShowReply(false); setError('') }}
+              className="px-4 py-2 bg-transparent border border-gray-700 text-gray-400 rounded-lg text-sm"
+            >
+              Откажи
+            </button>
+            {credits < 3 && (
+              <span className="text-xs text-yellow-400 ml-auto">
+                Остават {credits} кредита
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-3 flex-wrap">
+        <button
+          onClick={() => { setShowReply(!showReply); setError('') }}
+          className="px-4 py-2 bg-[#1DB954] text-black font-medium rounded-lg hover:bg-[#169b43] text-sm"
+        >
+          {hasReplied ? 'Отговори отново' : 'Отговори'}
+        </button>
+        {status === 'PENDING' && (
+          <button
+            onClick={markAsViewed}
+            disabled={loading}
+            className="px-4 py-2 bg-transparent border border-gray-700 text-gray-400 rounded-lg hover:bg-[#25253a] disabled:opacity-50 text-sm"
+          >
+            Маркирай като прочетено
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+`;
+
+const page = `import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
@@ -13,13 +125,13 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
   const { locale } = await params
   const session = await getServerSession(authOptions)
 
-  if (!session) redirect(`/${locale}/login`)
+  if (!session) redirect(\`/\${locale}/login\`)
 
   const specialist = await prisma.specialist.findUnique({
     where: { userId: (session.user as any).id }
   })
 
-  if (!specialist) redirect(`/${locale}/become-specialist`)
+  if (!specialist) redirect(\`/\${locale}/become-specialist\`)
 
   const inquiries = await prisma.inquiry.findMany({
     where: { specialistId: specialist.id },
@@ -46,7 +158,7 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
               </span>
             </p>
           </div>
-          <Link href={`/${locale}/specialist/dashboard`} className="text-[#1DB954] hover:underline text-sm">
+          <Link href={\`/\${locale}/specialist/dashboard\`} className="text-[#1DB954] hover:underline text-sm">
             &larr; Към таблото
           </Link>
         </div>
@@ -70,13 +182,13 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
                       })}
                     </p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
+                  <span className={\`text-xs px-2 py-1 rounded-full \${
                     inquiry.status === 'PENDING'   ? 'bg-[#1DB954]/20 text-[#1DB954]' :
                     inquiry.status === 'VIEWED'    ? 'bg-yellow-500/20 text-yellow-400' :
                     inquiry.status === 'REPLIED'   ? 'bg-blue-500/20 text-blue-400' :
                     inquiry.status === 'COMPLETED' ? 'bg-purple-500/20 text-purple-400' :
                     'bg-gray-700 text-gray-400'
-                  }`}>
+                  }\`}>
                     {inquiry.status === 'PENDING'   ? 'Ново' :
                      inquiry.status === 'VIEWED'    ? 'Прочетено' :
                      inquiry.status === 'REPLIED'   ? 'Отговорено' :
@@ -126,3 +238,8 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
     </div>
   )
 }
+`;
+
+fs.writeFileSync("app/[locale]/specialist/inquiries/InquiryActions.tsx", actions, "utf8");
+fs.writeFileSync("app/[locale]/specialist/inquiries/page.tsx", page, "utf8");
+console.log("Done — both files written.");

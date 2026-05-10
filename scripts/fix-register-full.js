@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server'
+const fs = require('fs');
+
+const content = `import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { Resend } from 'resend'
@@ -34,15 +36,15 @@ function isDisposableEmail(email: string): boolean {
 }
 
 function generateRefCode(name: string, id: string): string {
-  return Buffer.from(`${name}-${id}`).toString('base64').slice(0, 8).toUpperCase()
+  return Buffer.from(\`\${name}-\${id}\`).toString('base64').slice(0, 8).toUpperCase()
 }
 
 function containsContactInfo(text: string): boolean {
   const patterns = [
-    /(\+359|08|00359)\s?[\d\s\-]{8,}/,
-    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,
-    /(https?:\/\/|www\.)/i,
-    /facebook\.com|instagram\.com|viber|whatsapp/i,
+    /(\\+359|08|00359)\\s?[\\d\\s\\-]{8,}/,
+    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/,
+    /(https?:\\/\\/|www\\.)/i,
+    /facebook\\.com|instagram\\.com|viber|whatsapp/i,
   ]
   return patterns.some((p) => p.test(text))
 }
@@ -134,7 +136,7 @@ export async function POST(request: Request) {
         await prisma.categorySuggestion.create({
           data: {
             name: suggestedService,
-            description: description || `Предложена от ${name}`,
+            description: description || \`Предложена от \${name}\`,
             specialistId: specialist.id,
             updatedAt: new Date(),
           }
@@ -156,7 +158,7 @@ export async function POST(request: Request) {
             specialistId: referrer.id,
             amount: REFERRAL_CREDITS,
             type: 'BONUS',
-            description: `Реферал бонус — ${name} се регистрира с твоя линк`,
+            description: \`Реферал бонус — \${name} се регистрира с твоя линк\`,
           }
         })
       }
@@ -181,27 +183,27 @@ export async function POST(request: Request) {
         }
       }
 
-      const refLink = `https://www.prozona.bg/bg/register/specialist?ref=${refCode}`
-      const verifyLink = `https://www.prozona.bg/api/auth/verify-email?token=${verifyToken}&id=${user.id}`
+      const refLink = \`https://www.prozona.bg/bg/register/specialist?ref=\${refCode}\`
+      const verifyLink = \`https://www.prozona.bg/api/auth/verify-email?token=\${verifyToken}&id=\${user.id}\`
 
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',
         to: email,
         subject: 'Потвърди имейла си — ProZona',
-        html: `
+        html: \`
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0D0D1A; color: #ffffff; padding: 40px; border-radius: 12px;">
             <div style="text-align: center; margin-bottom: 32px;">
               <div style="display: inline-block; background: #1DB954; padding: 12px 24px; border-radius: 8px;">
                 <span style="color: #0D0D1A; font-size: 24px; font-weight: bold;">ProZona</span>
               </div>
             </div>
-            <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">Здравей, ${name}!</h1>
+            <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">Здравей, \${name}!</h1>
             <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">
               Благодарим ти, че се регистрира в <strong style="color: #1DB954;">ProZona</strong>!
               Моля потвърди имейла си за да активираш профила си.
             </p>
             <div style="text-align: center; margin: 32px 0;">
-              <a href="${verifyLink}" style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+              <a href="\${verifyLink}" style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
                 Потвърди имейла си →
               </a>
             </div>
@@ -210,30 +212,30 @@ export async function POST(request: Request) {
             <div style="background: #151528; border: 1px solid #1DB954; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
               <p style="color: #1DB954; font-size: 15px; font-weight: bold; margin: 0 0 8px;">Покани колеги и получи бонус!</p>
               <p style="color: #cccccc; font-size: 13px; margin: 0 0 12px;">Получаваш <strong style="color: #1DB954;">5 кредита</strong> за всеки регистриран специалист!</p>
-              <a href="${refLink}" style="color: #1DB954; font-size: 13px; word-break: break-all;">${refLink}</a>
+              <a href="\${refLink}" style="color: #1DB954; font-size: 13px; word-break: break-all;">\${refLink}</a>
             </div>
           </div>
-        `
+        \`
       })
 
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',
         to: process.env.ADMIN_EMAIL,
-        subject: `Нов специалист: ${name}`,
-        html: `
+        subject: \`Нов специалист: \${name}\`,
+        html: \`
           <p><strong>Нов специалист се регистрира в ProZona:</strong></p>
           <ul>
-            <li>Име: ${name}</li>
-            <li>Имейл: ${email}</li>
-            <li>Телефон: ${phone || '—'}</li>
-            <li>Град: ${city || '—'}</li>
-            <li>Категория: ${categoryId || '—'}</li>
-            <li>Подкатегория: ${subcategoryId || '—'}</li>
-            <li>Предложена услуга: ${suggestedService || '—'}</li>
-            <li>Реферал от: ${ref || '—'}</li>
+            <li>Име: \${name}</li>
+            <li>Имейл: \${email}</li>
+            <li>Телефон: \${phone || '—'}</li>
+            <li>Град: \${city || '—'}</li>
+            <li>Категория: \${categoryId || '—'}</li>
+            <li>Подкатегория: \${subcategoryId || '—'}</li>
+            <li>Предложена услуга: \${suggestedService || '—'}</li>
+            <li>Реферал от: \${ref || '—'}</li>
           </ul>
           <a href="https://www.prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
-        `
+        \`
       })
     }
 
@@ -246,3 +248,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Възникна грешка при регистрацията' }, { status: 500 })
   }
 }
+`;
+
+fs.writeFileSync('app/api/auth/register/route.ts', content, 'utf8');
+console.log('Done — register/route.ts written.');
