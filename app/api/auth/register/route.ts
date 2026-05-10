@@ -175,11 +175,15 @@ export async function POST(request: Request) {
 
       // Запази категория и подкатегория
       if (categoryId && subcategoryId) {
-        const dbCategory = await prisma.category.findUnique({ where: { slug: categoryId } })
-        if (dbCategory) {
-          const dbSubcategory = await prisma.subcategory.findFirst({
-            where: { slug: subcategoryId, categoryId: dbCategory.id }
-          })
+  const dbCategory = await prisma.category.findFirst({ 
+    where: isNaN(Number(categoryId)) ? { slug: categoryId } : { id: Number(categoryId) }
+  })
+  if (dbCategory) {
+    const dbSubcategory = await prisma.subcategory.findFirst({
+      where: isNaN(Number(subcategoryId)) 
+        ? { slug: subcategoryId, categoryId: dbCategory.id }
+        : { id: Number(subcategoryId), categoryId: dbCategory.id }
+    })
           await prisma.specialistCategory.create({
             data: {
               specialistId: specialist.id,
