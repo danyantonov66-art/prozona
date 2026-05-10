@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+const fs = require('fs');
+
+const content = `import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '../../../../lib/prisma'
 
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
           specialistId: specialist.id,
           amount: creditsToAdd,
           type: 'PURCHASE',
-          description: `Закупен план: ${planType}`,
+          description: \`Закупен план: \${planType}\`,
           price: (session.amount_total || 0) / 100,
         },
       })
@@ -103,7 +105,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      console.log(`Added ${creditsToAdd} credits to specialist ${specialist.id}`)
+      console.log(\`Added \${creditsToAdd} credits to specialist \${specialist.id}\`)
     } catch (error) {
       console.error('Database error:', error)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
@@ -112,3 +114,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ received: true })
 }
+`;
+
+fs.writeFileSync('app/api/stripe/webhook/route.ts', content, 'utf8');
+console.log('Done.');

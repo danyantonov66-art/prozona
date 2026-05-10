@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+const fs = require('fs');
+
+const content = `import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -62,11 +64,15 @@ export async function POST(request: NextRequest, { params }: Props) {
       specialist,
       premiumGranted: isPremiumSlot,
       message: isPremiumSlot
-        ? `Одобрен + 6 месеца Premium (място #${approvedCount + 1}/200)`
-        : `Одобрен (Premium местата са изчерпани)`
+        ? \`Одобрен + 6 месеца Premium (място #\${approvedCount + 1}/200)\`
+        : \`Одобрен (Premium местата са изчерпани)\`
     })
   } catch (error) {
     console.error("Approve specialist error:", error)
     return NextResponse.json({ error: "Failed to approve specialist" }, { status: 500 })
   }
 }
+`;
+
+fs.writeFileSync('app/api/admin/specialists/[id]/approve/route.ts', content, 'utf8');
+console.log('Done.');

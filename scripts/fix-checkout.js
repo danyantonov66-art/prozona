@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server'
+const fs = require('fs');
+
+const content = `import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../../lib/auth'
 import { prisma } from '../../../../lib/prisma'
@@ -50,8 +52,8 @@ export async function POST(request: Request) {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `ProZona — ${plan.name}`,
-              description: `${plan.credits} кредита за ProZona`,
+              name: \`ProZona — \${plan.name}\`,
+              description: \`\${plan.credits} кредита за ProZona\`,
             },
             unit_amount: Math.round(plan.priceEur * 100),
           },
@@ -64,8 +66,8 @@ export async function POST(request: Request) {
         planType,
         credits: String(plan.credits),
       },
-      success_url: `${appUrl}/bg/specialist/dashboard?success=1`,
-      cancel_url: `${appUrl}/bg/specialist/buy-credits?cancelled=1`,
+      success_url: \`\${appUrl}/bg/specialist/dashboard?success=1\`,
+      cancel_url: \`\${appUrl}/bg/specialist/buy-credits?cancelled=1\`,
     })
 
     return NextResponse.json({ url: checkoutSession.url })
@@ -74,3 +76,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 })
   }
 }
+`;
+
+fs.writeFileSync('app/api/stripe/create-checkout/route.ts', content, 'utf8');
+console.log('Done.');

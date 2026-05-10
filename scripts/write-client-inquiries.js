@@ -1,4 +1,6 @@
-import { redirect } from 'next/navigation'
+const fs = require('fs');
+
+const content = `import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -13,14 +15,14 @@ export default async function ClientInquiriesPage({ params }: Props) {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.email) {
-    redirect(`/${locale}/login`)
+    redirect(\`/\${locale}/login\`)
   }
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
   })
 
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(\`/\${locale}/login\`)
 
   const inquiries = await prisma.inquiry.findMany({
     where: { clientId: user.id },
@@ -48,7 +50,7 @@ export default async function ClientInquiriesPage({ params }: Props) {
             <h1 className="text-3xl font-bold text-white">Моите запитвания</h1>
             <p className="text-sm text-gray-400 mt-1">Общо: {inquiries.length}</p>
           </div>
-          <Link href={`/${locale}/dashboard`} className="text-[#1DB954] hover:underline text-sm">
+          <Link href={\`/\${locale}/dashboard\`} className="text-[#1DB954] hover:underline text-sm">
             ← Към таблото
           </Link>
         </div>
@@ -58,7 +60,7 @@ export default async function ClientInquiriesPage({ params }: Props) {
             <p className="text-gray-400 text-xl mb-2">Все още няма изпратени запитвания</p>
             <p className="text-gray-500 text-sm mb-4">Намери специалист и изпрати запитване.</p>
             <Link
-              href={`/${locale}/search`}
+              href={\`/\${locale}/search\`}
               className="inline-block px-6 py-2 bg-[#1DB954] text-black font-medium rounded-lg hover:bg-[#169b43]"
             >
               Търси специалисти
@@ -78,20 +80,20 @@ export default async function ClientInquiriesPage({ params }: Props) {
                     </p>
                     {inquiry.specialist && (
                       <Link
-                        href={`/${locale}/specialist/${inquiry.specialist.id}`}
+                        href={\`/\${locale}/specialist/\${inquiry.specialist.id}\`}
                         className="text-[#1DB954] hover:underline text-sm mt-1 inline-block"
                       >
                         Специалист: {inquiry.specialist.user.name}
                       </Link>
                     )}
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
+                  <span className={\`text-xs px-2 py-1 rounded-full \${
                     inquiry.status === 'PENDING'   ? 'bg-[#1DB954]/20 text-[#1DB954]' :
                     inquiry.status === 'VIEWED'    ? 'bg-yellow-500/20 text-yellow-400' :
                     inquiry.status === 'REPLIED'   ? 'bg-blue-500/20 text-blue-400' :
                     inquiry.status === 'COMPLETED' ? 'bg-purple-500/20 text-purple-400' :
                     'bg-gray-700 text-gray-400'
-                  }`}>
+                  }\`}>
                     {inquiry.status === 'PENDING'   ? 'Изпратено' :
                      inquiry.status === 'VIEWED'    ? 'Прочетено' :
                      inquiry.status === 'REPLIED'   ? 'Получен отговор' :
@@ -134,3 +136,7 @@ export default async function ClientInquiriesPage({ params }: Props) {
     </main>
   )
 }
+`;
+
+fs.writeFileSync('app/[locale]/dashboard/inquiries/page.tsx', content, 'utf8');
+console.log('Done — client inquiries page written.');
