@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { prisma } from "../../../lib/prisma"
 import { Resend } from "resend"
 
@@ -6,27 +8,35 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
     const body = await request.json()
     const { specialistId, name, email, phone, message, city, categoryId } = body
 
     if (!name || !email || !message || !city || !categoryId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Моля, попълнете всички задължителни полета" },
+        { status: 400 }
+      )
     }
 
     let specialist = null
     if (specialistId) {
       specialist = await prisma.specialist.findUnique({
         where: { id: specialistId },
-        include: { user: true }
+        include: { user: true },
       })
       if (!specialist) {
-        return NextResponse.json({ error: "Specialist not found" }, { status: 404 })
+        return NextResponse.json(
+          { error: "Специалистът не е намерен" },
+          { status: 404 }
+        )
       }
     }
 
     const inquiry = await prisma.inquiry.create({
       data: {
         specialistId: specialistId || null,
+        clientId: session?.user?.id || null, // вързваме към акаунта ако е логнат
         name,
         email,
         phone: phone || null,
@@ -37,15 +47,15 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // ✅ Изпрати имейл известие до специалиста
     if (specialist?.user?.email) {
-      const specialistName = specialist.businessName || specialist.user.name || "Специалист"
+      const specialistName =
+        specialist.businessName || specialist.user.name || "Специалист"
       const dashboardUrl = `https://www.prozona.bg/bg/specialist/dashboard`
 
       await resend.emails.send({
         from: "ProZona <office@prozona.bg>",
         to: specialist.user.email,
-        subject: `📩 Ново запитване от ${name} — ProZona`,
+        subject: `📩 Ново запитване от ${name} – ProZona`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0D0D1A; color: #ffffff; padding: 40px; border-radius: 12px;">
             <div style="text-align: center; margin-bottom: 32px;">
@@ -61,7 +71,7 @@ export async function POST(request: NextRequest) {
               Здравей, ${specialistName}! Имаш ново запитване от клиент в ProZona.
             </p>
 
-            <div style="background: #151528; border: 1px solid #1DB954/30; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+            <div style="background: #151528; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
               <p style="color: #888; font-size: 12px; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 1px;">От</p>
               <p style="color: #ffffff; font-size: 16px; font-weight: bold; margin: 0 0 16px;">${name}</p>
 
@@ -72,8 +82,8 @@ export async function POST(request: NextRequest) {
               <p style="color: #cccccc; font-size: 15px; line-height: 1.6; margin: 0; background: #0D0D1A; padding: 12px; border-radius: 8px;">${message}</p>
             </div>
 
-            <div style="background: #1DB954/10; border: 1px solid #333; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
-              <p style="color: #888; font-size: 13px; margin: 0 0 4px;">
+            <div style="border: 1px solid #333; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
+              <p style="color: #888; font-size: 13px; margin: 0;">
                 🔒 Контактите на клиента са скрити. Отключи запитването с 1 кредит за да видиш телефон и имейл.
               </p>
             </div>
@@ -86,16 +96,19 @@ export async function POST(request: NextRequest) {
             </div>
 
             <p style="color: #444; font-size: 12px; text-align: center; margin-top: 32px;">
-              ProZona.bg — Платформата за професионални услуги в България
+              ProZona.bg – Платформата за професионални услуги в България
             </p>
           </div>
-        `
+        `,
       })
     }
 
     return NextResponse.json({ success: true, inquiry })
   } catch (error) {
     console.error("Inquiry create error:", error)
-    return NextResponse.json({ error: "Failed to create inquiry" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Възникна грешка при изпращане на запитването" },
+      { status: 500 }
+    )
   }
 }

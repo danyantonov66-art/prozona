@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-const CREDIT_PRICE = 2
+const CREDIT_PRICE = 1
 
 interface Props {
   params: Promise<{ id: string }>
@@ -25,7 +25,10 @@ export async function POST(request: NextRequest, { params }: Props) {
     }
 
     if (specialist.credits < CREDIT_PRICE) {
-      return NextResponse.json({ error: "Недостатъчно кредити" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Нямаш достатъчно кредити" },
+        { status: 400 }
+      )
     }
 
     const inquiry = await prisma.inquiry.findUnique({
@@ -42,15 +45,20 @@ export async function POST(request: NextRequest, { params }: Props) {
       (r) => r.specialistId === specialist.id
     )
     if (alreadyUnlocked) {
-      return NextResponse.json({ error: "Вече е отключено" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Вече е отключено" },
+        { status: 400 }
+      )
     }
 
-    // Максимум 5 специалисти
+    // Максимум 5 специалиста
     if (inquiry.InquiryResponse.length >= 5) {
-      return NextResponse.json({ error: "Максималният брой специалисти е достигнат" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Максималният брой специалисти е достигнат" },
+        { status: 400 }
+      )
     }
 
-    // Транзакция — намали кредити и създай response
     await prisma.$transaction([
       prisma.specialist.update({
         where: { id: specialist.id },
@@ -64,8 +72,17 @@ export async function POST(request: NextRequest, { params }: Props) {
           id: `${specialist.id}-${id}-${Date.now()}`,
           inquiryId: id,
           specialistId: specialist.id,
-          message: "",
+          message: "unlocked",
           creditsSpent: CREDIT_PRICE,
+        },
+      }),
+      prisma.creditTransaction.create({
+        data: {
+          id: `tx-${specialist.id}-${id}-${Date.now()}`,
+          specialistId: specialist.id,
+          amount: -CREDIT_PRICE,
+          type: "USAGE",
+          description: `Отключено запитване ${id}`,
         },
       }),
     ])
