@@ -27,6 +27,11 @@ export async function GET() {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { emailVerified: true }
+    })
+
     const inquiries = await prisma.inquiry.findMany({
       where: { specialistId: specialist.id },
       orderBy: { createdAt: 'desc' },
@@ -56,6 +61,7 @@ export async function GET() {
 
     return NextResponse.json({
       credits: specialist.credits,
+      emailVerified: !!user?.emailVerified,
       inquiries: formattedInquiries,
       stats: {
         viewsCount: specialist.viewsCount,
