@@ -113,6 +113,11 @@ export async function POST(request: Request) {
 })
 
     if (role === 'SPECIALIST') {
+      const specialistCount = await prisma.specialist.count()
+      const isPremiumPromo = specialistCount < 200
+      const premiumExpiry = new Date()
+      premiumExpiry.setMonth(premiumExpiry.getMonth() + 6)
+
       const specialist = await prisma.specialist.create({
         data: {
           userId: user.id,
@@ -122,6 +127,11 @@ export async function POST(request: Request) {
           phone: phone,
           verified: false,
           referredBy: referrer ? ref : null,
+          subscriptionPlan: isPremiumPromo ? 'PREMIUM' : 'FREE',
+          subscriptionExpiresAt: isPremiumPromo ? premiumExpiry : null,
+          credits: isPremiumPromo ? 25 : 0,
+          monthlyCredits: isPremiumPromo ? 25 : 0,
+          maxImages: isPremiumPromo ? 20 : 5,
         }
       })
 
