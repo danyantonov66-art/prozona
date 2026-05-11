@@ -94,7 +94,7 @@ export default function SpecialistDashboard() {
       <section className="mx-auto max-w-5xl px-4 py-10">
 
         {/* Имейл верификация */}
-        {!(session?.user as any)?.emailVerified && (
+       {!(session?.user as any)?.emailVerified && false && (
           <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-yellow-300 text-sm">
             ⚠️ <strong>Потвърди имейла си!</strong> Провери пощата си и кликни на линка за потвърждение.
           </div>
