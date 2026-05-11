@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { Resend } from 'resend'
@@ -101,15 +101,16 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, 10)
     const verifyToken = crypto.randomBytes(32).toString('hex')
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        phone: phone || null,
-        role: role || 'CLIENT',
-      }
-    })
+   const user = await prisma.user.create({
+  data: {
+    email,
+    password: hashedPassword,
+    name,
+    phone: phone || null,
+    role: role || 'CLIENT',
+    verifyToken,  
+  }
+})
 
     if (role === 'SPECIALIST') {
       const specialist = await prisma.specialist.create({
@@ -233,6 +234,36 @@ export async function POST(request: Request) {
             <li>Реферал от: ${ref || '—'}</li>
           </ul>
           <a href="https://www.prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
+        `
+      })
+    }
+
+    if (role !== 'SPECIALIST') {
+      const verifyLink = `https://www.prozona.bg/api/auth/verify-email?token=${verifyToken}&id=${user.id}`
+
+      await resend.emails.send({
+        from: 'ProZona <office@prozona.bg>',
+        to: email,
+        subject: 'Потвърди имейла си — ProZona',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0D0D1A; color: #ffffff; padding: 40px; border-radius: 12px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <div style="display: inline-block; background: #1DB954; padding: 12px 24px; border-radius: 8px;">
+                <span style="color: #0D0D1A; font-size: 24px; font-weight: bold;">ProZona</span>
+              </div>
+            </div>
+            <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">Здравей, ${name}!</h1>
+            <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">
+              Благодарим ти, че се регистрира в <strong style="color: #1DB954;">ProZona</strong>!
+              Моля потвърди имейла си за да активираш профила си.
+            </p>
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="${verifyLink}" style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                Потвърди имейла си →
+              </a>
+            </div>
+            <p style="color: #666; font-size: 13px; text-align: center;">Линкът е валиден 24 часа.</p>
+          </div>
         `
       })
     }
