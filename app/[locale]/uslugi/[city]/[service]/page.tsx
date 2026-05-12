@@ -16,6 +16,12 @@ const SERVICE_MAP: Record<string, {
     description: (city) => `Търсиш електротехник в ${city}? В ProZona ще намериш проверени специалисти за ремонт на електроинсталации, аварии, смяна на табла и монтаж на осветление. Разгледай профилите, сравни услуги и изпрати запитване директно към майстор в ${city}.`,
     keywords: ["електротехник", "ел инсталация", "авария", "табло", "осветление"],
   },
+  "elektro": {
+    name: "Електроинсталации",
+    categoryName: "Ремонти и майстори",
+    description: (city) => `Търсиш електротехник за инсталации в ${city}? В ProZona ще намериш проверени специалисти за електроинсталации, аварии и монтаж на осветление в ${city}.`,
+    keywords: ["електроинсталации", "електротехник", "ел инсталация", "табло"],
+  },
   "vik": {
     name: "ВиК майстор",
     categoryName: "Ремонти и майстори",
@@ -27,6 +33,12 @@ const SERVICE_MAP: Record<string, {
     categoryName: "Почистване",
     description: (city) => `Нуждаеш се от почистване в ${city}? В ProZona ще намериш фирми и специалисти за генерално почистване на апартаменти, офиси, след ремонт и редовна поддръжка. Изпрати запитване и получи оферта от проверен специалист в ${city}.`,
     keywords: ["почистване", "генерално почистване", "почистване апартамент", "почистване офис"],
+  },
+  "domashno": {
+    name: "Домашно почистване",
+    categoryName: "Почистване",
+    description: (city) => `Търсиш домашно почистване в ${city}? В ProZona ще намериш фирми и специалисти за редовно и генерално почистване на апартаменти и домове в ${city}.`,
+    keywords: ["домашно почистване", "почистване апартамент", "почистване вкъщи", "почистване"],
   },
   "pokrivi": {
     name: "Ремонт на покриви",
@@ -52,6 +64,18 @@ const SERVICE_MAP: Record<string, {
     description: (city) => `Търсиш майстор за шпакловка и боя в ${city}? ProZona свързва теб с опитни специалисти за шпакловане, боядисване и декоративни мазилки в ${city}. Виж профилите и изпрати запитване.`,
     keywords: ["шпакловка", "боя", "боядисване", "декоративна мазилка"],
   },
+  "shpaklovka-zidariya": {
+    name: "Шпакловка и зидария",
+    categoryName: "Ремонти и майстори",
+    description: (city) => `Търсиш майстор за шпакловка и зидария в ${city}? ProZona свързва теб с опитни специалисти за шпакловане, зидария и мазилки в ${city}.`,
+    keywords: ["шпакловка", "зидария", "мазилка", "боя"],
+  },
+  "boyadisvane": {
+    name: "Боядисване",
+    categoryName: "Ремонти и майстори",
+    description: (city) => `Търсиш майстор за боядисване в ${city}? ProZona свързва теб с опитни специалисти за боядисване на стаи, апартаменти и фасади в ${city}.`,
+    keywords: ["боядисване", "боя", "шпакловка", "декоративна мазилка"],
+  },
   "gradina": {
     name: "Градинарство",
     categoryName: "Градина и двор",
@@ -69,6 +93,18 @@ const SERVICE_MAP: Record<string, {
     categoryName: "Ремонти и строителство",
     description: (city) => `Търсиш майстор за дребни ремонти в ${city}? ProZona свързва теб с опитни специалисти за монтаж, смяна на брави, запълване на пукнатини и други дребни задачи в дома в ${city}.`,
     keywords: ["дребни ремонти", "домашни ремонти", "майстор", "монтаж"],
+  },
+  "dovarshitelni-remonti": {
+    name: "Довършителни ремонти",
+    categoryName: "Ремонти и строителство",
+    description: (city) => `Търсиш майстор за довършителни ремонти в ${city}? Намери верифицирани специалисти за шпакловка, боя, подови настилки и довършителни работи в ${city}.`,
+    keywords: ["довършителни ремонти", "шпакловка", "боя", "подови настилки"],
+  },
+  "remont-banya": {
+    name: "Ремонт на баня",
+    categoryName: "Ремонти и строителство",
+    description: (city) => `Търсиш майстор за ремонт на баня в ${city}? ProZona свързва теб с верифицирани специалисти за цялостен и частичен ремонт на баня в ${city}.`,
+    keywords: ["ремонт баня", "баня", "плочки", "ВиК", "санитария"],
   },
   "remont-pokrivi": {
     name: "Ремонт на покриви",
@@ -119,7 +155,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${svc.name} в ${cityBg} | ProZona`,
     description: `Намери ${svc.name.toLowerCase()} в ${cityBg}. Проверени специалисти, реални оферти и бърз контакт. ProZona.bg`,
     alternates: {
-      canonical: `https://www.prozona.bg/bg/uslugi/${city}/${service}`,
+      canonical: `https://prozona.bg/bg/uslugi/${city}/${service}`,
     },
   }
 }
@@ -163,7 +199,6 @@ export default async function ServiceCityPage({ params }: Props) {
 
       <section className="mx-auto max-w-6xl px-4 py-10">
 
-        {/* Breadcrumb */}
         <div className="mb-6 flex items-center gap-2 text-sm text-gray-400">
           <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">Начало</Link>
           <span>/</span>
@@ -191,7 +226,6 @@ export default async function ServiceCityPage({ params }: Props) {
 
         {filled.length === 0 ? (
           <div className="mb-10 space-y-6">
-            {/* За клиенти */}
             <div className="rounded-2xl border border-white/10 bg-[#151528] p-10 text-center">
               <p className="mb-2 text-lg text-gray-300">
                 Няма намерени специалисти за {serviceName} в {cityBg} в момента.
@@ -207,7 +241,6 @@ export default async function ServiceCityPage({ params }: Props) {
               </Link>
             </div>
 
-            {/* За специалисти — CTA за набиране */}
             <div className="rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 p-10 text-center">
               <div className="mb-3 text-4xl">🔧</div>
               <h2 className="mb-3 text-2xl font-bold text-white">
@@ -295,7 +328,6 @@ export default async function ServiceCityPage({ params }: Props) {
           </div>
         )}
 
-        {/* CTA — винаги видим */}
         <div className="mb-10 rounded-2xl border border-[#1DB954]/20 bg-[#1DB954]/5 p-8 text-center">
           <h2 className="mb-2 text-2xl font-bold">Не намери подходящ специалист?</h2>
           <p className="mb-6 text-gray-400">
@@ -309,7 +341,6 @@ export default async function ServiceCityPage({ params }: Props) {
           </Link>
         </div>
 
-        {/* Вътрешни линкове */}
         <div className="rounded-2xl border border-white/10 bg-[#151528] p-6">
           <h3 className="mb-4 text-lg font-semibold text-gray-300">Други услуги в {cityBg}</h3>
           <div className="flex flex-wrap gap-2">
