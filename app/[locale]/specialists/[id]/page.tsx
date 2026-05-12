@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props) {
   const city = specialist.city || ""
   const description = specialist.description?.slice(0, 160) || `${name} — верифициран специалист в ProZona.`
   const image = specialist.user?.image || null
-  const canonicalUrl = `https://prozona.bg/${locale}/specialists/${id}`
+  const canonicalUrl = `https://prozona.bg/bg/specialists/\$\{id\}`
   const titleCity = city ? `, ${city}` : ""
   const title = `${name}${titleCity} | ProZona`
 
@@ -90,7 +90,7 @@ export default async function SpecialistPage({ params }: Props) {
   const avgRating = specialist.reviews.length > 0
     ? specialist.reviews.reduce((sum, r) => sum + r.rating, 0) / specialist.reviews.length
     : null
-  const canonicalUrl = `https://prozona.bg/${locale}/specialists/${id}`
+  const canonicalUrl = `https://prozona.bg/bg/specialists/\$\{id\}`
 
   const videoUrl = (specialist as any).videoUrl as string | null
   const isYoutube = videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))
