@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -13,6 +12,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.prozona.bg" }],
+        destination: "https://prozona.bg/:path*",
+        permanent: true,
+      },
+    ]
+  },
 };
-
 export default nextConfig;
