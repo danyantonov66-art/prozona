@@ -167,6 +167,7 @@ export default async function Home({ params }: Props) {
     },
   },
 ]),
+        }}
       />
       <ProZonaHeader locale={locale} />
 
