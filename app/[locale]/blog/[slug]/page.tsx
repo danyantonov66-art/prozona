@@ -55,8 +55,11 @@ export default async function BlogPostPage({ params }: Props) {
     publisher: { "@type": "Organization", name: "ProZona", url: "https://prozona.bg" },
   }
 
+  const formattedDate = new Date(post.publishedAt || post.createdAt)
+    .toLocaleDateString('bg-BG', { year: 'numeric', month: 'long', day: 'numeric' })
+
   return (
-    <main className="min-h-screen bg-[#0D0D1A] text-white">
+    <main className="min-h-screen bg-[#0D0D1A] text-white" suppressHydrationWarning>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ProZonaHeader locale={locale} />
       <article className="mx-auto max-w-3xl px-4 py-12">
@@ -85,11 +88,11 @@ export default async function BlogPostPage({ params }: Props) {
         {/* Meta */}
         <div className="flex items-center gap-4 text-sm text-gray-400 mb-8 pb-8 border-b border-white/10">
           {post.author?.image && (
-            <img src={post.author.image} alt={post.author.name} className="w-8 h-8 rounded-full" />
+            <img src={post.author.image} alt={post.author?.name ?? 'ProZona'} className="w-8 h-8 rounded-full" />
           )}
-          <span>{post.author?.name || 'ProZona'}</span>
+          <span>{post.author?.name ?? 'ProZona'}</span>
           <span>·</span>
-          <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString('bg-BG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <span suppressHydrationWarning>{formattedDate}</span>
         </div>
 
         {/* Content */}
@@ -107,8 +110,24 @@ export default async function BlogPostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
+        {/* CTA към специалисти */}
+        <div className="mt-12 p-6 bg-[#151528] border border-[#1DB954]/20 rounded-2xl text-center">
+          <h3 className="text-xl font-bold text-white mb-2">
+            Търсиш специалист?
+          </h3>
+          <p className="text-gray-400 mb-4">
+            Намери проверен майстор близо до теб — безплатно и без регистрация.
+          </p>
+          <Link
+            href={`/${locale}/search`}
+            className="inline-block bg-[#1DB954] text-[#0D0D1A] font-bold px-8 py-3 rounded-xl hover:bg-[#17a847] transition-colors"
+          >
+            Намери специалист →
+          </Link>
+        </div>
+
         {/* Back to blog */}
-        <div className="mt-12 pt-8 border-t border-white/10">
+        <div className="mt-8 pt-8 border-t border-white/10">
           <Link
             href={`/${locale}/blog`}
             className="inline-flex items-center gap-2 text-[#1DB954] hover:underline"
@@ -116,6 +135,7 @@ export default async function BlogPostPage({ params }: Props) {
             ← Обратно към блога
           </Link>
         </div>
+
       </article>
       <ProZonaFooter locale={locale} />
     </main>

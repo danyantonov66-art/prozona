@@ -1,0 +1,78 @@
+const fs = require('fs');
+
+const content = `import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { sendSpecialistApprovedEmail } from "@/lib/email"
+
+interface Props {
+  params: Promise<{ id: string }>
+}
+
+export async function POST(request: NextRequest, { params }: Props) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || (session.user as any)?.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    // Брой одобрени специалисти преди този
+    const approvedCount = await prisma.specialist.count({
+      where: { verified: true }
+    })
+
+    const isPremiumSlot = approvedCount < 200
+
+    const sixMonthsFromNow = new Date()
+    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6)
+
+    const specialist = await prisma.specialist.update({
+      where: { id },
+      data: {
+        verified: true,
+        verifiedAt: new Date(),
+        ...(isPremiumSlot ? {
+          subscriptionPlan: 'PREMIUM',
+          subscriptionExpiresAt: sixMonthsFromNow,
+          isFeatured: true,
+          featuredExpiresAt: sixMonthsFromNow,
+          credits: { increment: 10 },
+        } : {}),
+      },
+      include: { user: true },
+    })
+
+    await prisma.user.update({
+      where: { id: specialist.userId },
+      data: { role: "SPECIALIST" },
+    })
+
+    try {
+      await sendSpecialistApprovedEmail({
+        specialistEmail: specialist.user?.email || "",
+        specialistName: specialist.user?.name || "Specialist",
+      })
+    } catch (emailError) {
+      console.error("Email error:", emailError)
+    }
+
+    return NextResponse.json({
+      success: true,
+      specialist,
+      premiumGranted: isPremiumSlot,
+      message: isPremiumSlot
+        ? \`Одобрен + 6 месеца Premium (място #\${approvedCount + 1}/200)\`
+        : \`Одобрен (Premium местата са изчерпани)\`
+    })
+  } catch (error) {
+    console.error("Approve specialist error:", error)
+    return NextResponse.json({ error: "Failed to approve specialist" }, { status: 500 })
+  }
+}
+`;
+
+fs.writeFileSync('app/api/admin/specialists/[id]/approve/route.ts', content, 'utf8');
+console.log('Done.');

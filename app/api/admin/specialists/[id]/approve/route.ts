@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -17,13 +17,32 @@ export async function POST(request: NextRequest, { params }: Props) {
 
     const { id } = await params
 
+    // Брой одобрени специалисти преди този
+    const approvedCount = await prisma.specialist.count({
+      where: { verified: true }
+    })
+
+    const isPremiumSlot = approvedCount < 200
+
+    const sixMonthsFromNow = new Date()
+    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6)
+
     const specialist = await prisma.specialist.update({
       where: { id },
-      data: { verified: true },
+      data: {
+        verified: true,
+        verifiedAt: new Date(),
+        ...(isPremiumSlot ? {
+          subscriptionPlan: 'PREMIUM',
+          subscriptionExpiresAt: sixMonthsFromNow,
+          isFeatured: true,
+          featuredExpiresAt: sixMonthsFromNow,
+          credits: { increment: 10 },
+        } : {}),
+      },
       include: { user: true },
     })
 
-    // Сменяме ролята на потребителя на SPECIALIST
     await prisma.user.update({
       where: { id: specialist.userId },
       data: { role: "SPECIALIST" },
@@ -38,7 +57,14 @@ export async function POST(request: NextRequest, { params }: Props) {
       console.error("Email error:", emailError)
     }
 
-    return NextResponse.json({ success: true, specialist })
+    return NextResponse.json({
+      success: true,
+      specialist,
+      premiumGranted: isPremiumSlot,
+      message: isPremiumSlot
+        ? `Одобрен + 6 месеца Premium (място #${approvedCount + 1}/200)`
+        : `Одобрен (Premium местата са изчерпани)`
+    })
   } catch (error) {
     console.error("Approve specialist error:", error)
     return NextResponse.json({ error: "Failed to approve specialist" }, { status: 500 })

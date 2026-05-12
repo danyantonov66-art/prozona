@@ -41,6 +41,7 @@ export default function SpecialistDashboard() {
   const [referral, setReferral] = useState<Referral | null>(null)
   const [refCopied, setRefCopied] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [emailVerified, setEmailVerified] = useState(true)
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/bg/login")
@@ -54,6 +55,7 @@ export default function SpecialistDashboard() {
           setInquiries(data.inquiries || [])
           setCredits(data.credits || 0)
           setStats(data.stats || null)
+          setEmailVerified(data.emailVerified ?? true)
           setLoading(false)
         })
       fetch("/api/specialist/referral")
@@ -93,8 +95,7 @@ export default function SpecialistDashboard() {
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <section className="mx-auto max-w-5xl px-4 py-10">
 
-        {/* Имейл верификация */}
-        {!(session?.user as any)?.emailVerified && (
+        {!emailVerified && (
           <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-yellow-300 text-sm">
             ⚠️ <strong>Потвърди имейла си!</strong> Провери пощата си и кликни на линка за потвърждение.
           </div>
@@ -116,7 +117,6 @@ export default function SpecialistDashboard() {
           </div>
         </div>
 
-        {/* ✅ Статистика */}
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
             <div className="rounded-2xl border border-white/10 bg-[#151528] p-4 text-center">
@@ -144,7 +144,6 @@ export default function SpecialistDashboard() {
           </div>
         )}
 
-        {/* Навигация */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <Link href="/bg/specialist/profile"
             className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
@@ -168,7 +167,6 @@ export default function SpecialistDashboard() {
           </Link>
         </div>
 
-        {/* ✅ Реферална програма */}
         {referral && (
           <div className="rounded-2xl border border-[#1DB954]/20 bg-[#151528] p-6 mb-8">
             <div className="flex items-center justify-between mb-4">

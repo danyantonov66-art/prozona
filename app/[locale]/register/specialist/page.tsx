@@ -1,9 +1,21 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { trackCompleteRegistration } from "@/lib/metaPixel"
-import { categories } from "@/lib/constants"
+
+interface Subcategory {
+  id: number
+  name: string
+  slug: string
+}
+
+interface Category {
+  id: number
+  name: string
+  slug: string
+  Subcategory: Subcategory[]
+}
 
 export default function RegisterSpecialistPage() {
   const [form, setForm] = useState({
@@ -23,8 +35,20 @@ export default function RegisterSpecialistPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCats, setLoadingCats] = useState(true)
 
-  const selectedCategory = categories.find((c) => c.id === form.categoryId)
+  useEffect(() => {
+    fetch("/api/categories?withSubcategories=true")
+      .then(r => r.json())
+      .then(data => {
+        const cats = Array.isArray(data) ? data : (data.categories ?? [])
+        setCategories(cats.filter((c: any) => c.isActive !== false))
+      })
+      .finally(() => setLoadingCats(false))
+  }, [])
+
+  const selectedCategory = categories.find((c) => String(c.id) === form.categoryId)
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -36,10 +60,7 @@ export default function RegisterSpecialistPage() {
       ...(name === "categoryId" ? { subcategoryId: "", service: "" } : {}),
       ...(name === "subcategoryId"
         ? {
-            service:
-              categories
-                .find((c) => c.id === form.categoryId)
-                ?.subcategories.find((s) => s.id === value)?.name || "",
+            service: selectedCategory?.Subcategory?.find((s) => String(s.id) === value)?.name || "",
           }
         : {}),
     }))
@@ -184,19 +205,17 @@ export default function RegisterSpecialistPage() {
 
             {/* Категория */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Категория
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Категория</label>
               <select
                 name="categoryId"
                 value={form.categoryId}
                 onChange={handleChange}
-                disabled={!!form.suggestedService}
+                disabled={!!form.suggestedService || loadingCats}
                 className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50 disabled:opacity-40"
               >
-                <option value="">-- Избери категория --</option>
+                <option value="">{loadingCats ? "Зареждане..." : "-- Избери категория --"}</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.id} value={String(cat.id)}>
                     {cat.name}
                   </option>
                 ))}
@@ -216,9 +235,9 @@ export default function RegisterSpecialistPage() {
                   className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
                 >
                   <option value="">-- Избери подкатегория --</option>
-                  {selectedCategory.subcategories.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.icon} {sub.name}
+                  {selectedCategory.Subcategory?.map((sub) => (
+                    <option key={sub.id} value={String(sub.id)}>
+                      {sub.name}
                     </option>
                   ))}
                 </select>
@@ -259,13 +278,13 @@ export default function RegisterSpecialistPage() {
                 className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50 resize-none"
               />
               <p className="mt-1 text-xs text-yellow-400">
-  ⚠️ Не поставяй телефон, имейл или линкове в описанието — контактната информация ще бъде автоматично изтрита.
-</p>
-{form.description && /08\d[\d\s\-]{7,}|(\+359|00359)\s?[\d\s\-]{8,}/.test(form.description) && (
-  <p className="mt-1 text-xs text-red-400">
-    ❌ Открит телефонен номер! Моля премахни го — профилът ти може да бъде редактиран от администратор.
-  </p>
-)}
+                ⚠️ Не поставяй телефон, имейл или линкове в описанието — контактната информация ще бъде автоматично изтрита.
+              </p>
+              {form.description && /08\d[\d\s\-]{7,}|(\+359|00359)\s?[\d\s\-]{8,}/.test(form.description) && (
+                <p className="mt-1 text-xs text-red-400">
+                  ❌ Открит телефонен номер! Моля премахни го — профилът ти може да бъде редактиран от администратор.
+                </p>
+              )}
             </div>
 
             {/* Парола */}

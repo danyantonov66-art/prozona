@@ -24,7 +24,14 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
   const inquiries = await prisma.inquiry.findMany({
     where: { specialistId: specialist.id },
     orderBy: { createdAt: 'desc' },
+    include: {
+      InquiryResponse: {
+        orderBy: { createdAt: 'asc' }
+      }
+    }
   })
+
+  const credits = specialist.credits
 
   return (
     <div className="min-h-screen bg-[#0D0D1A] py-8 px-4">
@@ -32,10 +39,15 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white">Получени запитвания</h1>
-            <p className="text-sm text-gray-400 mt-1">Общо: {inquiries.length}</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Общо: {inquiries.length}&nbsp;&middot;&nbsp;
+              <span className={credits < 3 ? 'text-red-400' : 'text-[#1DB954]'}>
+                {credits} кредита
+              </span>
+            </p>
           </div>
-          <Link href={`/${locale}/specialist/dashboard`} className="text-[#1DB954] hover:underline">
-            ← Към таблото
+          <Link href={`/${locale}/specialist/dashboard`} className="text-[#1DB954] hover:underline text-sm">
+            &larr; Към таблото
           </Link>
         </div>
 
@@ -59,28 +71,53 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
                     </p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    inquiry.status === 'PENDING' ? 'bg-[#1DB954]/20 text-[#1DB954]' :
-                    inquiry.status === 'VIEWED' ? 'bg-yellow-500/20 text-yellow-400' :
-                    inquiry.status === 'REPLIED' ? 'bg-blue-500/20 text-blue-400' :
+                    inquiry.status === 'PENDING'   ? 'bg-[#1DB954]/20 text-[#1DB954]' :
+                    inquiry.status === 'VIEWED'    ? 'bg-yellow-500/20 text-yellow-400' :
+                    inquiry.status === 'REPLIED'   ? 'bg-blue-500/20 text-blue-400' :
+                    inquiry.status === 'COMPLETED' ? 'bg-purple-500/20 text-purple-400' :
                     'bg-gray-700 text-gray-400'
                   }`}>
-                    {inquiry.status === 'PENDING' ? 'Ново' :
-                     inquiry.status === 'VIEWED' ? 'Прочетено' :
-                     inquiry.status === 'REPLIED' ? 'Отговорено' : inquiry.status}
+                    {inquiry.status === 'PENDING'   ? 'Ново' :
+                     inquiry.status === 'VIEWED'    ? 'Прочетено' :
+                     inquiry.status === 'REPLIED'   ? 'Отговорено' :
+                     inquiry.status === 'COMPLETED' ? 'Завършено' : inquiry.status}
                   </span>
                 </div>
 
                 <div className="mb-3 rounded-xl border border-white/5 bg-[#0D0D1A] px-4 py-3">
+                  <p className="text-xs text-gray-500 mb-1">Запитване от клиента</p>
                   <p className="text-gray-300 whitespace-pre-line">{inquiry.message}</p>
                 </div>
 
                 <div className="flex gap-4 text-sm text-gray-400 mb-4 flex-wrap">
-                  <span>📧 {inquiry.email}</span>
-                  {inquiry.phone && <span>📞 {inquiry.phone}</span>}
-                  {inquiry.city && <span>📍 {inquiry.city}</span>}
+                  <span>{inquiry.email}</span>
+                  {inquiry.phone && <span>{inquiry.phone}</span>}
+                  {inquiry.city && <span>{inquiry.city}</span>}
                 </div>
 
-                <InquiryActions inquiryId={inquiry.id} status={inquiry.status} />
+                {inquiry.InquiryResponse.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Вашите отговори</p>
+                    {inquiry.InquiryResponse.map((resp) => (
+                      <div key={resp.id} className="rounded-xl border border-[#1DB954]/20 bg-[#1DB954]/5 px-4 py-3">
+                        <p className="text-gray-200 whitespace-pre-line text-sm">{resp.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(resp.createdAt).toLocaleString('bg-BG', {
+                            day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+                          })}
+                          {' · 1 кредит'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <InquiryActions
+                  inquiryId={inquiry.id}
+                  status={inquiry.status}
+                  credits={credits}
+                  hasReplied={inquiry.InquiryResponse.length > 0}
+                />
               </div>
             ))}
           </div>

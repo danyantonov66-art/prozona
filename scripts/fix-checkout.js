@@ -1,0 +1,82 @@
+const fs = require('fs');
+
+const content = `import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../../../../lib/auth'
+import { prisma } from '../../../../lib/prisma'
+import Stripe from 'stripe'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2026-02-25.clover' as any,
+})
+
+const PLANS: Record<string, { name: string; priceEur: number; credits: number }> = {
+  credits_5:       { name: '5 кредита',        priceEur: 2.99,  credits: 5  },
+  credits_15:      { name: '15 кредита',        priceEur: 6.99,  credits: 15 },
+  credits_30:      { name: '30 кредита',        priceEur: 11.99, credits: 30 },
+  basic_monthly:   { name: 'Базов абонамент',   priceEur: 4.99,  credits: 5  },
+  premium_monthly: { name: 'Премиум абонамент', priceEur: 9.99,  credits: 15 },
+}
+
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const userId = (session.user as any).id
+
+    // Провери дали потребителят е специалист
+    const specialist = await prisma.specialist.findUnique({
+      where: { userId }
+    })
+
+    if (!specialist) {
+      return NextResponse.json({ error: 'Само специалисти могат да купуват кредити' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const { planType } = body
+
+    const plan = PLANS[planType]
+    if (!plan) {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    }
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.prozona.bg'
+
+    const checkoutSession = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: \`ProZona — \${plan.name}\`,
+              description: \`\${plan.credits} кредита за ProZona\`,
+            },
+            unit_amount: Math.round(plan.priceEur * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        userId,
+        specialistId: specialist.id,
+        planType,
+        credits: String(plan.credits),
+      },
+      success_url: \`\${appUrl}/bg/specialist/dashboard?success=1\`,
+      cancel_url: \`\${appUrl}/bg/specialist/buy-credits?cancelled=1\`,
+    })
+
+    return NextResponse.json({ url: checkoutSession.url })
+  } catch (error) {
+    console.error('Stripe checkout error:', error)
+    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 })
+  }
+}
+`;
+
+fs.writeFileSync('app/api/stripe/create-checkout/route.ts', content, 'utf8');
+console.log('Done.');

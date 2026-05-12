@@ -36,17 +36,19 @@ interface Subcategory {
 
 interface ApproveModal {
   suggestion: Suggestion
-  // Избор на начин на поставяне
   mode: "subcategory" | "new_category" | null
-  // Съществуваща категория
   selectedCategoryId: number | null
-  // Съществуваща подкатегория
   selectedSubcategoryId: number | null
-  // Ново създаване
   newCategoryName: string
   newSubcategoryName: string
-  // Дали да се добавя нова подкатегория
   addNewSubcategory: boolean
+}
+
+interface CreateModal {
+  type: "category" | "subcategory"
+  name: string
+  description: string
+  categoryId: number | null
 }
 
 export default function SuggestionsAdminPage() {
@@ -61,6 +63,9 @@ export default function SuggestionsAdminPage() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
   const [modal, setModal] = useState<ApproveModal | null>(null)
+  const [createModal, setCreateModal] = useState<CreateModal | null>(null)
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -74,14 +79,12 @@ export default function SuggestionsAdminPage() {
       fetch("/api/categories").then((r) => r.json()),
     ]).then(([suggs, cats]) => {
       setSuggestions(suggs)
-      // /api/categories връща { categories: [...] } или директен масив
       const catList = Array.isArray(cats) ? cats : cats.categories ?? []
       setCategories(catList)
       setLoading(false)
     })
   }, [])
 
-  // Зареди подкатегориите при избор на категория
   useEffect(() => {
     if (!modal?.selectedCategoryId) {
       setSubcategories([])
@@ -113,24 +116,68 @@ export default function SuggestionsAdminPage() {
     setSubcategories([])
   }
 
+  const openCreateModal = () => {
+    setCreateError(null)
+    setCreateModal({
+      type: "subcategory",
+      name: "",
+      description: "",
+      categoryId: null,
+    })
+  }
+
+  const closeCreateModal = () => {
+    setCreateModal(null)
+    setCreateError(null)
+  }
+
+  const handleCreate = async () => {
+    if (!createModal) return
+    if (!createModal.name.trim()) {
+      setCreateError("Моля, въведи име.")
+      return
+    }
+    if (createModal.type === "subcategory" && !createModal.categoryId) {
+      setCreateError("Моля, избери категория.")
+      return
+    }
+
+    setCreating(true)
+    setCreateError(null)
+
+    const res = await fetch("/api/admin/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: createModal.type,
+        name: createModal.name.trim(),
+        description: createModal.description.trim(),
+        categoryId: createModal.categoryId,
+      }),
+    })
+
+    const data = await res.json()
+
+    if (res.ok) {
+      if (createModal.type === "category") {
+        setCategories((prev) => [...prev, data])
+      }
+      closeCreateModal()
+      alert(`✔ ${createModal.type === "category" ? "Категорията" : "Подкатегорията"} беше създадена успешно!`)
+    } else {
+      setCreateError(data.error ?? "Грешка при създаване.")
+    }
+
+    setCreating(false)
+  }
+
   const handleApprove = async () => {
     if (!modal) return
     const { suggestion, mode, selectedCategoryId, selectedSubcategoryId, newCategoryName, newSubcategoryName, addNewSubcategory } = modal
 
-    if (!mode) {
-      alert("Моля, избери начин на поставяне.")
-      return
-    }
-
-    if (mode === "subcategory" && !selectedCategoryId) {
-      alert("Моля, избери категория.")
-      return
-    }
-
-    if (mode === "new_category" && !newCategoryName.trim()) {
-      alert("Моля, въведи името на новата категория.")
-      return
-    }
+    if (!mode) { alert("Моля, избери начин на поставяне."); return }
+    if (mode === "subcategory" && !selectedCategoryId) { alert("Моля, избери категория."); return }
+    if (mode === "new_category" && !newCategoryName.trim()) { alert("Моля, въведи името на новата категория."); return }
 
     setUpdating(suggestion.id)
 
@@ -145,9 +192,7 @@ export default function SuggestionsAdminPage() {
       }
     } else if (mode === "new_category") {
       payload.newCategoryName = newCategoryName
-      if (newSubcategoryName.trim()) {
-        payload.newSubcategoryName = newSubcategoryName
-      }
+      if (newSubcategoryName.trim()) payload.newSubcategoryName = newSubcategoryName
     }
 
     const res = await fetch(`/api/admin/suggestions/${suggestion.id}`, {
@@ -198,7 +243,17 @@ export default function SuggestionsAdminPage() {
             ← Админ панел
           </Link>
         </div>
-        <h1 className="mb-8 text-3xl font-bold">Предложения за нови услуги</h1>
+
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Предложения за нови услуги</h1>
+          <button
+            onClick={openCreateModal}
+            className="rounded-lg bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black hover:bg-[#17a349] transition-colors"
+          >
+            + Добави категория
+          </button>
+        </div>
+
         <div className="space-y-4">
           {suggestions.length === 0 && (
             <p className="text-gray-400">Няма предложения.</p>
@@ -220,15 +275,11 @@ export default function SuggestionsAdminPage() {
                     </p>
                   )}
                 </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    s.status === "PENDING"
-                      ? "bg-yellow-500/20 text-yellow-400"
-                      : s.status === "APPROVED"
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-red-500/20 text-red-400"
-                  }`}
-                >
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  s.status === "PENDING" ? "bg-yellow-500/20 text-yellow-400"
+                  : s.status === "APPROVED" ? "bg-green-500/20 text-green-400"
+                  : "bg-red-500/20 text-red-400"
+                }`}>
                   {s.status === "PENDING" ? "Изчаква" : s.status === "APPROVED" ? "Одобрено" : "Отказано"}
                 </span>
               </div>
@@ -281,15 +332,12 @@ export default function SuggestionsAdminPage() {
               Услуга: <span className="text-white font-medium">{modal.suggestion.name}</span>
             </p>
 
-            {/* Стъпка 1: Избор на начин */}
             <p className="mb-3 text-sm font-semibold text-gray-300">Как да се добави?</p>
             <div className="mb-5 grid grid-cols-2 gap-3">
               <button
                 onClick={() => setModal((m) => m ? { ...m, mode: "subcategory", selectedCategoryId: null, selectedSubcategoryId: null } : m)}
                 className={`rounded-xl border p-3 text-sm font-medium transition-colors ${
-                  modal.mode === "subcategory"
-                    ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]"
-                    : "border-white/10 text-gray-300 hover:border-white/30"
+                  modal.mode === "subcategory" ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]" : "border-white/10 text-gray-300 hover:border-white/30"
                 }`}
               >
                 📁 Подкатегория в съществуваща категория
@@ -297,28 +345,20 @@ export default function SuggestionsAdminPage() {
               <button
                 onClick={() => setModal((m) => m ? { ...m, mode: "new_category", selectedCategoryId: null, selectedSubcategoryId: null } : m)}
                 className={`rounded-xl border p-3 text-sm font-medium transition-colors ${
-                  modal.mode === "new_category"
-                    ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]"
-                    : "border-white/10 text-gray-300 hover:border-white/30"
+                  modal.mode === "new_category" ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]" : "border-white/10 text-gray-300 hover:border-white/30"
                 }`}
               >
                 ✨ Нова главна категория
               </button>
             </div>
 
-            {/* Подкатегория в съществуваща категория */}
             {modal.mode === "subcategory" && (
               <div className="space-y-4">
                 <div>
                   <label className="mb-1 block text-sm text-gray-400">Категория *</label>
                   <select
                     value={modal.selectedCategoryId ?? ""}
-                    onChange={(e) => setModal((m) => m ? {
-                      ...m,
-                      selectedCategoryId: Number(e.target.value) || null,
-                      selectedSubcategoryId: null,
-                      addNewSubcategory: false,
-                    } : m)}
+                    onChange={(e) => setModal((m) => m ? { ...m, selectedCategoryId: Number(e.target.value) || null, selectedSubcategoryId: null, addNewSubcategory: false } : m)}
                     className="w-full rounded-lg border border-white/10 bg-[#0D0D1A] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB954]"
                   >
                     <option value="">-- Избери категория --</option>
@@ -342,7 +382,7 @@ export default function SuggestionsAdminPage() {
                       }}
                       className="w-full rounded-lg border border-white/10 bg-[#0D0D1A] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB954]"
                     >
-                      <option value="">-- Само в категорията (без подкатегория) --</option>
+                      <option value="">-- Само в категорията --</option>
                       {subcategories.map((sub) => (
                         <option key={sub.id} value={sub.id}>{sub.name}</option>
                       ))}
@@ -353,7 +393,7 @@ export default function SuggestionsAdminPage() {
 
                 {modal.addNewSubcategory && (
                   <div>
-                    <label className="mb-1 block text-sm text-gray-400">Име на новата подкатегория *</label>
+                    <label className="mb-1 block text-sm text-gray-400">Ime на новата подкатегория *</label>
                     <input
                       type="text"
                       value={modal.newSubcategoryName}
@@ -366,7 +406,6 @@ export default function SuggestionsAdminPage() {
               </div>
             )}
 
-            {/* Нова главна категория */}
             {modal.mode === "new_category" && (
               <div className="space-y-4">
                 <div>
@@ -380,9 +419,7 @@ export default function SuggestionsAdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm text-gray-400">
-                    Подкатегория (незадължително)
-                  </label>
+                  <label className="mb-1 block text-sm text-gray-400">Подкатегория (незадължително)</label>
                   <input
                     type="text"
                     value={modal.newSubcategoryName}
@@ -395,7 +432,6 @@ export default function SuggestionsAdminPage() {
               </div>
             )}
 
-            {/* Бутони */}
             <div className="mt-6 flex gap-3">
               <button
                 onClick={handleApprove}
@@ -406,6 +442,96 @@ export default function SuggestionsAdminPage() {
               </button>
               <button
                 onClick={closeModal}
+                className="rounded-lg border border-white/20 px-4 py-2 text-sm text-gray-400 hover:text-white hover:border-white/40 transition-colors"
+              >
+                Отказ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* МОДАЛ ЗА ДИРЕКТНО СЪЗДАВАНЕ */}
+      {createModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#151528] p-6">
+            <h2 className="mb-5 text-xl font-bold text-white">Добави категория / подкатегория</h2>
+
+            <div className="mb-5 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setCreateModal((m) => m ? { ...m, type: "subcategory", categoryId: null } : m)}
+                className={`rounded-xl border p-3 text-sm font-medium transition-colors ${
+                  createModal.type === "subcategory" ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]" : "border-white/10 text-gray-300 hover:border-white/30"
+                }`}
+              >
+                📁 Нова подкатегория
+              </button>
+              <button
+                onClick={() => setCreateModal((m) => m ? { ...m, type: "category", categoryId: null } : m)}
+                className={`rounded-xl border p-3 text-sm font-medium transition-colors ${
+                  createModal.type === "category" ? "border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]" : "border-white/10 text-gray-300 hover:border-white/30"
+                }`}
+              >
+                ✨ Нова главна категория
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {createModal.type === "subcategory" && (
+                <div>
+                  <label className="mb-1 block text-sm text-gray-400">Категория *</label>
+                  <select
+                    value={createModal.categoryId ?? ""}
+                    onChange={(e) => setCreateModal((m) => m ? { ...m, categoryId: Number(e.target.value) || null } : m)}
+                    className="w-full rounded-lg border border-white/10 bg-[#0D0D1A] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB954]"
+                  >
+                    <option value="">-- Избери категория --</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="mb-1 block text-sm text-gray-400">
+                  {createModal.type === "category" ? "Ime на категорията *" : "Ime на подкатегорията *"}
+                </label>
+                <input
+                  type="text"
+                  value={createModal.name}
+                  onChange={(e) => setCreateModal((m) => m ? { ...m, name: e.target.value } : m)}
+                  className="w-full rounded-lg border border-white/10 bg-[#0D0D1A] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB954]"
+                  placeholder={createModal.type === "category" ? "Напр. Къртене и извозване" : "Напр. Къртене и чистене"}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-gray-400">Описание (незадължително)</label>
+                <input
+                  type="text"
+                  value={createModal.description}
+                  onChange={(e) => setCreateModal((m) => m ? { ...m, description: e.target.value } : m)}
+                  className="w-full rounded-lg border border-white/10 bg-[#0D0D1A] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB954]"
+                  placeholder="Кратко описание..."
+                />
+              </div>
+
+              {createError && (
+                <p className="text-sm text-red-400">{createError}</p>
+              )}
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={handleCreate}
+                disabled={creating}
+                className="flex-1 rounded-lg bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black hover:bg-[#17a349] disabled:opacity-50 transition-colors"
+              >
+                {creating ? "Създаване..." : "✔ Създай"}
+              </button>
+              <button
+                onClick={closeCreateModal}
                 className="rounded-lg border border-white/20 px-4 py-2 text-sm text-gray-400 hover:text-white hover:border-white/40 transition-colors"
               >
                 Отказ

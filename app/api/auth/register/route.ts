@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { Resend } from 'resend'
@@ -52,7 +52,6 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { email, password, name, role, phone, city, description, categoryId, subcategoryId, ref, suggestedService } = body
 
-    // Основни задължителни полета
     if (!email || !password || !name) {
       return NextResponse.json({ error: 'Липсващи задължителни полета' }, { status: 400 })
     }
@@ -64,19 +63,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // Валидация специфична за специалисти
     if (role === 'SPECIALIST') {
       if (!phone) {
-        return NextResponse.json(
-          { error: 'Телефонният номер е задължителен.' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Телефонният номер е задължителен.' }, { status: 400 })
       }
       if (!city) {
-        return NextResponse.json(
-          { error: 'Градът е задължителен.' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Градът е задължителен.' }, { status: 400 })
       }
       if (!suggestedService && (!categoryId || !subcategoryId)) {
         return NextResponse.json(
@@ -98,7 +90,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Потребител с този имейл вече съществува' }, { status: 400 })
     }
 
-    // Намери поканващия по refCode
     let referrer: { id: string } | null = null
     if (ref && role === 'SPECIALIST') {
       referrer = await prisma.specialist.findUnique({
@@ -110,17 +101,23 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, 10)
     const verifyToken = crypto.randomBytes(32).toString('hex')
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        phone: phone || null,
-        role: role || 'CLIENT',
-      }
-    })
+   const user = await prisma.user.create({
+  data: {
+    email,
+    password: hashedPassword,
+    name,
+    phone: phone || null,
+    role: role || 'CLIENT',
+    verifyToken,  
+  }
+})
 
     if (role === 'SPECIALIST') {
+      const specialistCount = await prisma.specialist.count()
+      const isPremiumPromo = specialistCount < 200
+      const premiumExpiry = new Date()
+      premiumExpiry.setMonth(premiumExpiry.getMonth() + 6)
+
       const specialist = await prisma.specialist.create({
         data: {
           userId: user.id,
@@ -130,17 +127,20 @@ export async function POST(request: Request) {
           phone: phone,
           verified: false,
           referredBy: referrer ? ref : null,
+          subscriptionPlan: isPremiumPromo ? 'PREMIUM' : 'FREE',
+          subscriptionExpiresAt: isPremiumPromo ? premiumExpiry : null,
+          credits: isPremiumPromo ? 25 : 0,
+          monthlyCredits: isPremiumPromo ? 25 : 0,
+          maxImages: isPremiumPromo ? 20 : 5,
         }
       })
 
-      // Генерирай refCode за новия специалист
       const refCode = generateRefCode(name, specialist.id)
       await prisma.specialist.update({
         where: { id: specialist.id },
         data: { refCode }
       })
 
-      // Запази предложената услуга ако има такава
       if (suggestedService) {
         await prisma.categorySuggestion.create({
           data: {
@@ -152,7 +152,6 @@ export async function POST(request: Request) {
         })
       }
 
-      // Награди поканващия с 5 кредита
       if (referrer) {
         await prisma.specialist.update({
           where: { id: referrer.id },
@@ -173,13 +172,16 @@ export async function POST(request: Request) {
         })
       }
 
-      // Запази категория и подкатегория
-      if (categoryId && subcategoryId) {
-        const dbCategory = await prisma.category.findUnique({ where: { slug: categoryId } })
+      if (categoryId) {
+        const dbCategory = await prisma.category.findFirst({
+          where: isNaN(Number(categoryId)) ? { slug: categoryId } : { id: Number(categoryId) }
+        })
         if (dbCategory) {
-          const dbSubcategory = await prisma.subcategory.findFirst({
-            where: { slug: subcategoryId, categoryId: dbCategory.id }
-          })
+          const dbSubcategory = subcategoryId ? await prisma.subcategory.findFirst({
+            where: isNaN(Number(subcategoryId))
+              ? { slug: subcategoryId, categoryId: dbCategory.id }
+              : { id: Number(subcategoryId), categoryId: dbCategory.id }
+          }) : null
           await prisma.specialistCategory.create({
             data: {
               specialistId: specialist.id,
@@ -196,30 +198,29 @@ export async function POST(request: Request) {
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',
         to: email,
-        subject: '✅ Потвърди имейла си — ProZona',
+        subject: 'Потвърди имейла си — ProZona',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0D0D1A; color: #ffffff; padding: 40px; border-radius: 12px;">
             <div style="text-align: center; margin-bottom: 32px;">
               <div style="display: inline-block; background: #1DB954; padding: 12px 24px; border-radius: 8px;">
-                <span style="color: #0D0D1A; font-size: 24px; font-weight: bold;">PZ ProZona</span>
+                <span style="color: #0D0D1A; font-size: 24px; font-weight: bold;">ProZona</span>
               </div>
             </div>
-            <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">Здравей, ${name}! 👋</h1>
+            <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">Здравей, ${name}!</h1>
             <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">
               Благодарим ти, че се регистрира в <strong style="color: #1DB954;">ProZona</strong>!
               Моля потвърди имейла си за да активираш профила си.
             </p>
             <div style="text-align: center; margin: 32px 0;">
               <a href="${verifyLink}" style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
-                ✅ Потвърди имейла си →
+                Потвърди имейла си →
               </a>
             </div>
             <p style="color: #666; font-size: 13px; text-align: center;">Линкът е валиден 24 часа.</p>
             <hr style="border: 1px solid #333; margin: 32px 0;" />
             <div style="background: #151528; border: 1px solid #1DB954; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
-              <p style="color: #1DB954; font-size: 15px; font-weight: bold; margin: 0 0 8px;">🤝 Покани колеги и получи бонус!</p>
-              <p style="color: #cccccc; font-size: 13px; margin: 0 0 12px;">Познаваш майстори, електротехници, почистващи фирми или други специалисти?<br/>Покани ги с твоя личен линк и получаваш <strong style="color: #1DB954;">5 кредита</strong> за всеки регистриран специалист!</p>
-              <p style="color: #888; font-size: 12px; margin: 0 0 8px;">Твоят реферален линк:</p>
+              <p style="color: #1DB954; font-size: 15px; font-weight: bold; margin: 0 0 8px;">Покани колеги и получи бонус!</p>
+              <p style="color: #cccccc; font-size: 13px; margin: 0 0 12px;">Получаваш <strong style="color: #1DB954;">5 кредита</strong> за всеки регистриран специалист!</p>
               <a href="${refLink}" style="color: #1DB954; font-size: 13px; word-break: break-all;">${refLink}</a>
             </div>
           </div>
@@ -228,8 +229,8 @@ export async function POST(request: Request) {
 
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',
-        to: process.env.ADMIN_EMAIL!,
-        subject: `🆕 Нов специалист: ${name}`,
+        to: process.env.ADMIN_EMAIL,
+        subject: `Нов специалист: ${name}`,
         html: `
           <p><strong>Нов специалист се регистрира в ProZona:</strong></p>
           <ul>
@@ -243,6 +244,36 @@ export async function POST(request: Request) {
             <li>Реферал от: ${ref || '—'}</li>
           </ul>
           <a href="https://www.prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
+        `
+      })
+    }
+
+    if (role !== 'SPECIALIST') {
+      const verifyLink = `https://www.prozona.bg/api/auth/verify-email?token=${verifyToken}&id=${user.id}`
+
+      await resend.emails.send({
+        from: 'ProZona <office@prozona.bg>',
+        to: email,
+        subject: 'Потвърди имейла си — ProZona',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0D0D1A; color: #ffffff; padding: 40px; border-radius: 12px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <div style="display: inline-block; background: #1DB954; padding: 12px 24px; border-radius: 8px;">
+                <span style="color: #0D0D1A; font-size: 24px; font-weight: bold;">ProZona</span>
+              </div>
+            </div>
+            <h1 style="color: #1DB954; font-size: 28px; margin-bottom: 16px;">Здравей, ${name}!</h1>
+            <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">
+              Благодарим ти, че се регистрира в <strong style="color: #1DB954;">ProZona</strong>!
+              Моля потвърди имейла си за да активираш профила си.
+            </p>
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="${verifyLink}" style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                Потвърди имейла си →
+              </a>
+            </div>
+            <p style="color: #666; font-size: 13px; text-align: center;">Линкът е валиден 24 часа.</p>
+          </div>
         `
       })
     }
