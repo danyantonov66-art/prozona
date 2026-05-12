@@ -32,6 +32,17 @@ export async function generateMetadata({ params }: Props) {
   const titleCity = city ? `, ${city}` : ""
   const title = `${name}${titleCity} | ProZona`
 
+  const isEmpty = !specialist.description || 
+    specialist.description.trim().length < 20 ||
+    specialist.description.includes("предстои да бъде попълнен")
+
+  if (isEmpty) {
+    return {
+      title: `${name} | ProZona`,
+      robots: { index: false, follow: false },
+    }
+  }
+
   return {
     title,
     description,
@@ -44,7 +55,6 @@ export async function generateMetadata({ params }: Props) {
     },
     twitter: { card: "summary_large_image", title, description, ...(image && { images: [image] }) },
   }
-}
 
 export const dynamic = "force-dynamic"
 
