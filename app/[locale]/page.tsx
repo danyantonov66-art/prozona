@@ -166,7 +166,7 @@ export default async function Home({ params }: Props) {
       "query-input": "required name=search_term_string",
     },
   },
-]),s
+]),
       />
       <ProZonaHeader locale={locale} />
 
