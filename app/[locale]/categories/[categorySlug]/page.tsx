@@ -13,17 +13,20 @@ interface Props {
 export async function generateMetadata({ params }: Props) {
   const { categorySlug } = await params
   const category = await prisma.category.findUnique({ where: { slug: categorySlug } })
+  const name = category?.name || "Категория"
   return {
-    title: category?.name || "Категория",
-   description: category?.name
-  ? `Намери верифицирани ${category.name} специалисти в ProZona. Безплатна заявка.`
-  : `Намери верифицирани специалисти в ProZona. Безплатна заявка.`,
+    title: `${name} специалисти в България | ProZona`,
+    description: category?.name
+      ? `Намери верифицирани ${name} специалисти в ProZona. Безплатна заявка.`
+      : `Специалисти в ProZona. Безплатна заявка.`,
+    alternates: {
+      canonical: `https://prozona.bg/bg/categories/${categorySlug}`,
+    },
   }
 }
 
 export default async function CategoryPage({ params }: Props) {
   const { locale, categorySlug } = await params
-
   const category = await prisma.category.findUnique({
     where: { slug: categorySlug },
     include: {
@@ -63,38 +66,31 @@ export default async function CategoryPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
-
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div className="mb-6 text-sm text-gray-400">
-          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">Начало</Link>
-          <span className="mx-2">/</span>
-          <Link href={`/${locale}/categories`} className="text-[#1DB954] hover:underline">Категории</Link>
-          <span className="mx-2">/</span>
-          <span className="text-white">{category.name}</span>
+          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">
+            Начало
+          </Link>
+          {" / "}
+          <span>{category.name}</span>
         </div>
 
-        <h1 className="mb-4 text-4xl font-bold md:text-5xl">{category.name}</h1>
-        {category.description && (
-          <p className="mb-12 max-w-3xl text-lg text-gray-400">{category.description}</p>
-        )}
+        <h1 className="mb-10 text-3xl font-bold md:text-4xl">{category.name}</h1>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {category.Subcategory.map((sub) => {
-            const count = countMap[sub.id] || 0
+            const count = countMap[sub.id] ?? 0
             return (
               <Link
-                key={sub.slug}
-                href={`/${locale}/categories/${category.slug}/${sub.slug}`}
-                className={`group relative overflow-hidden rounded-2xl border p-6 transition ${
-                  count > 0
-                    ? "border-white/10 bg-[#151528] hover:border-[#1DB954]/40"
-                    : "border-white/5 bg-[#0F0F1E] opacity-60"
-                }`}
+                key={sub.id}
+                href={`/${locale}/categories/${categorySlug}/${sub.slug}`}
+                className="rounded-xl border border-white/10 bg-white/5 p-5 transition hover:border-[#1DB954]/50 hover:bg-white/10"
               >
-                <div className="mb-3 text-2xl">🔧</div>
-                <h2 className="mb-1 text-lg font-bold text-white">{sub.name}</h2>
+                <h2 className="mb-2 text-lg font-semibold">{sub.name}</h2>
                 {count > 0 ? (
-                  <p className="text-sm text-[#1DB954] font-medium">{count} специалист{count === 1 ? "" : "а"}</p>
+                  <p className="text-sm text-gray-400">
+                    {count} специалист{count === 1 ? "" : "а"}
+                  </p>
                 ) : (
                   <p className="text-sm text-gray-500">Няма специалисти</p>
                 )}
@@ -106,7 +102,6 @@ export default async function CategoryPage({ params }: Props) {
           })}
         </div>
       </section>
-
       <ProZonaFooter locale={locale} />
     </main>
   )

@@ -36,14 +36,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${name} – специалист в ${city}`,
     description,
+    alternates: {
+      canonical: `https://prozona.bg/bg/specialist/${id}`,
+    },
     openGraph: {
       title: `${name} – специалист в ${city} | ProZona`,
       description,
-      url: `https://www.prozona.bg/bg/specialist/${id}`,
+      url: `https://prozona.bg/bg/specialist/${id}`,
       siteName: "ProZona",
       images: specialist.user?.image
         ? [{ url: specialist.user.image }]
-        : [{ url: "https://www.prozona.bg/og-image.png" }],
+        : [{ url: "https://prozona.bg/og-image.png" }],
     },
   }
 }

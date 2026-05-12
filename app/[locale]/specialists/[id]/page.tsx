@@ -28,9 +28,20 @@ export async function generateMetadata({ params }: Props) {
   const city = specialist.city || ""
   const description = specialist.description?.slice(0, 160) || `${name} — верифициран специалист в ProZona.`
   const image = specialist.user?.image || null
-  const canonicalUrl = `https://prozona.bg/${locale}/specialists/${id}`
+  const canonicalUrl = `https://prozona.bg/bg/specialists/\$\{id\}`
   const titleCity = city ? `, ${city}` : ""
   const title = `${name}${titleCity} | ProZona`
+
+  const isEmpty = !specialist.description || 
+    specialist.description.trim().length < 20 ||
+    specialist.description.includes("предстои да бъде попълнен")
+
+  if (isEmpty) {
+    return {
+      title: `${name} | ProZona`,
+      robots: { index: false, follow: false },
+    }
+  }
 
   return {
     title,
@@ -44,7 +55,6 @@ export async function generateMetadata({ params }: Props) {
     },
     twitter: { card: "summary_large_image", title, description, ...(image && { images: [image] }) },
   }
-}
 
 export const dynamic = "force-dynamic"
 
@@ -90,7 +100,7 @@ export default async function SpecialistPage({ params }: Props) {
   const avgRating = specialist.reviews.length > 0
     ? specialist.reviews.reduce((sum, r) => sum + r.rating, 0) / specialist.reviews.length
     : null
-  const canonicalUrl = `https://prozona.bg/${locale}/specialists/${id}`
+  const canonicalUrl = `https://prozona.bg/bg/specialists/\$\{id\}`
 
   const videoUrl = (specialist as any).videoUrl as string | null
   const isYoutube = videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'))

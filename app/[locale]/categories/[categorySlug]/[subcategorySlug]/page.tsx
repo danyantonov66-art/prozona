@@ -11,6 +11,36 @@ interface Props {
   }>
 }
 
+export async function generateMetadata({ params }: Props) {
+  const { categorySlug, subcategorySlug } = await params
+
+  const category = await prisma.category.findUnique({ where: { slug: categorySlug } })
+  const subcategory = await prisma.subcategory.findFirst({
+    where: { slug: subcategorySlug, categoryId: category?.id },
+  })
+
+  const catName = category?.name || "Категория"
+  const subName = subcategory?.name || "Услуга"
+
+  return {
+    title: `${subName} специалисти в България | ${catName} | ProZona`,
+    description: subcategory?.description
+      ? subcategory.description.slice(0, 160)
+      : `Намери верифицирани ${subName} специалисти в ProZona. Безплатна заявка.`,
+    alternates: {
+      canonical: `https://prozona.bg/bg/categories/${categorySlug}/${subcategorySlug}`,
+    },
+    openGraph: {
+      title: `${subName} специалисти | ProZona`,
+      description: `Намери ${subName} специалисти в ProZona. Безплатна заявка.`,
+      url: `https://prozona.bg/bg/categories/${categorySlug}/${subcategorySlug}`,
+      siteName: "ProZona",
+      locale: "bg_BG",
+      type: "website",
+    },
+  }
+}
+
 export default async function SubcategoryPage({ params }: Props) {
   const { locale, categorySlug, subcategorySlug } = await params
 
