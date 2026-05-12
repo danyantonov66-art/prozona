@@ -36,6 +36,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${name} – специалист в ${city}`,
     description,
+    alternates: {
+      canonical: `https://prozona.bg/bg/specialist/${id}`,
+    },
     openGraph: {
       title: `${name} – специалист в ${city} | ProZona`,
       description,
