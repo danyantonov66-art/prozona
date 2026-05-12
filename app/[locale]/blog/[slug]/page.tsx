@@ -198,7 +198,7 @@ export default async function BlogPostPage({ params }: Props) {
             </h3>
             <div className="flex flex-wrap gap-2">
               {relatedUslugi.map(({ service, name }) =>
-                TOP_CITIES.flatMaplatmap((city) => (
+                TOP_CITIES.map((city) => (
                   <Link
                     key={`${service}-${city}`}
                     href={`/${locale}/uslugi/${city}/${service}`}
