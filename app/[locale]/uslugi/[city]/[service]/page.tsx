@@ -119,7 +119,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${svc.name} в ${cityBg} | ProZona`,
     description: `Намери ${svc.name.toLowerCase()} в ${cityBg}. Проверени специалисти, реални оферти и бърз контакт. ProZona.bg`,
     alternates: {
-      canonical: `https://www.prozona.bg/bg/uslugi/${city}/${service}`,
+      canonical: `https://prozona.bg/bg/uslugi/${city}/${service}`,
     },
   }
 }
