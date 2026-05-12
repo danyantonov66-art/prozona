@@ -141,17 +141,32 @@ export default async function Home({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "ProZona.bg",
-            url: "https://prozona.bg",
-            logo: "https://prozona.bg/logo.png",
-            description: "Платформа за намиране на верифицирани специалисти в България",
-            areaServed: "Bulgaria",
-            sameAs: [],
-          }),
-        }}
+          __html: JSON.stringify([
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "ProZona.bg",
+    url: "https://prozona.bg",
+    logo: "https://prozona.bg/logo.png",
+    description: "Платформа за намиране на верифицирани специалисти в България",
+    areaServed: "Bulgaria",
+    sameAs: [],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "ProZona.bg",
+    url: "https://prozona.bg",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: "https://prozona.bg/bg/search?q={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
+    },
+  },
+]),s
       />
       <ProZonaHeader locale={locale} />
 
