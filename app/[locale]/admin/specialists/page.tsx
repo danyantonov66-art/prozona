@@ -24,7 +24,7 @@ interface Specialist {
   verified: boolean
   subscriptionPlan: string
   createdAt: string
-  user?: { name: string; email: string }
+  user?: { name: string; email: string; image?: string | null }
   GalleryImage?: GalleryImage[]
   SpecialistCategory?: {
     Category: { id: number; name: string }
@@ -108,6 +108,12 @@ export default function AdminSpecialistsPage() {
     )
   }
 
+  async function clearProfileImage(id: string) {
+    if (!confirm("Изтриваш профилната снимка?")) return
+    await fetch(`/api/admin/specialists/${id}/clear-image`, { method: "PATCH" })
+    load()
+  }
+
   function startEdit(s: Specialist) {
     setEditingId(s.id)
     setEditDescription(s.description || "")
@@ -163,15 +169,15 @@ export default function AdminSpecialistsPage() {
   }
 
   async function autoAssignCategory(id: string) {
-  const res = await fetch(`/api/admin/specialists/${id}/auto-category`, { method: "POST" })
-  const data = await res.json()
-  if (data.success) {
-    alert("✅ Категорията е зададена автоматично!")
-    load()
-  } else {
-    alert(data.error || data.message || "Неуспешно")
+    const res = await fetch(`/api/admin/specialists/${id}/auto-category`, { method: "POST" })
+    const data = await res.json()
+    if (data.success) {
+      alert("✅ Категорията е зададена автоматично!")
+      load()
+    } else {
+      alert(data.error || data.message || "Неуспешно")
+    }
   }
-}
 
   useEffect(() => {
     load()
@@ -311,11 +317,11 @@ export default function AdminSpecialistsPage() {
                       {editingId === s.id ? "Затвори" : "✏️ Редактирай"}
                     </button>
                     <button
-  onClick={() => autoAssignCategory(s.id)}
-  className="font-medium text-purple-400 hover:underline"
->
-  🤖 Авто категория
-</button>
+                      onClick={() => autoAssignCategory(s.id)}
+                      className="font-medium text-purple-400 hover:underline"
+                    >
+                      🤖 Авто категория
+                    </button>
                     {hasPhone && (
                       <button
                         onClick={() => cleanPhone(s)}
@@ -410,8 +416,32 @@ export default function AdminSpecialistsPage() {
                         ⚠️ Провери за контактна информация
                       </span>
                     </div>
+
+                    {/* Профилна снимка */}
+                    {s.user?.image && (
+                      <div className="mb-4">
+                        <p className="text-xs text-gray-400 mb-2">📸 Профилна снимка:</p>
+                        <div className="relative group inline-block">
+                          <img
+                            src={s.user.image}
+                            alt="Профилна снимка"
+                            className="h-24 w-24 rounded-xl object-cover"
+                          />
+                          <button
+                            onClick={() => clearProfileImage(s.id)}
+                            className="absolute top-1 right-1 hidden group-hover:flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs hover:bg-red-600"
+                            title="Изтрий профилната снимка"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Задръж мишката върху снимката за да я изтриеш</p>
+                      </div>
+                    )}
+
+                    {/* Галерия снимки */}
                     {!s.GalleryImage || s.GalleryImage.length === 0 ? (
-                      <p className="text-sm text-gray-500">Няма качени снимки.</p>
+                      <p className="text-sm text-gray-500">Няма качени снимки в галерията.</p>
                     ) : (
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
                         {s.GalleryImage.map((img) => (
