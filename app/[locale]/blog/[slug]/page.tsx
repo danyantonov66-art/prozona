@@ -58,7 +58,6 @@ const SLUG_TO_USLUGI: Record<string, { service: string; name: string }[]> = {
   "hamali": [{ service: "hamali", name: "Хамалски услуги" }],
   "hamal": [{ service: "hamali", name: "Хамалски услуги" }],
   "premestване": [{ service: "hamali", name: "Хамалски услуги" }],
-  "premestване": [{ service: "hamali", name: "Хамалски услуги" }],
 
   // Боядисване / Шпакловка
   "shpaklovka": [
