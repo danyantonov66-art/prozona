@@ -67,6 +67,8 @@ export default function AdminSpecialistsPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDescription, setEditDescription] = useState("")
   const [editCity, setEditCity] = useState("")
+  const [editCategoryId, setEditCategoryId] = useState<number | "">("")
+  const [editSubcategoryId, setEditSubcategoryId] = useState<number | "">("")
   const [editSaving, setEditSaving] = useState(false)
   const [cleaning, setCleaning] = useState<string | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
@@ -118,6 +120,9 @@ export default function AdminSpecialistsPage() {
     setEditingId(s.id)
     setEditDescription(s.description || "")
     setEditCity(s.city || "")
+    const firstCat = s.SpecialistCategory?.[0]
+    setEditCategoryId(firstCat?.Category?.id ?? "")
+    setEditSubcategoryId(firstCat?.Subcategory?.id ?? "")
   }
 
   async function saveEdit(id: string) {
@@ -125,7 +130,12 @@ export default function AdminSpecialistsPage() {
     await fetch(`/api/admin/specialists/${id}/edit`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ description: editDescription, city: editCity })
+      body: JSON.stringify({
+        description: editDescription,
+        city: editCity,
+        ...(editCategoryId !== "" && { categoryId: editCategoryId }),
+        ...(editSubcategoryId !== "" && { subcategoryId: editSubcategoryId }),
+      }),
     })
     setEditingId(null)
     setEditSaving(false)
@@ -361,6 +371,7 @@ export default function AdminSpecialistsPage() {
                 {editingId === s.id && (
                   <div className="border-t border-white/10 bg-[#0D0D1A] p-4 space-y-3">
                     <h3 className="text-sm font-semibold text-white">✏️ Редактирай профила</h3>
+
                     <div>
                       <label className="text-xs text-gray-400 mb-1 block">Град</label>
                       <input
@@ -370,6 +381,42 @@ export default function AdminSpecialistsPage() {
                         className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
                       />
                     </div>
+
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Категория</label>
+                      <select
+                        value={editCategoryId}
+                        onChange={(e) => {
+                          setEditCategoryId(e.target.value === "" ? "" : Number(e.target.value))
+                          setEditSubcategoryId("")
+                        }}
+                        className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
+                      >
+                        <option value="">— Без категория —</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {editCategoryId !== "" && (
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Подкатегория</label>
+                        <select
+                          value={editSubcategoryId}
+                          onChange={(e) => setEditSubcategoryId(e.target.value === "" ? "" : Number(e.target.value))}
+                          className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
+                        >
+                          <option value="">— Без подкатегория —</option>
+                          {categories
+                            .find((c) => c.id === editCategoryId)
+                            ?.Subcategory.map((sub) => (
+                              <option key={sub.id} value={sub.id}>{sub.name}</option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
                     <div>
                       <label className="text-xs text-gray-400 mb-1 block">Описание</label>
                       <textarea
@@ -390,6 +437,7 @@ export default function AdminSpecialistsPage() {
                         </div>
                       )}
                     </div>
+
                     <div className="flex gap-2">
                       <button
                         onClick={() => saveEdit(s.id)}
@@ -417,7 +465,6 @@ export default function AdminSpecialistsPage() {
                       </span>
                     </div>
 
-                    {/* Профилна снимка */}
                     {s.user?.image && (
                       <div className="mb-4">
                         <p className="text-xs text-gray-400 mb-2">📸 Профилна снимка:</p>
@@ -439,7 +486,6 @@ export default function AdminSpecialistsPage() {
                       </div>
                     )}
 
-                    {/* Галерия снимки */}
                     {!s.GalleryImage || s.GalleryImage.length === 0 ? (
                       <p className="text-sm text-gray-500">Няма качени снимки в галерията.</p>
                     ) : (
