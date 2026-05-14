@@ -108,6 +108,12 @@ export default function RegisterSpecialistPage() {
       }
 
       trackCompleteRegistration("Specialist Registration")
+      if (typeof window !== "undefined" && (window as any).gtag) {
+  (window as any).gtag("event", "specialist_registered", {
+    event_category: "registration",
+    event_label: "Specialist Registration",
+  })
+}
       setSuccess("Регистрацията е успешна! Провери имейла си за потвърждение.")
       setForm({
         name: "",
