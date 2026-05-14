@@ -72,9 +72,6 @@ const SLUG_TO_USLUGI: Record<string, { service: string; name: string }[]> = {
     { service: "shpaklovka", name: "Шпакловка и боя" },
     { service: "boyadisvane", name: "Боядисване" },
   ],
-  "boyadisvane": [
-    { service: "boyadisvane", name: "Боядисване" },
-  ],
 
   // Ремонт
   "remont": [
