@@ -19,10 +19,10 @@ export async function generateMetadata({ params }: Props) {
     description: category?.name
       ? `Намери верифицирани ${name} специалисти в ProZona. Безплатна заявка.`
       : `Специалисти в ProZona. Безплатна заявка.`,
-   alternates: {
-  canonical: `https://prozona.bg/bg/categories/${categorySlug}`,
-},
-...(locale !== "bg" && { robots: { index: false, follow: false } }),
+    alternates: {
+      canonical: `https://prozona.bg/bg/categories/${categorySlug}`,
+    },
+    ...(locale !== "bg" && { robots: { index: false, follow: false } }),
   }
 }
 
@@ -50,7 +50,6 @@ export default async function CategoryPage({ params }: Props) {
     )
   }
 
-  // Брой специалисти за всяка подкатегория
   const specialistCounts = await prisma.specialistCategory.groupBy({
     by: ['subcategoryId'],
     where: {
