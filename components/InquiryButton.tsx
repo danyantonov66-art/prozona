@@ -68,7 +68,14 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || "Грешка")
-      trackLead("Inquiry Submitted")
+     trackLead("Inquiry Submitted")
+     if (typeof window !== "undefined" && (window as any).gtag) {
+     (window as any).gtag("event", "inquiry_sent", {
+      event_category: "engagement",
+      event_label: specialistName,
+      specialist_id: specialistId,
+    })
+  }
       setSuccess("Запитването е изпратено успешно!")
       setForm({ name: "", email: "", phone: "", message: "", city: "" })
       setCityInput("")
