@@ -12,7 +12,6 @@ const SLUG_TO_USLUGI: Record<string, { service: string; name: string }[]> = {
   // ВиК
   "vik": [{ service: "vik", name: "ВиК майстор" }],
   "vodoprovodchik": [{ service: "vik", name: "ВиК майстор" }],
-  "vodoprovodchik": [{ service: "vik", name: "ВиК майстор" }],
   "kanalizacia": [{ service: "vik", name: "ВиК майстор" }],
   "trubi": [{ service: "vik", name: "ВиК майстор" }],
   "avaria": [{ service: "vik", name: "ВиК майстор" }],
