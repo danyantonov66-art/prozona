@@ -12,7 +12,7 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const { categorySlug, subcategorySlug } = await params
+  const { categorySlug, subcategorySlug, locale } = await params
 
   const category = await prisma.category.findUnique({ where: { slug: categorySlug } })
   const subcategory = await prisma.subcategory.findFirst({
@@ -30,6 +30,7 @@ export async function generateMetadata({ params }: Props) {
     alternates: {
       canonical: `https://prozona.bg/bg/categories/${categorySlug}/${subcategorySlug}`,
     },
+    ...(locale !== "bg" && { robots: { index: false, follow: false } }),
     openGraph: {
       title: `${subName} специалисти | ProZona`,
       description: `Намери ${subName} специалисти в ProZona. Безплатна заявка.`,
