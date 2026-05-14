@@ -11,7 +11,7 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const { categorySlug } = await params
+  const { categorySlug, locale } = await params
   const category = await prisma.category.findUnique({ where: { slug: categorySlug } })
   const name = category?.name || "Категория"
   return {
@@ -19,9 +19,10 @@ export async function generateMetadata({ params }: Props) {
     description: category?.name
       ? `Намери верифицирани ${name} специалисти в ProZona. Безплатна заявка.`
       : `Специалисти в ProZona. Безплатна заявка.`,
-    alternates: {
-      canonical: `https://prozona.bg/bg/categories/${categorySlug}`,
-    },
+   alternates: {
+  canonical: `https://prozona.bg/bg/categories/${categorySlug}`,
+},
+...(locale !== "bg" && { robots: { index: false, follow: false } }),
   }
 }
 
