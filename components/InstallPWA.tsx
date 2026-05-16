@@ -1,116 +1,105 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Providers } from "./providers";
-import Script from "next/script";
-import InstallPWA from "@/components/InstallPWA";
-import "./globals.css";
+"use client"
 
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
+import { useEffect, useState } from "react"
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://www.prozona.bg"),
-  title: {
-    default: "ProZona | Намери специалист близо до теб",
-    template: "%s | ProZona",
-  },
-  description: "Намери надежден специалист близо до теб. Ремонти, почистване, монтаж, градина и още. Безплатно запитване. Верифицирани майстори в целия град.",
-  keywords: ["специалист", "майстор", "ремонт", "почистване", "монтаж", "градина", "ВиК", "електро", "боядисване", "хамали", "климатици", "ProZona", "България", "София", "Пловдив", "Варна", "Бургас"],
-  authors: [{ name: "ProZona" }],
-  creator: "ProZona",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "ProZona",
-  },
-  openGraph: {
-    type: "website",
-    locale: "bg_BG",
-    url: "https://www.prozona.bg",
-    siteName: "ProZona",
-    title: "ProZona | Намери специалист близо до теб",
-    description: "Намери надежден специалист близо до теб. Ремонти, почистване, монтаж и още. Безплатно запитване.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "ProZona" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "ProZona | Намери специалист близо до теб",
-    description: "Намери надежден специалист близо до теб.",
-    images: ["/og-image.png"],
-  },
-  robots: { index: true, follow: true },
-  icons: {
-    icon: [
-      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-    ],
-    apple: [
-      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-  },
-};
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function InstallPWA() {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [showBanner, setShowBanner] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
+  const [isInstalled, setIsInstalled] = useState(false)
+
+  useEffect(() => {
+    // Провери дали вече е инсталирано
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setIsInstalled(true)
+      return
+    }
+
+    // Провери дали е затворен преди
+    const dismissed = localStorage.getItem("pwa-banner-dismissed")
+    if (dismissed) return
+
+    // iOS detection
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    const safari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent)
+    if (ios && safari) {
+      setIsIOS(true)
+      setShowBanner(true)
+      return
+    }
+
+    // Android/Desktop Chrome
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault()
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
+      setShowBanner(true)
+    })
+  }, [])
+
+  async function handleInstall() {
+    if (!deferredPrompt) return
+    await deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+    if (outcome === "accepted") {
+      setShowBanner(false)
+      setDeferredPrompt(null)
+    }
+  }
+
+  function handleDismiss() {
+    setShowBanner(false)
+    localStorage.setItem("pwa-banner-dismissed", "1")
+  }
+
+  if (!showBanner || isInstalled) return null
+
   return (
-    <html lang="bg">
-      <head>
-        <meta name="theme-color" content="#1DB954" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="ProZona" />
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
-      </head>
-      <body className={inter.className}>
-        <Providers>
-          {children}
-          <InstallPWA />
-        </Providers>
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
+      <div className="rounded-2xl border border-[#1DB954]/30 bg-[#151528] p-4 shadow-2xl">
+        <div className="flex items-start gap-3">
+          <img
+            src="/icons/icon-72x72.png"
+            alt="ProZona"
+            className="h-12 w-12 rounded-xl flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-white text-sm">Инсталирай ProZona</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {isIOS
+                ? 'Натисни "Сподели" → "Добави към началния екран"'
+                : "Добави като приложение на телефона си"}
+            </p>
+          </div>
+          <button
+            onClick={handleDismiss}
+            className="text-gray-500 hover:text-white text-lg leading-none flex-shrink-0 -mt-0.5"
+          >
+            ✕
+          </button>
+        </div>
 
-        {/* Service Worker регистрация */}
-        <Script id="register-sw" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
-                  .then(function(reg) { console.log('SW registered'); })
-                  .catch(function(err) { console.log('SW error:', err); });
-              });
-            }
-          `}
-        </Script>
-
-        {/* Google Analytics 4 */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-W3JYCB8NJS"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-W3JYCB8NJS');
-          `}
-        </Script>
-
-        {/* Meta Pixel */}
-        <Script id="meta-pixel" strategy="afterInteractive">
-          {`
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '1417207346264469');
-            fbq('track', 'PageView');
-          `}
-        </Script>
-      </body>
-    </html>
-  );
+        {!isIOS && (
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleInstall}
+              className="flex-1 rounded-xl bg-[#1DB954] py-2 text-sm font-semibold text-black hover:bg-[#1ed760] transition"
+            >
+              Инсталирай
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="flex-1 rounded-xl border border-white/10 py-2 text-sm text-gray-400 hover:text-white transition"
+            >
+              Не сега
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
