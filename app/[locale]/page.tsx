@@ -113,11 +113,17 @@ export default async function Home({ params }: Props) {
       include: { user: true },
     }),
     prisma.specialist.count(),
-    prisma.category.findMany({
+  prisma.category.findMany({
+  where: { isActive: true },
+  orderBy: { sortOrder: "asc" },
+  include: {
+    Subcategory: {
       where: { isActive: true },
       orderBy: { sortOrder: "asc" },
-    }),
-  ])
+      take: 3,
+    }
+  }
+}),
 
   const mapSpecialists = specialists
     .map((s) => {
@@ -324,8 +330,13 @@ export default async function Home({ params }: Props) {
                 <div className="h-32 w-full bg-gradient-to-br from-[#1DB954]/20 to-[#151528]" />
               )}
               <div className="px-2 py-3">
-                <span className="text-sm font-medium text-gray-200">{cat.name}</span>
-              </div>
+  <span className="text-sm font-medium text-gray-200">{cat.name}</span>
+  {cat.Subcategory && cat.Subcategory.length > 0 && (
+    <p className="mt-1 text-xs text-gray-400 line-clamp-2">
+      {cat.Subcategory.map(s => s.name).join(", ")}
+    </p>
+  )}
+</div>
             </Link>
           ))}
         </div>
