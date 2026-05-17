@@ -124,6 +124,7 @@ export default async function Home({ params }: Props) {
     }
   }
 }),
+])
 
   const mapSpecialists = specialists
     .map((s) => {
