@@ -11,12 +11,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "stara-zagora", "pleven", "veliko-tarnovo", "blagoevgrad",
     "pazardzhik", "haskovo", "shumen", "pernik", "dobrich",
     "sliven", "vratsa", "gabrovo", "yambol",
+    "vidin", "montana", "kardzhali", "razgrad", "silistra",
+    "targovishte",
   ]
 
   const serviceSlugs = [
-    "elektrotehnik", "vik", "pochistvane", "pokrivi",
-    "hamali", "klimatik", "shpaklovka", "gradina",
-    "gipsokarton", "drebni-remonti", "remont-pokrivi", "klimatici",
+    "elektrotehnik", "elektro", "vik", "pochistvane", "domashno",
+    "pokrivi", "hamali", "klimatik", "klimatici", "shpaklovka",
+    "shpaklovka-zidariya", "boyadisvane", "gradina", "gipsokarton",
+    "drebni-remonti", "dovarshitelni-remonti", "remont-pokrivi",
+    "remont-banya", "podovi-nastilki", "kosene", "avtoserviz", "gumi",
   ]
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -32,44 +36,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/bg/contact`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.4 },
   ]
 
-  const categoryPages: MetadataRoute.Sitemap = [
-    { url: `${baseUrl}/bg/categories/remonti`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/bg/categories/pochistvane`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/bg/categories/montaj`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/bg/categories/gradina`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-  ]
-
-  const subcategoryPages: MetadataRoute.Sitemap = [
-    "vik", "elektro", "boyadisvane", "shpaklovka-zidariya",
-    "remont-banya", "gipsokarton", "dovarshitelni-remonti",
-  ].map((slug) => ({
-    url: `${baseUrl}/bg/categories/remonti/${slug}`,
-    lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8,
-  })).concat(
-    ["domashno", "osnovno", "sled-remont", "ofis", "naem"].map((slug) => ({
-      url: `${baseUrl}/bg/categories/pochistvane/${slug}`,
-      lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8,
+  // Динамични категории от базата
+  let categoryPages: MetadataRoute.Sitemap = []
+  let subcategoryPages: MetadataRoute.Sitemap = []
+  try {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      include: { Subcategory: { where: { isActive: true } } },
+    })
+    categoryPages = categories.map((cat) => ({
+      url: `${baseUrl}/bg/categories/${cat.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     }))
-  ).concat(
-    ["mebeli", "klimatici", "osvetlenie", "elektrouredi", "drebni-remonti", "premestvane-hamali"].map((slug) => ({
-      url: `${baseUrl}/bg/categories/montaj/${slug}`,
-      lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8,
-    }))
-  ).concat(
-    ["kosene", "poddrazhka-dvor", "podryazvane", "ozelenyavane", "pochistvane-dvor"].map((slug) => ({
-      url: `${baseUrl}/bg/categories/gradina/${slug}`,
-      lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8,
-    }))
-  )
+    subcategoryPages = categories.flatMap((cat) =>
+      cat.Subcategory.map((sub) => ({
+        url: `${baseUrl}/bg/categories/${cat.slug}/${sub.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.75,
+      }))
+    )
+  } catch (e) {
+    console.error("Sitemap: categories error", e)
+  }
 
   const cityServicePages: MetadataRoute.Sitemap = cities.flatMap((city) =>
     serviceSlugs.map((serviceSlug) => ({
       url: `${baseUrl}/bg/uslugi/${city}/${serviceSlug}`,
-      lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
     }))
   )
 
-  // Динамични специалисти от базата данни
   let specialistPages: MetadataRoute.Sitemap = []
   try {
     const specialists = await prisma.specialist.findMany({
@@ -86,7 +87,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Sitemap: specialists error", e)
   }
 
-  // Динамични блог постове
   let blogPages: MetadataRoute.Sitemap = []
   try {
     const posts = await prisma.blogPost.findMany({
