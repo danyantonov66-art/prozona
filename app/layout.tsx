@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Providers } from "./providers";
 import Script from "next/script";
 import InstallPWA from "@/components/InstallPWA";
+import CookieConsent from "@/components/CookieConsent"
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
