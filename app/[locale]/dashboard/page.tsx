@@ -114,3 +114,4 @@ export default async function DashboardPage({ params }: Props) {
     <ProZonaFooter locale={locale} />
   </main>
 )
+}
