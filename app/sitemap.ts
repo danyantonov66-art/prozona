@@ -1,7 +1,114 @@
-const { PrismaClient } = require('@prisma/client')
-const p = new PrismaClient()
+import { MetadataRoute } from "next"
+import { prisma } from "@/lib/prisma"
 
-p.user.findFirst({ 
-  where: { role: 'ADMIN' },
-  select: { id: true, name: true }
-}).then(r => { console.log(r); p.$disconnect() })
+export const dynamic = "force-dynamic"
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = "https://prozona.bg"
+
+  const cities = [
+    "sofia", "plovdiv", "varna", "burgas", "ruse",
+    "stara-zagora", "pleven", "veliko-tarnovo", "blagoevgrad",
+    "pazardzhik", "haskovo", "shumen", "pernik", "dobrich",
+    "sliven", "vratsa", "gabrovo", "yambol",
+    "vidin", "montana", "kardzhali", "razgrad", "silistra",
+    "targovishte",
+  ]
+
+  const serviceSlugs = [
+    "elektrotehnik", "elektro", "vik", "pochistvane", "domashno",
+    "pokrivi", "hamali", "klimatik", "klimatici", "shpaklovka",
+    "shpaklovka-zidariya", "boyadisvane", "gradina", "gipsokarton",
+    "drebni-remonti", "dovarshitelni-remonti", "remont-pokrivi",
+    "remont-banya", "podovi-nastilki", "kosene", "avtoserviz", "gumi",
+  ]
+
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/bg`, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
+    { url: `${baseUrl}/bg/categories`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/bg/specialists`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/bg/search`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    { url: `${baseUrl}/bg/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/bg/how-it-works`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/bg/become-specialist`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/bg/terms`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/bg/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/bg/contact`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.4 },
+  ]
+
+  // Динамични категории от базата
+  let categoryPages: MetadataRoute.Sitemap = []
+  let subcategoryPages: MetadataRoute.Sitemap = []
+  try {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      include: { Subcategory: { where: { isActive: true } } },
+    })
+    categoryPages = categories.map((cat) => ({
+      url: `${baseUrl}/bg/categories/${cat.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    }))
+    subcategoryPages = categories.flatMap((cat) =>
+      cat.Subcategory.map((sub) => ({
+        url: `${baseUrl}/bg/categories/${cat.slug}/${sub.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.75,
+      }))
+    )
+  } catch (e) {
+    console.error("Sitemap: categories error", e)
+  }
+
+  const cityServicePages: MetadataRoute.Sitemap = cities.flatMap((city) =>
+    serviceSlugs.map((serviceSlug) => ({
+      url: `${baseUrl}/bg/uslugi/${city}/${serviceSlug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }))
+  )
+
+  let specialistPages: MetadataRoute.Sitemap = []
+  try {
+    const specialists = await prisma.specialist.findMany({
+      where: { verified: true },
+      select: { id: true, updatedAt: true },
+    })
+    specialistPages = specialists.map((s) => ({
+      url: `${baseUrl}/bg/specialists/${s.id}`,
+      lastModified: s.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }))
+  } catch (e) {
+    console.error("Sitemap: specialists error", e)
+  }
+
+  let blogPages: MetadataRoute.Sitemap = []
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { published: true },
+      select: { slug: true, updatedAt: true },
+    })
+    blogPages = posts.map((p) => ({
+      url: `${baseUrl}/bg/blog/${p.slug}`,
+      lastModified: p.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }))
+  } catch (e) {
+    console.error("Sitemap: blog error", e)
+  }
+
+  return [
+    ...staticPages,
+    ...categoryPages,
+    ...subcategoryPages,
+    ...cityServicePages,
+    ...specialistPages,
+    ...blogPages,
+  ]
+}
