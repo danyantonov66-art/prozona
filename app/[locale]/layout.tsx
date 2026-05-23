@@ -14,7 +14,7 @@ export default async function LocaleLayout({
   const { locale } = await params
 
   return (
-    <Providers>
+    <>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-W3JYCB8NJS"
         strategy="afterInteractive"
@@ -27,7 +27,9 @@ export default async function LocaleLayout({
           gtag('config', 'G-W3JYCB8NJS');
         `}
       </Script>
-      {children}
-    </Providers>
+      <Providers>
+        {children}
+      </Providers>
+    </>
   )
 }
