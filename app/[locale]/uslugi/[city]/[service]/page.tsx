@@ -247,9 +247,35 @@ export default async function ServiceCityPage({ params }: Props) {
   const relatedServices = Object.entries(SERVICE_MAP)
     .filter(([slug]) => slug !== service)
     .slice(0, 4)
+    const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": `${serviceName} в ${cityBg}`,
+  "description": svc?.description(cityBg) || `${serviceName} специалисти в ${cityBg}`,
+  "provider": {
+    "@type": "Organization",
+    "name": "ProZona",
+    "url": "https://prozona.bg"
+  },
+  "areaServed": {
+    "@type": "City",
+    "name": cityBg,
+    "addressCountry": "BG"
+  },
+  "url": `https://prozona.bg/bg/uslugi/${city}/${service}`,
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "BGN",
+    "offerCount": filled.length,
+  }
+}
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+/>
       <ProZonaHeader locale={locale} />
 
       <section className="mx-auto max-w-6xl px-4 py-10">
