@@ -374,6 +374,38 @@ export default async function Home({ params }: Props) {
           ))}
         </div>
       </section>
+      {/* ГРАДОВЕ */}
+<section className="mx-auto max-w-6xl px-4 py-12">
+  <h2 className="mb-2 text-center text-2xl font-bold">Услуги по градове</h2>
+  <p className="mb-8 text-center text-sm text-gray-400">Намери специалист във всеки град в България</p>
+  <div className="flex flex-wrap justify-center gap-3">
+    {[
+      { slug: "sofia", name: "София" },
+      { slug: "plovdiv", name: "Пловдив" },
+      { slug: "varna", name: "Варна" },
+      { slug: "burgas", name: "Бургас" },
+      { slug: "ruse", name: "Русе" },
+      { slug: "stara-zagora", name: "Стара Загора" },
+      { slug: "pleven", name: "Плевен" },
+      { slug: "veliko-tarnovo", name: "Велико Търново" },
+      { slug: "blagoevgrad", name: "Благоевград" },
+      { slug: "pernik", name: "Перник" },
+      { slug: "varna", name: "Варна" },
+      { slug: "haskovo", name: "Хасково" },
+      { slug: "shumen", name: "Шумен" },
+      { slug: "vidin", name: "Видин" },
+      { slug: "montana", name: "Монтана" },
+    ].map(({ slug, name }) => (
+      <Link
+        key={slug}
+        href={`/${locale}/uslugi/${slug}`}
+        className="rounded-full border border-white/10 bg-[#151528] px-4 py-2 text-sm text-gray-300 transition hover:border-[#1DB954]/40 hover:text-[#1DB954]"
+      >
+        Майстори в {name}
+      </Link>
+    ))}
+  </div>
+</section>
 
       {/* ЗАЩО PROZONA */}
       <section className="mx-auto max-w-6xl px-4 py-16">
