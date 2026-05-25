@@ -94,29 +94,43 @@ export default function BecomeSpecialistPage() {
   }
 
   if (!session) {
-    return (
-      <main className="min-h-screen bg-[#0D0D1A] text-white">
-        <ProZonaHeader locale={locale} />
-        <section className="max-w-3xl mx-auto px-4 py-16">
-          <div className="mb-8 rounded-2xl border border-[#1DB954]/30 bg-gradient-to-r from-[#1DB954]/10 to-[#151528] p-6 text-center">
-            <div className="mb-2 inline-block rounded-full bg-[#1DB954] px-4 py-1 text-sm font-bold text-black">🎉 Стартова оферта</div>
-            <h2 className="mt-3 text-2xl font-bold">3 месеца Premium безплатно</h2>
-            <p className="mt-2 text-gray-300">Регистрирай се сега и получи <strong className="text-white">Premium план безплатно за 3 месеца</strong> — топ позиция, неограничени снимки и 20 стартови кредита.</p>
-            <p className="mt-2 text-sm text-[#1DB954] font-semibold">⚡ Остават само {spotsLeft ?? "..."} места за безплатен Premium!</p>
+  return (
+    <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <ProZonaHeader locale={locale} />
+      <section className="max-w-lg mx-auto px-4 py-16">
+
+        <div className="mb-6 rounded-2xl border border-[#1DB954]/30 bg-gradient-to-r from-[#1DB954]/10 to-[#151528] p-6 text-center">
+          <div className="mb-2 inline-block rounded-full bg-[#1DB954] px-4 py-1 text-sm font-bold text-black">🎉 Стартова оферта</div>
+          <h1 className="mt-3 text-2xl font-bold">3 месеца Premium безплатно</h1>
+          <p className="mt-2 text-gray-300">Регистрирай се сега и получи <strong className="text-white">Premium план безплатно за 3 месеца</strong> — топ позиция и 20 стартови кредита.</p>
+          <p className="mt-2 text-sm text-[#1DB954] font-semibold">⚡ Остават само {spotsLeft ?? "..."} места!</p>
+        </div>
+
+        <div className="bg-[#151528] border border-white/10 rounded-2xl p-8 text-center">
+          <h2 className="text-2xl font-bold mb-2">Започни за 30 секунди</h2>
+          <p className="text-gray-400 mb-6">Създай акаунт или влез за да продължиш</p>
+          <div className="flex flex-col gap-3">
+            <Link
+              href={`/${locale}/register?redirect=/bg/become-specialist`}
+              className="inline-flex items-center justify-center bg-[#1DB954] text-black font-bold px-6 py-4 rounded-xl hover:bg-[#1ed760] transition text-lg"
+            >
+              ✅ Създай безплатен акаунт →
+            </Link>
+            <Link
+              href={`/${locale}/login?redirect=/bg/become-specialist`}
+              className="inline-flex items-center justify-center border border-white/20 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition"
+            >
+              Вече имам акаунт — Вход
+            </Link>
           </div>
-          <div className="bg-[#151528] border border-white/10 rounded-2xl p-8 md:p-10 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">Трябва да сте влезли в профила си</h1>
-            <p className="text-gray-400 mb-8">За да подадете заявка като специалист, първо влезте в профила си.</p>
-            <div className="flex flex-col gap-3 sm:flex-row justify-center">
-              <Link href={`/${locale}/login`} className="inline-flex items-center justify-center bg-[#1DB954] text-black font-semibold px-6 py-3 rounded-xl hover:bg-[#1ed760] transition">Вход</Link>
-              <Link href={`/${locale}/register`} className="inline-flex items-center justify-center border border-white/20 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition">Регистрация</Link>
-            </div>
-          </div>
-        </section>
-        <ProZonaFooter locale={locale} />
-      </main>
-    )
-  }
+          <p className="mt-4 text-xs text-gray-500">Без кредитна карта. Без скрити такси.</p>
+        </div>
+
+      </section>
+      <ProZonaFooter locale={locale} />
+    </main>
+  )
+}
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
