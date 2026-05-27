@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
 
   const post = await prisma.blogPost.create({
     data: {
+      category: body.category || 'general',
       title, excerpt: excerpt || null, content, slug,
       coverImage: coverImage || null,
       published: published || false,
@@ -82,6 +83,7 @@ export async function PUT(request: NextRequest) {
   const post = await prisma.blogPost.update({
     where: { id },
     data: {
+      category: body.category ?? existing.category,
       title: title || existing.title,
       excerpt: excerpt ?? existing.excerpt,
       content: content || existing.content,

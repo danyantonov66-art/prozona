@@ -16,7 +16,20 @@ interface BlogPost {
   publishedAt: string | null
   metaTitle: string | null
   metaDescription: string | null
+  category: string | null
   createdAt: string
+}
+
+const CATEGORIES = [
+  { key: 'general', label: 'Обща' },
+  { key: 'clients', label: 'За клиенти' },
+  { key: 'specialists', label: 'За майстори' },
+  { key: 'prices', label: 'Цени по градове' },
+  { key: 'seasonal', label: 'Сезонни съвети' },
+]
+
+const getCategoryLabel = (key: string | null) => {
+  return CATEGORIES.find(c => c.key === key)?.label || key || 'Обща'
 }
 
 export default function AdminBlogPage() {
@@ -40,6 +53,7 @@ export default function AdminBlogPage() {
   const [published, setPublished] = useState(false)
   const [metaTitle, setMetaTitle] = useState('')
   const [metaDescription, setMetaDescription] = useState('')
+  const [category, setCategory] = useState('general')
 
   useEffect(() => {
     if (status === 'loading') return
@@ -61,6 +75,7 @@ export default function AdminBlogPage() {
     setTitle(''); setExcerpt(''); setContent('')
     setCoverImage(''); setPublished(false)
     setMetaTitle(''); setMetaDescription('')
+    setCategory('general')
     setEditing(null)
   }
 
@@ -75,6 +90,7 @@ export default function AdminBlogPage() {
     setPublished(post.published)
     setMetaTitle(post.metaTitle || '')
     setMetaDescription(post.metaDescription || '')
+    setCategory(post.category || 'general')
     setView('edit')
   }
 
@@ -83,7 +99,7 @@ export default function AdminBlogPage() {
     setSaving(true)
     setMessage('')
 
-    const body = { title, excerpt, content, coverImage, published, metaTitle, metaDescription }
+    const body = { title, excerpt, content, coverImage, published, metaTitle, metaDescription, category }
     const method = view === 'edit' ? 'PUT' : 'POST'
     const payload = view === 'edit' ? { ...body, id: editing!.id } : body
 
@@ -160,11 +176,16 @@ export default function AdminBlogPage() {
             {posts.map((post) => (
               <div key={post.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#151528] px-5 py-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${post.published ? 'bg-[#1DB954]/20 text-[#1DB954]' : 'bg-gray-700 text-gray-400'}`}>
                       {post.published ? '✅ Публикувана' : '⏳ Чернова'}
                     </span>
                     <span className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString('bg-BG')}</span>
+                    {post.category && post.category !== 'general' && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20">
+                        {getCategoryLabel(post.category)}
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-white font-semibold truncate">{post.title}</h3>
                   {post.excerpt && <p className="text-gray-400 text-sm truncate">{post.excerpt}</p>}
@@ -198,7 +219,7 @@ export default function AdminBlogPage() {
         {(view === 'create' || view === 'edit') && (
           <div className="bg-[#151528] rounded-2xl border border-white/10 p-6 space-y-5">
             <h2 className="text-xl font-semibold text-white">
-              {view === 'create' ? '✍️ Нова статия' : '✏️ Редактирай статия'}
+              {view === 'create' ? '✌️ Нова статия' : '✏️ Редактирай статия'}
             </h2>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -225,7 +246,7 @@ export default function AdminBlogPage() {
 
               <div className="md:col-span-2">
                 <label className="block text-gray-300 mb-2 text-sm">
-                  Съдържание * 
+                  Съдържание *
                   <span className="text-xs text-gray-500 ml-2">HTML се поддържа (&lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;strong&gt;...)</span>
                 </label>
                 <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={16}
@@ -245,6 +266,16 @@ export default function AdminBlogPage() {
                 <input type="text" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)}
                   className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none"
                   placeholder="До 160 символа..." />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2 text-sm">Категория</label>
+                <select value={category} onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none">
+                  {CATEGORIES.map(cat => (
+                    <option key={cat.key} value={cat.key}>{cat.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
