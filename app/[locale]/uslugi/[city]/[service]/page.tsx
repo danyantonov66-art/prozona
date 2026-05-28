@@ -3,6 +3,7 @@ import { prisma } from "../../../../../lib/prisma"
 import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 import type { Metadata } from "next"
+import { redirect } from 'next/navigation'
 
 const SERVICE_MAP: Record<string, {
   name: string
@@ -128,11 +129,20 @@ export const dynamic = "force-dynamic"
 
 export default async function ServiceCityPage({ params }: Props) {
   const { locale, city, service } = await params
+  // Redirect кирилски градове към latin slug
+const cityLower = city.toLowerCase()
+if (city !== cityLower || /[а-яё]/i.test(city)) {
+  const latinCity = Object.entries(CITY_MAP).find(([, bg]) => 
+    bg.toLowerCase() === decodeURIComponent(city).toLowerCase()
+  )?.[0]
+  if (latinCity) {
+    redirect(`/${locale}/uslugi/${latinCity}/${service}`)
+  }
+}
 
   const cityBg = CITY_MAP[city] || decodeURIComponent(city)
   const svc = SERVICE_MAP[service]
   const serviceName = svc?.name || decodeURIComponent(service)
-
   const specialists = await prisma.specialist.findMany({
     where: {
       verified: true,
