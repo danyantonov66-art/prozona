@@ -12,7 +12,7 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const { categorySlug, subcategorySlug } = await params
+  const { categorySlug, subcategorySlug, locale } = await params
 
   const category = await prisma.category.findUnique({ where: { slug: categorySlug } })
   const subcategory = await prisma.subcategory.findFirst({
@@ -24,15 +24,14 @@ export async function generateMetadata({ params }: Props) {
 
   return {
     title: `${subName} специалисти в България | ${catName} | ProZona`,
-    description: subcategory?.description
-      ? subcategory.description.slice(0, 160)
-      : `Намери верифицирани ${subName} специалисти в ProZona. Безплатна заявка.`,
+    description: `Намери верифицирани ${subName} специалисти в ProZona. Сравни профили, виж отзиви и изпрати безплатна заявка.`,
     alternates: {
       canonical: `https://prozona.bg/bg/categories/${categorySlug}/${subcategorySlug}`,
     },
+    ...(locale !== "bg" && { robots: { index: false, follow: false } }),
     openGraph: {
       title: `${subName} специалисти | ProZona`,
-      description: `Намери ${subName} специалисти в ProZona. Безплатна заявка.`,
+      description: `Намери верифицирани ${subName} специалисти в ProZona. Безплатна заявка.`,
       url: `https://prozona.bg/bg/categories/${categorySlug}/${subcategorySlug}`,
       siteName: "ProZona",
       locale: "bg_BG",
@@ -74,16 +73,45 @@ export default async function SubcategoryPage({ params }: Props) {
         include: { user: { select: { name: true, image: true } } }
       }
     },
-    take: 20,
+    orderBy: {
+      Specialist: { verified: "desc" }
+    },
+    take: 50,
   })
 
   const specialists = specialistCategories.map(sc => sc.Specialist).filter(Boolean)
 
+  // Уникални градове от специалистите за филтър
+  const cities = [...new Set(specialists.map(s => s.city).filter(Boolean))].sort()
+
+  // JSON-LD за подкатегория
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": subcategory.name,
+    "description": `Намери верифицирани ${subcategory.name} специалисти в ProZona`,
+    "provider": {
+      "@type": "Organization",
+      "name": "ProZona",
+      "url": "https://prozona.bg"
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "Bulgaria"
+    },
+    "url": `https://prozona.bg/bg/categories/${categorySlug}/${subcategorySlug}`,
+  }
+
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ProZonaHeader locale={locale} />
 
       <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
+        {/* Breadcrumb */}
         <div className="mb-6 text-sm text-gray-400">
           <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">Начало</Link>
           <span className="mx-2">/</span>
@@ -94,15 +122,39 @@ export default async function SubcategoryPage({ params }: Props) {
           <span className="text-white">{subcategory.name}</span>
         </div>
 
-        <h1 className="mb-4 text-4xl font-bold">{subcategory.name}</h1>
-        {subcategory.description && (
-          <p className="mb-8 text-lg text-gray-400">{subcategory.description}</p>
+        {/* H1 с ключови думи */}
+        <h1 className="mb-2 text-3xl font-bold md:text-4xl">
+          {subcategory.name} специалисти в България
+        </h1>
+        <p className="mb-8 text-gray-400">
+          {specialists.length > 0
+            ? `${specialists.length} верифицирани специалист${specialists.length === 1 ? "" : "а"} · Безплатна заявка`
+            : "Намери верифицирани специалисти · Безплатна заявка"}
+        </p>
+
+        {/* Филтър по град */}
+        {cities.length > 1 && (
+          <div className="mb-8 flex flex-wrap gap-2">
+            <span className="text-sm text-gray-400 self-center mr-1">Филтрирай по град:</span>
+            {cities.map(city => (
+              <a
+                key={city}
+                href={`?city=${encodeURIComponent(city)}`}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-gray-300 hover:border-[#1DB954]/50 hover:text-white transition"
+              >
+                {city}
+              </a>
+            ))}
+          </div>
         )}
 
         {specialists.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-12 text-center">
             <p className="text-gray-400 mb-4">Все още няма специалисти в тази категория.</p>
-            <Link href={`/${locale}/register/specialist`} className="inline-flex items-center gap-2 rounded-xl bg-[#1DB954] px-6 py-3 text-black font-semibold hover:bg-[#1ed760] transition">
+            <Link
+              href={`/${locale}/register/specialist`}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1DB954] px-6 py-3 text-black font-semibold hover:bg-[#1ed760] transition"
+            >
               Стани първият специалист →
             </Link>
           </div>
@@ -131,6 +183,16 @@ export default async function SubcategoryPage({ params }: Props) {
             ))}
           </div>
         )}
+
+        {/* SEO текст в дъното */}
+        <div className="mt-16 rounded-2xl border border-white/5 bg-[#151528] p-6">
+          <h2 className="mb-3 text-lg font-semibold">Как да намериш {subcategory.name} специалист?</h2>
+          <p className="text-sm text-gray-400 leading-relaxed">
+            В ProZona всички {subcategory.name.toLowerCase()} специалисти са верифицирани и проверени.
+            Разгледай профилите, виж снимки от реални обекти и изпрати безплатна заявка директно към специалиста.
+            Не плащаш комисиона — свързваш се директно.
+          </p>
+        </div>
       </section>
 
       <ProZonaFooter locale={locale} />

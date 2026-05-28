@@ -1,0 +1,459 @@
+﻿import PopularCities from "@/components/PopularCities"
+import SearchBar from "@/components/SearchBar"
+import Link from "next/link"
+import ProZonaHeader from "@/components/header/ProZonaHeader"
+import ProZonaFooter from "@/components/footer/ProZonaFooter"
+import { prisma } from "@/lib/prisma"
+import SpecialistsMapWrapper from "@/components/SpecialistsMapWrapper"
+
+interface Props {
+  params: Promise<{ locale: string }>
+}
+
+const featuredPosts = [
+  {
+    slug: "kak-da-izberesh-maistor-za-remont",
+    title: "РљР°Рє РґР° РёР·Р±РµСЂРµС€ РјР°Р№СЃС‚РѕСЂ Р·Р° СЂРµРјРѕРЅС‚ Р±РµР· РёР·Р»РёС€РµРЅ СЂРёСЃРє",
+    excerpt: "РќР°Р№-РІР°Р¶РЅРёС‚Рµ РЅРµС‰Р°, РєРѕРёС‚Рѕ РґР° РїСЂРѕРІРµСЂРёС€ РїСЂРµРґРё РґР° РЅР°РµРјРµС€ РјР°Р№СЃС‚РѕСЂ Р·Р° РґРѕРјР° СЃРё.",
+  },
+  {
+    slug: "kolko-struva-domashnoto-pochistvane-v-sofia",
+    title: "РљРѕР»РєРѕ СЃС‚СЂСѓРІР° РґРѕРјР°С€РЅРѕС‚Рѕ РїРѕС‡РёСЃС‚РІР°РЅРµ РІ РЎРѕС„РёСЏ",
+    excerpt: "РћСЂРёРµРЅС‚РёСЂРѕРІСЉС‡РЅРё С†РµРЅРё Рё РєР°РєРІРѕ РІР»РёСЏРµ РІСЉСЂС…Сѓ РєСЂР°Р№РЅР°С‚Р° СЃС‚РѕР№РЅРѕСЃС‚ РЅР° СѓСЃР»СѓРіР°С‚Р°.",
+  },
+  {
+    slug: "hamalski-uslugi-koga-si-zasluzhava",
+    title: "РҐР°РјР°Р»СЃРєРё СѓСЃР»СѓРіРё: РєРѕРіР° СЃРё Р·Р°СЃР»СѓР¶Р°РІР° РґР° РЅР°РµРјРµС€ РїСЂРѕС„РµСЃРёРѕРЅР°Р»РµРЅ РµРєРёРї",
+    excerpt: "РљРѕРіР° РїСЂРѕС„РµСЃРёРѕРЅР°Р»РЅРёС‚Рµ С…Р°РјР°Р»Рё СЃРїРµСЃС‚СЏРІР°С‚ РІСЂРµРјРµ, СЂРёСЃРє Рё РёР·Р»РёС€РЅРё СЂР°Р·С…РѕРґРё.",
+  },
+]
+
+const comparisonRows = [
+  {
+    feature: "РњРѕРЅРµС‚РёР·Р°С†РёСЏ Р·Р° СЃРїРµС†РёР°Р»РёСЃС‚Рё",
+    prozona: "РљСЂРµРґРёС‚Рё вЂ“ РїР»Р°С‰Р°С€ СЃР°РјРѕ Р·Р° СЂРµР°Р»РµРЅ РєРѕРЅС‚Р°РєС‚",
+    benefit: "РќРёСЃСЉРє СЂРёСЃРє: РЅРµ РїР»Р°С‰Р°С€, Р°РєРѕ РЅСЏРјР° РєР»РёРµРЅС‚Рё. РџР»Р°С‰Р°С€ СЃР°РјРѕ РєРѕРіР°С‚Рѕ РїРµС‡РµР»РёС€.",
+  },
+  {
+    feature: "Р‘РµР·РїР»Р°С‚РµРЅ РїР»Р°РЅ",
+    prozona: "Р‘РµР·РїР»Р°С‚РµРЅ Р·Р°РІРёРЅР°РіРё (СЃР°РјРѕ РєСЂРµРґРёС‚Рё Р·Р° РєРѕРЅС‚Р°РєС‚Рё)",
+    benefit: "Р—Р°РїРѕС‡РІР°С€ Р±РµР· РёРЅРІРµСЃС‚РёС†РёСЏ вЂ“ РёРґРµР°Р»РЅРѕ Р·Р° РЅРѕРІРё РјР°Р№СЃС‚РѕСЂРё.",
+  },
+  {
+    feature: "Р”РѕРєР°Р·Р°С‚РµР»СЃС‚РІР° Р·Р° РєР°С‡РµСЃС‚РІРѕ",
+    prozona: "Р“Р°Р»РµСЂРёСЏ РЅР° РѕР±РµРєС‚Рё + С†РµРЅРѕРІР° Р»РёСЃС‚Р° + СЃС‚Р°С‚РёСЃС‚РёРєР°",
+    benefit: "РљР»РёРµРЅС‚СЉС‚ РІРёР¶РґР° СЂРµР°Р»РЅРё СЃРЅРёРјРєРё Рё С†РµРЅРё РїСЂРµРґРІР°СЂРёС‚РµР»РЅРѕ вЂ“ РїРѕ-РіРѕР»СЏРјРѕ РґРѕРІРµСЂРёРµ.",
+  },
+  {
+    feature: "Р Р°РЅРЅРѕ РїСЂРµРґРёРјСЃС‚РІРѕ",
+    prozona: "РџСЉСЂРІРёС‚Рµ 200: Premium Р±РµР·РїР»Р°С‚РЅРѕ 6 РјРµСЃРµС†Р° + TOP РїРѕР·РёС†РёСЏ",
+    benefit: "Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ СЃРµРіР° Рё РёР·РїСЂРµРІР°СЂРё РєРѕРЅРєСѓСЂРµРЅС†РёСЏС‚Р°.",
+  },
+  {
+    feature: "Р—Р°СЏРІРєРё Р·Р° РєР»РёРµРЅС‚Рё",
+    prozona: "Р‘РµР·РїР»Р°С‚РЅРё + РґРѕ 5 СЃРїРµС†РёР°Р»РёСЃС‚Р° СЃРµ СЃРІСЉСЂР·РІР°С‚ РґРёСЂРµРєС‚РЅРѕ",
+    benefit: "РљР»РёРµРЅС‚СЉС‚ РїРѕР»СѓС‡Р°РІР° Р±СЉСЂР·Рё РѕС„РµСЂС‚Рё Р±РµР·РїР»Р°С‚РЅРѕ.",
+  },
+]
+
+const infographicSteps = [
+  { icon: "рџ“‹", label: "Р—Р°СЏРІРєР° РѕС‚ РєР»РёРµРЅС‚" },
+  { icon: "в†’", label: "" },
+  { icon: "рџЄ™", label: "1 РєСЂРµРґРёС‚" },
+  { icon: "в†’", label: "" },
+  { icon: "рџ“ћ", label: "Р”РёСЂРµРєС‚РµРЅ РєРѕРЅС‚Р°РєС‚" },
+  { icon: "в†’", label: "" },
+  { icon: "рџ’ј", label: "Р Р°Р±РѕС‚Р° Рё РґРѕС…РѕРґ" },
+]
+
+const CITY_COORDS: Record<string, [number, number]> = {
+  "РЎРѕС„РёСЏ": [42.6977, 23.3219],
+  "РџР»РѕРІРґРёРІ": [42.1354, 24.7453],
+  "Р’Р°СЂРЅР°": [43.2141, 27.9147],
+  "Р‘СѓСЂРіР°СЃ": [42.5048, 27.4626],
+  "Р СѓСЃРµ": [43.8356, 25.9657],
+  "РЎС‚Р°СЂР° Р—Р°РіРѕСЂР°": [42.4257, 25.6345],
+  "РџР»РµРІРµРЅ": [43.4170, 24.6069],
+  "Р’РµР»РёРєРѕ РўСЉСЂРЅРѕРІРѕ": [43.0757, 25.6172],
+  "Р‘Р»Р°РіРѕРµРІРіСЂР°Рґ": [42.0135, 23.0942],
+  "РџР°Р·Р°СЂРґР¶РёРє": [42.1928, 24.3317],
+  "РҐР°СЃРєРѕРІРѕ": [41.9345, 25.5554],
+  "РЁСѓРјРµРЅ": [43.2707, 26.9220],
+  "РџРµСЂРЅРёРє": [42.6046, 23.0376],
+  "Р”РѕР±СЂРёС‡": [43.5703, 27.8272],
+  "РЎР»РёРІРµРЅ": [42.6868, 26.3259],
+  "Р’СЂР°С†Р°": [43.2057, 23.5504],
+  "Р“Р°Р±СЂРѕРІРѕ": [42.8744, 25.3169],
+  "РЇРјР±РѕР»": [42.4838, 26.5036],
+  "Р‘СЉР»РіР°СЂРёСЏ": [42.7, 25.5],
+  "РЎР°РјРѕРєРѕРІ": [42.3369, 23.5530],
+  "Varna": [43.2141, 27.9147],
+  "РљСЋСЃС‚РµРЅРґРёР»": [42.2833, 22.6833],
+  "РљР°СЂРЅРѕР±Р°С‚": [42.6500, 26.9833],
+  "Р’РёРґРёРЅ": [43.9906, 22.8728],
+  "РЎРјРѕР»СЏРЅ": [41.5764, 24.7011],
+  "Р‘Р°РЅР°РЅРѕРІС†Рё": [42.7, 23.4],
+  "Sofia": [42.6977, 23.3219],
+  "Sofiq": [42.6977, 23.3219],
+  "Р•Р»РёРЅ РїРµР»РёРЅ": [42.6681, 23.5978],
+  "РњРѕРЅС‚Р°РЅР°": [43.4083, 23.2256],
+}
+
+export const metadata = {
+  title: "РќР°РјРµСЂРё РІРµСЂРёС„РёС†РёСЂР°РЅ СЃРїРµС†РёР°Р»РёСЃС‚ РёР»Рё Р·Р°РїРѕС‡РЅРё РґР° РїРѕР»СѓС‡Р°РІР°С€ РєР»РёРµРЅС‚Рё | ProZona",
+  description: "ProZona СЃРІСЉСЂР·РІР° РєР»РёРµРЅС‚Рё СЃ РІРµСЂРёС„РёС†РёСЂР°РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё РІ Р‘СЉР»РіР°СЂРёСЏ. Р‘РµР·РїР»Р°С‚РЅР° Р·Р°СЏРІРєР° Р·Р° РєР»РёРµРЅС‚Рё. Р‘РµР·РїР»Р°С‚РЅР° СЂРµРіРёСЃС‚СЂР°С†РёСЏ Р·Р° РјР°Р№СЃС‚РѕСЂРё.",
+}
+
+export default async function Home({ params }: Props) {
+  const { locale } = await params
+
+  const [specialists, specialistCount, dbCategories] = await Promise.all([
+    prisma.specialist.findMany({
+      where: { verified: true },
+      include: { user: true },
+    }),
+    prisma.specialist.count(),
+    prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+  ])
+
+  const mapSpecialists = specialists
+    .map((s) => {
+      const coords = s.city ? CITY_COORDS[s.city] : null
+      if (!coords) return null
+      return {
+        id: s.id,
+        name: s.businessName || s.user?.name || "РЎРїРµС†РёР°Р»РёСЃС‚",
+        city: s.city!,
+        lat: coords[0],
+        lng: coords[1],
+      }
+    })
+    .filter(Boolean) as any[]
+
+  const spotsLeft = Math.max(200 - specialistCount, 0)
+  const progressPercent = Math.min((specialistCount / 200) * 100, 100)
+
+  return (
+    <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "ProZona.bg",
+              url: "https://prozona.bg",
+              logo: "https://prozona.bg/logo.png",
+              description: "РџР»Р°С‚С„РѕСЂРјР° Р·Р° РЅР°РјРёСЂР°РЅРµ РЅР° РІРµСЂРёС„РёС†РёСЂР°РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё РІ Р‘СЉР»РіР°СЂРёСЏ",
+              areaServed: "Bulgaria",
+              sameAs: [],
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "ProZona.bg",
+              url: "https://prozona.bg",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: "https://prozona.bg/bg/search?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ]),
+        }}
+      />
+      <ProZonaHeader locale={locale} />
+
+      {/* TOP BAR */}
+      <div className="bg-[#1A1A2E] px-4 py-2 text-center text-white">
+        <p className="text-sm">
+          рџЋЇ РџРѕР»СѓС‡Р°РІР°Р№ СЂРµР°Р»РЅРё Р·Р°РїРёС‚РІР°РЅРёСЏ РѕС‚ РєР»РёРµРЅС‚Рё РѕС‰Рµ С‚РѕР·Рё РјРµСЃРµС† рџ‘‰{" "}
+          <Link href={`/${locale}/become-specialist`} className="font-semibold text-[#1DB954] hover:underline">
+            Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ Р±РµР·РїР»Р°С‚РЅРѕ
+          </Link>
+          {" "}вЂ“ РїСЉСЂРІРёС‚Рµ 200 РјР°Р№СЃС‚РѕСЂР° РїРѕР»СѓС‡Р°РІР°С‚ 6 РјРµСЃРµС†Р° Premium{" "}
+          <span className="text-[#1DB954] font-semibold">вЏі РћСЃС‚Р°РІР°С‚ {spotsLeft} РјРµСЃС‚Р°</span>
+        </p>
+      </div>
+
+      {/* HERO вЂ” РґРІРѕРµРЅ Р±Р»РѕРє */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#16162A] to-[#0D0D1A]" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-16">
+
+          {/* Р—Р°РіР»Р°РІРёРµ */}
+          <div className="mb-10 text-center">
+            <div className="mb-4 inline-flex items-center rounded-full border border-[#1DB954]/30 bg-[#1DB954]/10 px-4 py-1 text-sm text-[#86efac]">
+              ProZona.bg
+            </div>
+            <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
+              РџР»Р°С‚С„РѕСЂРјР°С‚Р° РєРѕСЏС‚Рѕ СЃРІСЉСЂР·РІР°
+              <span className="block text-[#1DB954]">РєР»РёРµРЅС‚Рё Рё СЃРїРµС†РёР°Р»РёСЃС‚Рё</span>
+            </h1>
+            <p className="mx-auto max-w-2xl text-base text-gray-300 md:text-lg">
+              РќР°РјРµСЂРё РІРµСЂРёС„РёС†РёСЂР°РЅ РјР°Р№СЃС‚РѕСЂ Р±Р»РёР·Рѕ РґРѕ С‚РµР± РёР»Рё Р·Р°РїРѕС‡РЅРё РґР° РїРѕР»СѓС‡Р°РІР°С€ СЂРµР°Р»РЅРё РєР»РёРµРЅС‚СЃРєРё Р·Р°РїРёС‚РІР°РЅРёСЏ.
+            </p>
+          </div>
+
+          {/* Р”РІРѕРµРЅ hero Р±Р»РѕРє */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mb-10">
+            {/* Р—Р° РєР»РёРµРЅС‚Рё */}
+            <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-8 flex flex-col">
+              <span className="mb-3 inline-flex w-fit rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300">
+                рџ”Ќ РўСЉСЂСЃРёС€ СЃРїРµС†РёР°Р»РёСЃС‚?
+              </span>
+              <h2 className="mb-3 text-2xl font-bold text-white">
+                РќР°РјРµСЂРё РІРµСЂРёС„РёС†РёСЂР°РЅ РјР°Р№СЃС‚РѕСЂ Р±Р»РёР·Рѕ РґРѕ С‚РµР±
+              </h2>
+              <p className="mb-6 text-sm text-gray-300 flex-1">
+                Р‘РµР·РїР»Р°С‚РЅР° Р·Р°СЏРІРєР°, РґРёСЂРµРєС‚РµРЅ РєРѕРЅС‚Р°РєС‚ СЃ РјР°Р№СЃС‚РѕСЂР°, СЂРµР°Р»РЅРё РѕС‚Р·РёРІРё РѕС‚ РєР»РёРµРЅС‚Рё. Р‘РµР· РїРѕСЃСЂРµРґРЅРёС†Рё.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Link
+                  href={`/${locale}/search`}
+                  className="inline-flex items-center justify-center rounded-xl bg-blue-500 px-6 py-3 font-semibold text-white transition hover:bg-blue-600"
+                >
+                  рџ”Ќ РќР°РјРµСЂРё СЃРїРµС†РёР°Р»РёСЃС‚
+                </Link>
+                <Link
+                  href={`/${locale}/request`}
+                  className="inline-flex items-center justify-center rounded-xl border border-blue-500/30 px-6 py-3 font-semibold text-blue-300 transition hover:bg-blue-500/10"
+                >
+                  рџ“© РџСѓР±Р»РёРєСѓРІР°Р№ Р·Р°СЏРІРєР° Р±РµР·РїР»Р°С‚РЅРѕ
+                </Link>
+              </div>
+            </div>
+
+            {/* Р—Р° СЃРїРµС†РёР°Р»РёСЃС‚Рё */}
+            <div className="rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 p-8 flex flex-col">
+              <span className="mb-3 inline-flex w-fit rounded-full bg-[#1DB954]/20 px-3 py-1 text-xs font-semibold text-[#1DB954]">
+                рџ”§ РўРё СЃРё СЃРїРµС†РёР°Р»РёСЃС‚?
+              </span>
+              <h2 className="mb-3 text-2xl font-bold text-white">
+                Р—Р°РїРѕС‡РЅРё РґР° РїРѕР»СѓС‡Р°РІР°С€ РєР»РёРµРЅС‚Рё РѕС‰Рµ РґРЅРµСЃ
+              </h2>
+              <p className="mb-6 text-sm text-gray-300 flex-1">
+                Р‘РµР·РїР»Р°С‚РЅР° СЂРµРіРёСЃС‚СЂР°С†РёСЏ, СЂРµР°Р»РЅРё Р·Р°РїРёС‚РІР°РЅРёСЏ РѕС‚ РєР»РёРµРЅС‚Рё РІ С‚РІРѕСЏ РіСЂР°Рґ. РџСЉСЂРІРёС‚Рµ 200 РїРѕР»СѓС‡Р°РІР°С‚ 6 РјРµСЃРµС†Р° Premium.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Link
+                  href={`/${locale}/become-specialist`}
+                  className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black transition hover:bg-[#1ed760]"
+                >
+                  вњ… Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ Р±РµР·РїР»Р°С‚РЅРѕ
+                </Link>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <span className="text-[#1DB954] font-bold">рџ”Ґ</span>
+                  РЎР°РјРѕ {spotsLeft} РјРµСЃС‚Р° РѕСЃС‚Р°РІР°С‚ Р·Р° Р±РµР·РїР»Р°С‚РµРЅ Premium
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <div className="flex justify-center">
+            <SearchBar locale={locale} />
+          </div>
+          <div className="mt-3 text-center text-sm text-gray-500">
+            РџСЂРёРјРµСЂ: Р’РёРљ, РїРѕС‡РёСЃС‚РІР°РЅРµ, С…Р°РјР°Р»Рё, РєРѕСЃРµРЅРµ, РЎРѕС„РёСЏ
+          </div>
+        </div>
+      </section>
+
+      {/* Р”РћР’Р•Р РР• вЂ” РЅРѕРІР° СЃРµРєС†РёСЏ */}
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <div className="rounded-2xl border border-white/10 bg-[#151528] p-8">
+          <h2 className="mb-6 text-center text-xl font-bold">рџ›ЎпёЏ РўРІРѕСЏС‚Р° Р·Р°С‰РёС‚Р° Рµ РЅР°С€ РїСЂРёРѕСЂРёС‚РµС‚</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+            <div className="flex flex-col items-center text-center p-4">
+              <span className="mb-2 text-3xl">вњ…</span>
+              <span className="font-semibold text-white text-sm">РЎР°РјРѕ РІРµСЂРёС„РёС†РёСЂР°РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё</span>
+              <span className="mt-1 text-xs text-gray-400">Р’СЃРµРєРё РїСЂРѕС„РёР» Рµ РїСЂРѕРІРµСЂРµРЅ РїСЂРµРґРё РїСѓР±Р»РёРєСѓРІР°РЅРµ</span>
+            </div>
+            <div className="flex flex-col items-center text-center p-4">
+              <span className="mb-2 text-3xl">в­ђ</span>
+              <span className="font-semibold text-white text-sm">Р РµР°Р»РЅРё РѕС‚Р·РёРІРё РѕС‚ РєР»РёРµРЅС‚Рё</span>
+              <span className="mt-1 text-xs text-gray-400">РЎР°РјРѕ С…РѕСЂР° СЃ СЂРµР°Р»РЅР° СЂР°Р±РѕС‚Р° РјРѕРіР°С‚ РґР° РѕСЃС‚Р°РІСЏС‚ РѕС‚Р·РёРІ</span>
+            </div>
+            <div className="flex flex-col items-center text-center p-4">
+              <span className="mb-2 text-3xl">рџљ«</span>
+              <span className="font-semibold text-white text-sm">РџСЂРё РёР·РјР°РјР° вЂ” РЅРµР·Р°Р±Р°РІРЅРѕ РёР·С‚СЂРёРІР°РЅРµ</span>
+              <span className="mt-1 text-xs text-gray-400">РЎРёРіРЅР°Р»РёР·РёСЂР°Р№ Рё РїСЂРѕС„РёР»СЉС‚ СЃРµ РїСЂРµРјР°С…РІР° РІРµРґРЅР°РіР°</span>
+            </div>
+            <div className="flex flex-col items-center text-center p-4">
+              <span className="mb-2 text-3xl">рџ’¬</span>
+              <span className="font-semibold text-white text-sm">Р”РёСЂРµРєС‚РµРЅ РєРѕРЅС‚Р°РєС‚</span>
+              <span className="mt-1 text-xs text-gray-400">Р‘РµР· РїРѕСЃСЂРµРґРЅРёС†Рё, Р±РµР· СЃРєСЂРёС‚Рё С‚Р°РєСЃРё Р·Р° РєР»РёРµРЅС‚РёС‚Рµ</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MAP */}
+      {mapSpecialists.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-10">
+          <h2 className="mb-4 text-center text-2xl font-bold">рџ“Ќ РЎРїРµС†РёР°Р»РёСЃС‚Рё РІ С†СЏР»Р°С‚Р° СЃС‚СЂР°РЅР°</h2>
+          <p className="mb-6 text-center text-sm text-gray-400">РќР°РјРµСЂРё РІРµСЂРёС„РёС†РёСЂР°РЅ РјР°Р№СЃС‚РѕСЂ Р±Р»РёР·Рѕ РґРѕ С‚РµР±</p>
+          <SpecialistsMapWrapper specialists={mapSpecialists} locale={locale} />
+        </section>
+      )}
+
+      {/* CATEGORIES */}
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <h2 className="mb-8 text-center text-2xl font-bold">РљР°С‚РµРіРѕСЂРёРё СѓСЃР»СѓРіРё</h2>
+        <div className="flex flex-wrap justify-center gap-4">
+          {dbCategories.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/${locale}/categories/${cat.slug}`}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#151528] text-center transition hover:border-[#1DB954]/40 w-48"
+            >
+              {cat.icon ? (
+                <div
+                  className="h-32 w-full bg-cover bg-center opacity-80 transition group-hover:opacity-100"
+                  style={{ backgroundImage: `url(${cat.icon})` }}
+                />
+              ) : (
+                <div className="h-32 w-full bg-gradient-to-br from-[#1DB954]/20 to-[#151528]" />
+              )}
+              <div className="px-2 py-3">
+                <span className="text-sm font-medium text-gray-200">{cat.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* POPULAR CITIES */}
+      <section className="mx-auto max-w-6xl px-4 pb-12">
+        <PopularCities locale={locale} />
+      </section>
+
+      {/* POPULAR CITY SERVICES */}
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <h2 className="mb-2 text-center text-2xl font-bold">РџРѕРїСѓР»СЏСЂРЅРё СѓСЃР»СѓРіРё РїРѕ РіСЂР°Рґ</h2>
+        <p className="mb-8 text-center text-sm text-gray-400">РќР°РјРµСЂРё СЃРїРµС†РёР°Р»РёСЃС‚ Р±Р»РёР·Рѕ РґРѕ С‚РµР±</p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            { city: "sofia", cityLabel: "РЎРѕС„РёСЏ", service: "elektro", serviceLabel: "Р•Р»РµРєС‚СЂРѕС‚РµС…РЅРёРє" },
+            { city: "sofia", cityLabel: "РЎРѕС„РёСЏ", service: "vik", serviceLabel: "Р’РёРљ РјР°Р№СЃС‚РѕСЂ" },
+            { city: "sofia", cityLabel: "РЎРѕС„РёСЏ", service: "pochistvane", serviceLabel: "РџРѕС‡РёСЃС‚РІР°РЅРµ" },
+            { city: "plovdiv", cityLabel: "РџР»РѕРІРґРёРІ", service: "elektro", serviceLabel: "Р•Р»РµРєС‚СЂРѕС‚РµС…РЅРёРє" },
+            { city: "plovdiv", cityLabel: "РџР»РѕРІРґРёРІ", service: "vik", serviceLabel: "Р’РёРљ РјР°Р№СЃС‚РѕСЂ" },
+            { city: "varna", cityLabel: "Р’Р°СЂРЅР°", service: "elektro", serviceLabel: "Р•Р»РµРєС‚СЂРѕС‚РµС…РЅРёРє" },
+            { city: "varna", cityLabel: "Р’Р°СЂРЅР°", service: "remont-banya", serviceLabel: "Р РµРјРѕРЅС‚ Р±Р°РЅСЏ" },
+            { city: "burgas", cityLabel: "Р‘СѓСЂРіР°СЃ", service: "vik", serviceLabel: "Р’РёРљ РјР°Р№СЃС‚РѕСЂ" },
+          ].map(({ city, cityLabel, service, serviceLabel }) => (
+            <Link
+              key={`${city}-${service}`}
+              href={`/${locale}/uslugi/${city}/${service}`}
+              className="rounded-xl border border-white/10 bg-[#151528] px-4 py-3 text-sm transition hover:border-[#1DB954]/40 hover:bg-[#1b1b31]"
+            >
+              <span className="block font-semibold text-white">{serviceLabel}</span>
+              <span className="text-gray-400">{cityLabel}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Р—РђР©Рћ PROZONA */}
+      <section className="mx-auto max-w-6xl px-4 py-16">
+        <div className="mb-10 text-center">
+          <div className="mb-3 inline-flex items-center rounded-full border border-[#1DB954]/30 bg-[#1DB954]/10 px-4 py-1 text-sm text-[#86efac]">Р—Р°С‰Рѕ ProZona?</div>
+          <h2 className="mb-3 text-3xl font-bold">РљР°РєРІРѕ РЅРё РѕС‚Р»РёС‡Р°РІР° РѕС‚ РґСЂСѓРіРёС‚Рµ</h2>
+          <p className="mx-auto max-w-2xl text-gray-400">РџСЂРѕР·СЂР°С‡РЅР° СЃРёСЃС‚РµРјР°, СЂРµР°Р»РЅРё СЂРµР·СѓР»С‚Р°С‚Рё, РЅСѓР»РµРІ СЂРёСЃРє Р·Р° СЃРїРµС†РёР°Р»РёСЃС‚РёС‚Рµ.</p>
+        </div>
+        <div className="overflow-x-auto rounded-2xl border border-white/10">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-[#151528]">
+                <th className="px-6 py-4 text-left font-semibold text-gray-400">Р¤СѓРЅРєС†РёСЏ</th>
+                <th className="px-6 py-4 text-left font-semibold text-[#1DB954]">вњ“ ProZona.bg</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-400">Р—Р°С‰Рѕ Рµ РїРѕ-РґРѕР±СЂРµ Р·Р° С‚РµР±</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonRows.map((row, i) => (
+                <tr key={i} className={`border-b border-white/5 transition hover:bg-[#1DB954]/5 ${i % 2 === 0 ? "bg-[#0D0D1A]" : "bg-[#151528]"}`}>
+                  <td className="px-6 py-4 font-medium text-white">{row.feature}</td>
+                  <td className="px-6 py-4 text-[#86efac]"><span className="mr-2 text-[#1DB954]">вњ“</span>{row.prozona}</td>
+                  <td className="px-6 py-4 text-gray-400">{row.benefit}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-10 rounded-2xl border border-[#1DB954]/20 bg-[#1DB954]/5 p-8">
+          <h3 className="mb-6 text-center text-xl font-bold">рџЄ™ РљР°Рє СЂР°Р±РѕС‚Рё РєСЂРµРґРёС‚РЅР°С‚Р° СЃРёСЃС‚РµРјР°</h3>
+          <div className="flex flex-col items-center gap-3 md:flex-row md:justify-center">
+            {infographicSteps.map((step, i) => (
+              step.label ? (
+                <div key={i} className="flex flex-col items-center rounded-xl border border-white/10 bg-[#151528] px-4 py-3 text-center min-w-[100px]">
+                  <span className="text-2xl">{step.icon}</span>
+                  <span className="mt-1 text-xs text-gray-300">{step.label}</span>
+                </div>
+              ) : (
+                <span key={i} className="text-2xl text-[#1DB954] hidden md:block">{step.icon}</span>
+              )
+            ))}
+          </div>
+          <p className="mt-6 text-center text-sm text-gray-400">
+            РџР»Р°С‰Р°С€ СЃР°РјРѕ РєРѕРіР°С‚Рѕ СЂРµС€РёС€ РґР° СЃРµ СЃРІСЉСЂР¶РµС€ СЃ РєР»РёРµРЅС‚Р°.{" "}
+            <strong className="text-white">Р‘РµР· Р°Р±РѕРЅР°РјРµРЅС‚. Р‘РµР· СЃРєСЂРёС‚Рё С‚Р°РєСЃРё.</strong>
+          </p>
+        </div>
+        <div className="mt-8 text-center">
+          <Link href={`/${locale}/become-specialist`} className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black transition hover:bg-[#1ed760] text-base">
+            Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ СЃРµРіР° Рё С‚РµСЃС‚РІР°Р№ Р±РµР·РїР»Р°С‚РЅРѕ в†’
+          </Link>
+        </div>
+      </section>
+
+      {/* BLOG TEASER */}
+      <section className="mx-auto max-w-6xl px-4 py-16">
+        <div className="mb-10 text-center">
+          <h2 className="mb-3 text-3xl font-bold">РџРѕР»РµР·РЅРѕ РѕС‚ Р±Р»РѕРіР°</h2>
+          <p className="mx-auto max-w-2xl text-gray-400">РЎСЉРІРµС‚Рё Р·Р° СЂРµРјРѕРЅС‚, РїРѕС‡РёСЃС‚РІР°РЅРµ, РјРѕРЅС‚Р°Р¶ Рё РїРѕРґРґСЂСЉР¶РєР° РЅР° РґРѕРјР°.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {featuredPosts.map((post) => (
+            <Link key={post.slug} href={`/${locale}/blog/${post.slug}`} className="rounded-2xl border border-white/10 bg-[#151528] p-6 transition hover:border-[#1DB954]/40 hover:bg-[#1b1b31]">
+              <span className="mb-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gray-200">Р‘Р»РѕРі</span>
+              <h3 className="mb-3 line-clamp-2 text-xl font-bold text-white">{post.title}</h3>
+              <p className="mb-4 line-clamp-3 text-sm text-gray-300">{post.excerpt}</p>
+              <span className="inline-flex items-center text-sm font-medium text-[#1DB954]">РџСЂРѕС‡РµС‚Рё в†’</span>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <Link href={`/${locale}/blog`} className="font-semibold text-[#1DB954] hover:underline">Р’РёР¶ РІСЃРёС‡РєРё СЃС‚Р°С‚РёРё в†’</Link>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-6xl px-4 py-20 text-center">
+        <h2 className="mb-4 text-3xl font-bold md:text-4xl">РўРё СЃРё РїСЂРѕС„РµСЃРёРѕРЅР°Р»РёСЃС‚?</h2>
+        <p className="mx-auto mb-10 max-w-2xl text-gray-400">
+          Р—Р°РїРѕС‡РЅРё РґР° РїРѕР»СѓС‡Р°РІР°С€ РєР»РёРµРЅС‚Рё РѕС‰Рµ РґРЅРµСЃ С‡СЂРµР· ProZona РёР»Рё РїСЂРµРґР»РѕР¶Рё РЅРѕРІР° СѓСЃР»СѓРіР°, РєРѕСЏС‚Рѕ РІСЃРµ РѕС‰Рµ РЅРµ РїСЂРёСЃСЉСЃС‚РІР° РІ РїР»Р°С‚С„РѕСЂРјР°С‚Р°.
+        </p>
+        <div className="flex flex-col justify-center gap-4 md:flex-row">
+          <Link href={`/${locale}/become-specialist`} className="inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black transition hover:bg-[#1ed760]">
+            Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ РєР°С‚Рѕ СЃРїРµС†РёР°Р»РёСЃС‚
+          </Link>
+          <Link href={`/${locale}/specialist/suggest-category`} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-6 py-3 text-white transition hover:bg-white/10">
+            РџСЂРµРґР»РѕР¶Рё РЅРѕРІР° СѓСЃР»СѓРіР°
+          </Link>
+        </div>
+      </section>
+
+      <ProZonaFooter locale={locale} />
+    </main>
+  )
+}

@@ -1,0 +1,111 @@
+﻿import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session) {
+      return NextResponse.json(
+        { error: 'РњРѕР»СЏ, РІР»РµР·С‚Рµ РІ РїСЂРѕС„РёР»Р° СЃРё' },
+        { status: 401 }
+      )
+    }
+
+    if (session.user.role !== 'CLIENT') {
+      return NextResponse.json(
+        { error: 'РЎР°РјРѕ РєР»РёРµРЅС‚Рё РјРѕРіР°С‚ РґР° РїРёС€Р°С‚ РѕС‚Р·РёРІРё' },
+        { status: 403 }
+      )
+    }
+
+    const body = await request.json()
+    const { specialistId, rating, comment, inquiryId } = body
+
+    if (!specialistId) {
+      return NextResponse.json(
+        { error: 'Р›РёРїСЃРІР° ID РЅР° СЃРїРµС†РёР°Р»РёСЃС‚' },
+        { status: 400 }
+      )
+    }
+
+    const numericRating = Number(rating)
+    if (isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
+      return NextResponse.json(
+        { error: 'РњРѕР»СЏ, РІСЉРІРµРґРµС‚Рµ РІР°Р»РёРґРЅР° РѕС†РµРЅРєР° (1-5)' },
+        { status: 400 }
+      )
+    }
+
+    // РџСЂРѕРІРµСЂРєР°: РєР»РёРµРЅС‚СЉС‚ С‚СЂСЏР±РІР° РґР° РёРјР° Р·Р°РІСЉСЂС€РµРЅРѕ Р·Р°РїРёС‚РІР°РЅРµ РєСЉРј СЃРїРµС†РёР°Р»РёСЃС‚Р°
+    const completedInquiry = await prisma.inquiry.findFirst({
+      where: {
+        clientId: session.user.id,
+        specialistId,
+        status: 'COMPLETED',
+      },
+    })
+
+    if (!completedInquiry) {
+      return NextResponse.json(
+        { error: 'РњРѕР¶РµС‚Рµ РґР° РїРёС€РµС‚Рµ РѕС‚Р·РёРІ СЃР°РјРѕ СЃР»РµРґ Р·Р°РІСЉСЂС€РµРЅР° СЂР°Р±РѕС‚Р° СЃСЉСЃ СЃРїРµС†РёР°Р»РёСЃС‚Р°' },
+        { status: 403 }
+      )
+    }
+
+    // РџСЂРѕРІРµСЂРєР°: РІРµС‡Рµ РёРјР° Р»Рё РѕС‚Р·РёРІ
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        specialistId,
+        clientId: session.user.id,
+      },
+    })
+
+    if (existingReview) {
+      return NextResponse.json(
+        { error: 'Р’РµС‡Рµ СЃС‚Рµ РЅР°РїРёСЃР°Р»Рё РѕС‚Р·РёРІ Р·Р° С‚РѕР·Рё СЃРїРµС†РёР°Р»РёСЃС‚' },
+        { status: 400 }
+      )
+    }
+
+    const review = await prisma.review.create({
+      data: {
+        specialistId,
+        clientId: session.user.id,
+        rating: numericRating,
+        comment: comment || null,
+        isVerified: true, // РІРµСЂРёС„РёС†РёСЂР°РЅ Р·Р°С‰РѕС‚Рѕ РёРјР° Р·Р°РІСЉСЂС€РµРЅ Inquiry
+      },
+    })
+
+    // РћР±РЅРѕРІРё СЂРµР№С‚РёРЅРіР° РЅР° СЃРїРµС†РёР°Р»РёСЃС‚Р°
+    const allReviews = await prisma.review.findMany({
+      where: { specialistId },
+      select: { rating: true },
+    })
+
+    const avgRating =
+      allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+
+    await prisma.specialist.update({
+      where: { id: specialistId },
+      data: {
+        rating: Math.round(avgRating * 10) / 10,
+        reviewCount: allReviews.length,
+      },
+    })
+
+    return NextResponse.json(
+      { message: 'РћС‚Р·РёРІСЉС‚ Рµ РёР·РїСЂР°С‚РµРЅ СѓСЃРїРµС€РЅРѕ', review },
+      { status: 201 }
+    )
+  } catch (error) {
+    console.error('Review error:', error)
+    return NextResponse.json(
+      { error: 'Р’СЉР·РЅРёРєРЅР° РіСЂРµС€РєР° РїСЂРё РёР·РїСЂР°С‰Р°РЅРµ РЅР° РѕС‚Р·РёРІР°' },
+      { status: 500 }
+    )
+  }
+}

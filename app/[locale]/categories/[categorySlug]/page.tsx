@@ -11,17 +11,18 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const { categorySlug } = await params
+  const { categorySlug, locale } = await params
   const category = await prisma.category.findUnique({ where: { slug: categorySlug } })
   const name = category?.name || "Категория"
+
   return {
-    title: `${name} специалисти в България | ProZona`,
-    description: category?.name
-      ? `Намери верифицирани ${name} специалисти в ProZona. Безплатна заявка.`
-      : `Специалисти в ProZona. Безплатна заявка.`,
+    title: `${name} специалисти в България | Намери майстор | ProZona`,
+    description: `Намери верифицирани ${name} специалисти в ProZona. Сравни цени, прочети отзиви и заяви безплатна оферта. Бърза връзка с проверени майстори в твоя град.`,
+    keywords: `${name}, специалисти, майстори, България, оферта, цени`,
     alternates: {
       canonical: `https://prozona.bg/bg/categories/${categorySlug}`,
     },
+    ...(locale !== "bg" && { robots: { index: false, follow: false } }),
   }
 }
 
@@ -49,7 +50,6 @@ export default async function CategoryPage({ params }: Props) {
     )
   }
 
-  // Брой специалисти за всяка подкатегория
   const specialistCounts = await prisma.specialistCategory.groupBy({
     by: ['subcategoryId'],
     where: {
@@ -72,10 +72,21 @@ export default async function CategoryPage({ params }: Props) {
             Начало
           </Link>
           {" / "}
+          <Link href={`/${locale}/categories`} className="text-[#1DB954] hover:underline">
+            Категории
+          </Link>
+          {" / "}
           <span>{category.name}</span>
         </div>
 
-        <h1 className="mb-10 text-3xl font-bold md:text-4xl">{category.name}</h1>
+        <h1 className="mb-4 text-3xl font-bold md:text-4xl">
+          {category.name} специалисти в България
+        </h1>
+
+        <p className="mb-10 max-w-2xl text-gray-400 text-base leading-relaxed">
+          Намери верифицирани {category.name.toLowerCase()} специалисти в ProZona.
+          Сравни услуги, прочети реални отзиви и получи безплатна оферта от проверени майстори в твоя град.
+        </p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {category.Subcategory.map((sub) => {

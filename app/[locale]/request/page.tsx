@@ -181,7 +181,13 @@ export default function RequestPage() {
                 </button>
 
                 <p className="text-center text-xs text-gray-500">
-                  До 5 специалисти ще видят заявката ти. Безплатно за теб.
+                   До 5 специалисти ще видят заявката ти. Безплатно за теб.
+                   </p>
+                   <p className="text-center text-xs text-gray-500 mt-1">
+                  Или{" "}
+                <Link href={`/${locale}/specialists`} className="text-[#1DB954] hover:underline">
+                разгледай специалистите директно →
+              </Link>
                 </p>
               </form>
             </div>

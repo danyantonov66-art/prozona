@@ -5,6 +5,7 @@ import ProZonaFooter from "@/components/footer/ProZonaFooter"
 
 interface Props {
   params: Promise<{ locale: string }>
+  searchParams: Promise<{ category?: string }>
 }
 
 export async function generateMetadata() {
@@ -17,15 +18,30 @@ export async function generateMetadata() {
 
 export const dynamic = "force-dynamic"
 
-export default async function BlogPage({ params }: Props) {
+const CATEGORIES = [
+  { key: "all", label: "Всички" },
+  { key: "clients", label: "За клиенти" },
+  { key: "specialists", label: "За майстори" },
+  { key: "prices", label: "Цени по градове" },
+  { key: "seasonal", label: "Сезонни съвети" },
+]
+
+export default async function BlogPage({ params, searchParams }: Props) {
   const { locale } = await params
+  const { category } = await searchParams
+
+  const activeCategory = category || "all"
 
   const posts = await prisma.blogPost.findMany({
-    where: { published: true },
-    orderBy: { publishedAt: 'desc' },
+    where: {
+      published: true,
+      ...(activeCategory !== "all" ? { category: activeCategory } : {}),
+    },
+    orderBy: { publishedAt: "desc" },
     select: {
       id: true, slug: true, title: true, excerpt: true,
       coverImage: true, publishedAt: true, createdAt: true,
+      category: true,
       author: { select: { name: true } }
     }
   })
@@ -36,14 +52,32 @@ export default async function BlogPage({ params }: Props) {
       <section className="mx-auto max-w-5xl px-4 py-12">
 
         {/* Header */}
-        <div className="mb-10 text-center">
+        <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-3">📝 Блог</h1>
           <p className="text-gray-400 text-lg">Съвети, ръководства и полезна информация за специалисти и клиенти</p>
         </div>
 
+        {/* Category filters */}
+        <div className="flex flex-wrap gap-2 justify-center mb-10">
+          {CATEGORIES.map((cat) => (
+            <Link
+              key={cat.key}
+              href={cat.key === "all" ? `/${locale}/blog` : `/${locale}/blog?category=${cat.key}`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                activeCategory === cat.key
+                  ? "bg-[#1DB954] border-[#1DB954] text-black"
+                  : "border-white/20 text-gray-300 hover:border-[#1DB954]/50 hover:text-white"
+              }`}
+            >
+              {cat.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Posts grid */}
         {posts.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
-            Все още няма публикувани статии.
+            Няма статии в тази категория.
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -65,6 +99,11 @@ export default async function BlogPage({ params }: Props) {
                   </div>
                 )}
                 <div className="p-5">
+                  {post.category && post.category !== "general" && (
+                    <span className="inline-block text-xs px-2 py-1 rounded-full bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20 mb-2">
+                      {CATEGORIES.find(c => c.key === post.category)?.label || post.category}
+                    </span>
+                  )}
                   <h2 className="text-lg font-semibold text-white mb-2 group-hover:text-[#1DB954] transition-colors line-clamp-2">
                     {post.title}
                   </h2>
@@ -74,9 +113,9 @@ export default async function BlogPage({ params }: Props) {
                     </p>
                   )}
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{post.author?.name || 'ProZona'}</span>
+                    <span>{post.author?.name || "ProZona"}</span>
                     <span>
-                      {new Date(post.publishedAt || post.createdAt).toLocaleDateString('bg-BG')}
+                      {new Date(post.publishedAt || post.createdAt).toLocaleDateString("bg-BG")}
                     </span>
                   </div>
                 </div>

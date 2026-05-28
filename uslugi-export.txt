@@ -1,0 +1,375 @@
+﻿import Link from "next/link"
+import { prisma } from "../../../../../lib/prisma"
+import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
+import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
+import type { Metadata } from "next"
+
+const SERVICE_MAP: Record<string, {
+  name: string
+  categoryName: string
+  description: (city: string) => string
+  keywords: string[]
+}> = {
+  "elektrotehnik": {
+    name: "Р•Р»РµРєС‚СЂРѕС‚РµС…РЅРёРє",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё РјР°Р№СЃС‚РѕСЂРё",
+    description: (city) => `РўСЉСЂСЃРёС€ РµР»РµРєС‚СЂРѕС‚РµС…РЅРёРє РІ ${city}? Р’ ProZona С‰Рµ РЅР°РјРµСЂРёС€ РїСЂРѕРІРµСЂРµРЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° СЂРµРјРѕРЅС‚ РЅР° РµР»РµРєС‚СЂРѕРёРЅСЃС‚Р°Р»Р°С†РёРё, Р°РІР°СЂРёРё, СЃРјСЏРЅР° РЅР° С‚Р°Р±Р»Р° Рё РјРѕРЅС‚Р°Р¶ РЅР° РѕСЃРІРµС‚Р»РµРЅРёРµ. Р Р°Р·РіР»РµРґР°Р№ РїСЂРѕС„РёР»РёС‚Рµ, СЃСЂР°РІРЅРё СѓСЃР»СѓРіРё Рё РёР·РїСЂР°С‚Рё Р·Р°РїРёС‚РІР°РЅРµ РґРёСЂРµРєС‚РЅРѕ РєСЉРј РјР°Р№СЃС‚РѕСЂ РІ ${city}.`,
+    keywords: ["РµР»РµРєС‚СЂРѕС‚РµС…РЅРёРє", "РµР» РёРЅСЃС‚Р°Р»Р°С†РёСЏ", "Р°РІР°СЂРёСЏ", "С‚Р°Р±Р»Рѕ", "РѕСЃРІРµС‚Р»РµРЅРёРµ"],
+  },
+  "elektro": {
+    name: "Р•Р»РµРєС‚СЂРѕРёРЅСЃС‚Р°Р»Р°С†РёРё",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё РјР°Р№СЃС‚РѕСЂРё",
+    description: (city) => `РўСЉСЂСЃРёС€ РµР»РµРєС‚СЂРѕС‚РµС…РЅРёРє Р·Р° РёРЅСЃС‚Р°Р»Р°С†РёРё РІ ${city}? Р’ ProZona С‰Рµ РЅР°РјРµСЂРёС€ РїСЂРѕРІРµСЂРµРЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° РµР»РµРєС‚СЂРѕРёРЅСЃС‚Р°Р»Р°С†РёРё, Р°РІР°СЂРёРё Рё РјРѕРЅС‚Р°Р¶ РЅР° РѕСЃРІРµС‚Р»РµРЅРёРµ РІ ${city}.`,
+    keywords: ["РµР»РµРєС‚СЂРѕРёРЅСЃС‚Р°Р»Р°С†РёРё", "РµР»РµРєС‚СЂРѕС‚РµС…РЅРёРє", "РµР» РёРЅСЃС‚Р°Р»Р°С†РёСЏ", "С‚Р°Р±Р»Рѕ"],
+  },
+  "vik": {
+    name: "Р’РёРљ РјР°Р№СЃС‚РѕСЂ",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё РјР°Р№СЃС‚РѕСЂРё",
+    description: (city) => `РўСЉСЂСЃРёС€ Р’РёРљ РјР°Р№СЃС‚РѕСЂ РІ ${city}? ProZona СЃРІСЉСЂР·РІР° РєР»РёРµРЅС‚Рё СЃ РІРµСЂРёС„РёС†РёСЂР°РЅРё РІРѕРґРѕРїСЂРѕРІРѕРґС‡РёРё Р·Р° СЂРµРјРѕРЅС‚ РЅР° С‚СЂСЉР±Рё, СЃРјСЏРЅР° РЅР° Р±Р°С‚РµСЂРёРё, РѕС‚РїСѓС€РІР°РЅРµ РЅР° РєР°РЅР°Р»РёР·Р°С†РёСЏ Рё РјРѕРЅС‚Р°Р¶ РЅР° СЃР°РЅРёС‚Р°СЂРёСЏ. РќР°РјРµСЂРё Р’РёРљ СЃРїРµС†РёР°Р»РёСЃС‚ РІ ${city} СЃРµРіР°.`,
+    keywords: ["Р’РёРљ", "РІРѕРґРѕРїСЂРѕРІРѕРґС‡РёСЏ", "С‚СЂСЉР±Рё", "Р±Р°С‚РµСЂРёСЏ", "РєР°РЅР°Р»РёР·Р°С†РёСЏ"],
+  },
+  "pochistvane": {
+    name: "РџРѕС‡РёСЃС‚РІР°РЅРµ",
+    categoryName: "РџРѕС‡РёСЃС‚РІР°РЅРµ",
+    description: (city) => `РќСѓР¶РґР°РµС€ СЃРµ РѕС‚ РїРѕС‡РёСЃС‚РІР°РЅРµ РІ ${city}? Р’ ProZona С‰Рµ РЅР°РјРµСЂРёС€ С„РёСЂРјРё Рё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° РіРµРЅРµСЂР°Р»РЅРѕ РїРѕС‡РёСЃС‚РІР°РЅРµ РЅР° Р°РїР°СЂС‚Р°РјРµРЅС‚Рё, РѕС„РёСЃРё, СЃР»РµРґ СЂРµРјРѕРЅС‚ Рё СЂРµРґРѕРІРЅР° РїРѕРґРґСЂСЉР¶РєР°. РР·РїСЂР°С‚Рё Р·Р°РїРёС‚РІР°РЅРµ Рё РїРѕР»СѓС‡Рё РѕС„РµСЂС‚Р° РѕС‚ РїСЂРѕРІРµСЂРµРЅ СЃРїРµС†РёР°Р»РёСЃС‚ РІ ${city}.`,
+    keywords: ["РїРѕС‡РёСЃС‚РІР°РЅРµ", "РіРµРЅРµСЂР°Р»РЅРѕ РїРѕС‡РёСЃС‚РІР°РЅРµ", "РїРѕС‡РёСЃС‚РІР°РЅРµ Р°РїР°СЂС‚Р°РјРµРЅС‚", "РїРѕС‡РёСЃС‚РІР°РЅРµ РѕС„РёСЃ"],
+  },
+  "domashno": {
+    name: "Р”РѕРјР°С€РЅРѕ РїРѕС‡РёСЃС‚РІР°РЅРµ",
+    categoryName: "РџРѕС‡РёСЃС‚РІР°РЅРµ",
+    description: (city) => `РўСЉСЂСЃРёС€ РґРѕРјР°С€РЅРѕ РїРѕС‡РёСЃС‚РІР°РЅРµ РІ ${city}? Р’ ProZona С‰Рµ РЅР°РјРµСЂРёС€ С„РёСЂРјРё Рё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° СЂРµРґРѕРІРЅРѕ Рё РіРµРЅРµСЂР°Р»РЅРѕ РїРѕС‡РёСЃС‚РІР°РЅРµ РЅР° Р°РїР°СЂС‚Р°РјРµРЅС‚Рё Рё РґРѕРјРѕРІРµ РІ ${city}.`,
+    keywords: ["РґРѕРјР°С€РЅРѕ РїРѕС‡РёСЃС‚РІР°РЅРµ", "РїРѕС‡РёСЃС‚РІР°РЅРµ Р°РїР°СЂС‚Р°РјРµРЅС‚", "РїРѕС‡РёСЃС‚РІР°РЅРµ РІРєСЉС‰Рё", "РїРѕС‡РёСЃС‚РІР°РЅРµ"],
+  },
+  "pokrivi": {
+    name: "Р РµРјРѕРЅС‚ РЅР° РїРѕРєСЂРёРІРё",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё РјР°Р№СЃС‚РѕСЂРё",
+    description: (city) => `РўСЉСЂСЃРёС€ РјР°Р№СЃС‚РѕСЂ Р·Р° СЂРµРјРѕРЅС‚ РЅР° РїРѕРєСЂРёРІ РІ ${city}? ProZona СЃРІСЉСЂР·РІР° С‚РµР± СЃ РѕРїРёС‚РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° РїСЂРµРЅР°СЂРµР¶РґР°РЅРµ РЅР° РєРµСЂРµРјРёРґРё, С…РёРґСЂРѕРёР·РѕР»Р°С†РёСЏ, СЂРµРјРѕРЅС‚ РЅР° СѓР»СѓС†Рё Рё С†СЏР»РѕСЃС‚РЅРѕ РѕР±РЅРѕРІСЏРІР°РЅРµ РЅР° РїРѕРєСЂРёРІРё. Р‘РµР·РїР»Р°С‚РµРЅ РѕРіР»РµРґ Рё РѕС„РµСЂС‚Р° РѕС‚ РјР°Р№СЃС‚РѕСЂ РІ ${city}.`,
+    keywords: ["СЂРµРјРѕРЅС‚ РїРѕРєСЂРёРІ", "РєРµСЂРµРјРёРґРё", "С…РёРґСЂРѕРёР·РѕР»Р°С†РёСЏ", "СѓР»СѓС†Рё"],
+  },
+  "hamali": {
+    name: "РҐР°РјР°Р»СЃРєРё СѓСЃР»СѓРіРё",
+    categoryName: "РњРѕРЅС‚Р°Р¶ Рё РґСЂРµР±РЅРё СѓСЃР»СѓРіРё",
+    description: (city) => `РўСЉСЂСЃРёС€ С…Р°РјР°Р»Рё РІ ${city}? РќР°РјРµСЂРё РЅР°РґРµР¶РґРЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° РїСЂРµРјРµСЃС‚РІР°РЅРµ РЅР° РјРµР±РµР»Рё, РѕС„РёСЃ РёР»Рё РґРѕРјР°РєРёРЅСЃС‚РІРѕ РІ ${city}. РџСЂРѕРІРµСЂРµРЅРё РїСЂРѕС„РёР»Рё, СЂРµР°Р»РЅРё С†РµРЅРё Рё РґРёСЂРµРєС‚РµРЅ РєРѕРЅС‚Р°РєС‚ СЃ РёР·РїСЉР»РЅРёС‚РµР»СЏ.`,
+    keywords: ["С…Р°РјР°Р»Рё", "РїСЂРµРјРµСЃС‚РІР°РЅРµ", "С‚СЂР°РЅСЃРїРѕСЂС‚", "РјРµСЃС‚РµРЅРµ РЅР° РјРµР±РµР»Рё"],
+  },
+  "klimatik": {
+    name: "РњРѕРЅС‚Р°Р¶ РЅР° РєР»РёРјР°С‚РёРє",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё РјР°Р№СЃС‚РѕСЂРё",
+    description: (city) => `РўСЉСЂСЃРёС€ РјРѕРЅС‚Р°Р¶ РЅР° РєР»РёРјР°С‚РёРє РІ ${city}? Р’ ProZona С‰Рµ РЅР°РјРµСЂРёС€ СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° РјРѕРЅС‚Р°Р¶, РґРµРјРѕРЅС‚Р°Р¶ Рё РїСЂРѕС„РёР»Р°РєС‚РёРєР° РЅР° РєР»РёРјР°С‚РёС†Рё РІ ${city}. РЎСЂР°РІРЅРё РѕС„РµСЂС‚Рё Рё РёР·Р±РµСЂРё РЅР°Р№-РґРѕР±СЂРёСЏ РјР°Р№СЃС‚РѕСЂ.`,
+    keywords: ["РєР»РёРјР°С‚РёРє", "РјРѕРЅС‚Р°Р¶ РєР»РёРјР°С‚РёРє", "РїСЂРѕС„РёР»Р°РєС‚РёРєР° РєР»РёРјР°С‚РёРє"],
+  },
+  "shpaklovka": {
+    name: "РЁРїР°РєР»РѕРІРєР° Рё Р±РѕСЏ",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё РјР°Р№СЃС‚РѕСЂРё",
+    description: (city) => `РўСЉСЂСЃРёС€ РјР°Р№СЃС‚РѕСЂ Р·Р° С€РїР°РєР»РѕРІРєР° Рё Р±РѕСЏ РІ ${city}? ProZona СЃРІСЉСЂР·РІР° С‚РµР± СЃ РѕРїРёС‚РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° С€РїР°РєР»РѕРІР°РЅРµ, Р±РѕСЏРґРёСЃРІР°РЅРµ Рё РґРµРєРѕСЂР°С‚РёРІРЅРё РјР°Р·РёР»РєРё РІ ${city}. Р’РёР¶ РїСЂРѕС„РёР»РёС‚Рµ Рё РёР·РїСЂР°С‚Рё Р·Р°РїРёС‚РІР°РЅРµ.`,
+    keywords: ["С€РїР°РєР»РѕРІРєР°", "Р±РѕСЏ", "Р±РѕСЏРґРёСЃРІР°РЅРµ", "РґРµРєРѕСЂР°С‚РёРІРЅР° РјР°Р·РёР»РєР°"],
+  },
+  "shpaklovka-zidariya": {
+    name: "РЁРїР°РєР»РѕРІРєР° Рё Р·РёРґР°СЂРёСЏ",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё РјР°Р№СЃС‚РѕСЂРё",
+    description: (city) => `РўСЉСЂСЃРёС€ РјР°Р№СЃС‚РѕСЂ Р·Р° С€РїР°РєР»РѕРІРєР° Рё Р·РёРґР°СЂРёСЏ РІ ${city}? ProZona СЃРІСЉСЂР·РІР° С‚РµР± СЃ РѕРїРёС‚РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° С€РїР°РєР»РѕРІР°РЅРµ, Р·РёРґР°СЂРёСЏ Рё РјР°Р·РёР»РєРё РІ ${city}.`,
+    keywords: ["С€РїР°РєР»РѕРІРєР°", "Р·РёРґР°СЂРёСЏ", "РјР°Р·РёР»РєР°", "Р±РѕСЏ"],
+  },
+  "boyadisvane": {
+    name: "Р‘РѕСЏРґРёСЃРІР°РЅРµ",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё РјР°Р№СЃС‚РѕСЂРё",
+    description: (city) => `РўСЉСЂСЃРёС€ РјР°Р№СЃС‚РѕСЂ Р·Р° Р±РѕСЏРґРёСЃРІР°РЅРµ РІ ${city}? ProZona СЃРІСЉСЂР·РІР° С‚РµР± СЃ РѕРїРёС‚РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° Р±РѕСЏРґРёСЃРІР°РЅРµ РЅР° СЃС‚Р°Рё, Р°РїР°СЂС‚Р°РјРµРЅС‚Рё Рё С„Р°СЃР°РґРё РІ ${city}.`,
+    keywords: ["Р±РѕСЏРґРёСЃРІР°РЅРµ", "Р±РѕСЏ", "С€РїР°РєР»РѕРІРєР°", "РґРµРєРѕСЂР°С‚РёРІРЅР° РјР°Р·РёР»РєР°"],
+  },
+  "gradina": {
+    name: "Р“СЂР°РґРёРЅР°СЂСЃС‚РІРѕ",
+    categoryName: "Р“СЂР°РґРёРЅР° Рё РґРІРѕСЂ",
+    description: (city) => `РўСЉСЂСЃРёС€ РіСЂР°РґРёРЅР°СЂ РІ ${city}? Р’ ProZona С‰Рµ РЅР°РјРµСЂРёС€ СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° РєРѕСЃРµРЅРµ РЅР° С‚СЂРµРІР°, РѕР·РµР»РµРЅСЏРІР°РЅРµ, РїРѕР»РёРІРЅРё СЃРёСЃС‚РµРјРё Рё РїРѕРґРґСЂСЉР¶РєР° РЅР° РґРІРѕСЂ РІ ${city}. РќР°РјРµСЂРё СЃРІРѕСЏ РіСЂР°РґРёРЅР°СЂ СЃРµРіР°.`,
+    keywords: ["РіСЂР°РґРёРЅР°СЂ", "РєРѕСЃРµРЅРµ С‚СЂРµРІР°", "РѕР·РµР»РµРЅСЏРІР°РЅРµ", "РїРѕР»РёРІРЅР° СЃРёСЃС‚РµРјР°"],
+  },
+  "gipsokarton": {
+    name: "Р“РёРїСЃРѕРєР°СЂС‚РѕРЅ",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё СЃС‚СЂРѕРёС‚РµР»СЃС‚РІРѕ",
+    description: (city) => `РўСЉСЂСЃРёС€ СЃРїРµС†РёР°Р»РёСЃС‚ РїРѕ РіРёРїСЃРѕРєР°СЂС‚РѕРЅ РІ ${city}? Р’ ProZona С‰Рµ РЅР°РјРµСЂРёС€ РјР°Р№СЃС‚РѕСЂРё Р·Р° РѕРєР°С‡РµРЅРё С‚Р°РІР°РЅРё, РїСЂРµРіСЂР°РґРЅРё СЃС‚РµРЅРё Рё РґРµРєРѕСЂР°С‚РёРІРЅРё РµР»РµРјРµРЅС‚Рё РІ ${city}. РЎСЂР°РІРЅРё РѕС„РµСЂС‚Рё Рё РёР·РїСЂР°С‚Рё Р·Р°РїРёС‚РІР°РЅРµ РґРёСЂРµРєС‚РЅРѕ.`,
+    keywords: ["РіРёРїСЃРѕРєР°СЂС‚РѕРЅ", "РѕРєР°С‡РµРЅ С‚Р°РІР°РЅ", "РїСЂРµРіСЂР°РґРЅР° СЃС‚РµРЅР°", "СЃСѓС…Р° СЃС‚РµРЅР°"],
+  },
+  "drebni-remonti": {
+    name: "Р”СЂРµР±РЅРё СЂРµРјРѕРЅС‚Рё",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё СЃС‚СЂРѕРёС‚РµР»СЃС‚РІРѕ",
+    description: (city) => `РўСЉСЂСЃРёС€ РјР°Р№СЃС‚РѕСЂ Р·Р° РґСЂРµР±РЅРё СЂРµРјРѕРЅС‚Рё РІ ${city}? ProZona СЃРІСЉСЂР·РІР° С‚РµР± СЃ РѕРїРёС‚РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° РјРѕРЅС‚Р°Р¶, СЃРјСЏРЅР° РЅР° Р±СЂР°РІРё, Р·Р°РїСЉР»РІР°РЅРµ РЅР° РїСѓРєРЅР°С‚РёРЅРё Рё РґСЂСѓРіРё РґСЂРµР±РЅРё Р·Р°РґР°С‡Рё РІ РґРѕРјР° РІ ${city}.`,
+    keywords: ["РґСЂРµР±РЅРё СЂРµРјРѕРЅС‚Рё", "РґРѕРјР°С€РЅРё СЂРµРјРѕРЅС‚Рё", "РјР°Р№СЃС‚РѕСЂ", "РјРѕРЅС‚Р°Р¶"],
+  },
+  "dovarshitelni-remonti": {
+    name: "Р”РѕРІСЉСЂС€РёС‚РµР»РЅРё СЂРµРјРѕРЅС‚Рё",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё СЃС‚СЂРѕРёС‚РµР»СЃС‚РІРѕ",
+    description: (city) => `РўСЉСЂСЃРёС€ РјР°Р№СЃС‚РѕСЂ Р·Р° РґРѕРІСЉСЂС€РёС‚РµР»РЅРё СЂРµРјРѕРЅС‚Рё РІ ${city}? РќР°РјРµСЂРё РІРµСЂРёС„РёС†РёСЂР°РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° С€РїР°РєР»РѕРІРєР°, Р±РѕСЏ, РїРѕРґРѕРІРё РЅР°СЃС‚РёР»РєРё Рё РґРѕРІСЉСЂС€РёС‚РµР»РЅРё СЂР°Р±РѕС‚Рё РІ ${city}.`,
+    keywords: ["РґРѕРІСЉСЂС€РёС‚РµР»РЅРё СЂРµРјРѕРЅС‚Рё", "С€РїР°РєР»РѕРІРєР°", "Р±РѕСЏ", "РїРѕРґРѕРІРё РЅР°СЃС‚РёР»РєРё"],
+  },
+  "remont-banya": {
+    name: "Р РµРјРѕРЅС‚ РЅР° Р±Р°РЅСЏ",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё СЃС‚СЂРѕРёС‚РµР»СЃС‚РІРѕ",
+    description: (city) => `РўСЉСЂСЃРёС€ РјР°Р№СЃС‚РѕСЂ Р·Р° СЂРµРјРѕРЅС‚ РЅР° Р±Р°РЅСЏ РІ ${city}? ProZona СЃРІСЉСЂР·РІР° С‚РµР± СЃ РІРµСЂРёС„РёС†РёСЂР°РЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° С†СЏР»РѕСЃС‚РµРЅ Рё С‡Р°СЃС‚РёС‡РµРЅ СЂРµРјРѕРЅС‚ РЅР° Р±Р°РЅСЏ РІ ${city}.`,
+    keywords: ["СЂРµРјРѕРЅС‚ Р±Р°РЅСЏ", "Р±Р°РЅСЏ", "РїР»РѕС‡РєРё", "Р’РёРљ", "СЃР°РЅРёС‚Р°СЂРёСЏ"],
+  },
+  "remont-pokrivi": {
+    name: "Р РµРјРѕРЅС‚ РЅР° РїРѕРєСЂРёРІРё",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё СЃС‚СЂРѕРёС‚РµР»СЃС‚РІРѕ",
+    description: (city) => `РўСЉСЂСЃРёС€ РјР°Р№СЃС‚РѕСЂ Р·Р° СЂРµРјРѕРЅС‚ РЅР° РїРѕРєСЂРёРІ РІ ${city}? Р’ ProZona С‰Рµ РЅР°РјРµСЂРёС€ СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° РїСЂРµРЅР°СЂРµР¶РґР°РЅРµ РЅР° РєРµСЂРµРјРёРґРё, С…РёРґСЂРѕРёР·РѕР»Р°С†РёСЏ Рё СЂРµРјРѕРЅС‚ РЅР° СѓР»СѓС†Рё РІ ${city}.`,
+    keywords: ["РїРѕРєСЂРёРІ", "РєРµСЂРµРјРёРґРё", "С…РёРґСЂРѕРёР·РѕР»Р°С†РёСЏ", "СѓР»СѓС†Рё", "СЂРµРјРѕРЅС‚ РїРѕРєСЂРёРІ"],
+  },
+  "klimatici": {
+    name: "РљР»РёРјР°С‚РёС†Рё",
+    categoryName: "Р РµРјРѕРЅС‚Рё Рё СЃС‚СЂРѕРёС‚РµР»СЃС‚РІРѕ",
+    description: (city) => `РўСЉСЂСЃРёС€ РјРѕРЅС‚Р°Р¶ РёР»Рё СЂРµРјРѕРЅС‚ РЅР° РєР»РёРјР°С‚РёРє РІ ${city}? ProZona СЃРІСЉСЂР·РІР° С‚РµР± СЃ РІРµСЂРёС„РёС†РёСЂР°РЅРё С‚РµС…РЅРёС†Рё Р·Р° РјРѕРЅС‚Р°Р¶, РґРµРјРѕРЅС‚Р°Р¶ Рё РїСЂРѕС„РёР»Р°РєС‚РёРєР° РЅР° РєР»РёРјР°С‚РёС†Рё РІ ${city}.`,
+    keywords: ["РєР»РёРјР°С‚РёРє", "РјРѕРЅС‚Р°Р¶ РєР»РёРјР°С‚РёРє", "СЂРµРјРѕРЅС‚ РєР»РёРјР°С‚РёРє", "РїСЂРѕС„РёР»Р°РєС‚РёРєР°"],
+  },
+}
+
+const CITY_MAP: Record<string, string> = {
+  "sofia": "РЎРѕС„РёСЏ",
+  "plovdiv": "РџР»РѕРІРґРёРІ",
+  "varna": "Р’Р°СЂРЅР°",
+  "burgas": "Р‘СѓСЂРіР°СЃ",
+  "ruse": "Р СѓСЃРµ",
+  "stara-zagora": "РЎС‚Р°СЂР° Р—Р°РіРѕСЂР°",
+  "pleven": "РџР»РµРІРµРЅ",
+  "veliko-tarnovo": "Р’РµР»РёРєРѕ РўСЉСЂРЅРѕРІРѕ",
+  "blagoevgrad": "Р‘Р»Р°РіРѕРµРІРіСЂР°Рґ",
+  "pazardzhik": "РџР°Р·Р°СЂРґР¶РёРє",
+  "haskovo": "РҐР°СЃРєРѕРІРѕ",
+  "shumen": "РЁСѓРјРµРЅ",
+  "pernik": "РџРµСЂРЅРёРє",
+  "dobrich": "Р”РѕР±СЂРёС‡",
+  "sliven": "РЎР»РёРІРµРЅ",
+  "vratsa": "Р’СЂР°С†Р°",
+  "gabrovo": "Р“Р°Р±СЂРѕРІРѕ",
+  "yambol": "РЇРјР±РѕР»",
+}
+
+interface Props {
+  params: Promise<{ locale: string; city: string; service: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { city, service } = await params
+  const cityBg = CITY_MAP[city] || city
+  const svc = SERVICE_MAP[service]
+  if (!svc) return { title: "ProZona" }
+
+  return {
+    title: `${svc.name} РІ ${cityBg} | ProZona`,
+    description: `РќР°РјРµСЂРё ${svc.name.toLowerCase()} РІ ${cityBg}. РџСЂРѕРІРµСЂРµРЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё, СЂРµР°Р»РЅРё РѕС„РµСЂС‚Рё Рё Р±СЉСЂР· РєРѕРЅС‚Р°РєС‚. ProZona.bg`,
+    alternates: {
+      canonical: `https://prozona.bg/bg/uslugi/${city}/${service}`,
+    },
+  }
+}
+
+export const dynamic = "force-dynamic"
+
+export default async function ServiceCityPage({ params }: Props) {
+  const { locale, city, service } = await params
+
+  const cityBg = CITY_MAP[city] || decodeURIComponent(city)
+  const svc = SERVICE_MAP[service]
+  const serviceName = svc?.name || decodeURIComponent(service)
+
+  const specialists = await prisma.specialist.findMany({
+    where: {
+      verified: true,
+      city: { equals: cityBg, mode: "insensitive" },
+      OR: svc ? svc.keywords.map(k => ({
+        description: { contains: k, mode: "insensitive" }
+      })) : undefined,
+    },
+    include: {
+      user: true,
+      SpecialistCategory: { include: { Category: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  })
+
+  const filled = specialists.filter(s =>
+    s.description && s.description.trim().length > 20 &&
+    s.description !== "РџСЂРѕС„РёР»СЉС‚ РїСЂРµРґСЃС‚РѕРё РґР° Р±СЉРґРµ РїРѕРїСЉР»РЅРµРЅ."
+  )
+
+  const relatedServices = Object.entries(SERVICE_MAP)
+    .filter(([slug]) => slug !== service)
+    .slice(0, 4)
+
+  return (
+    <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <ProZonaHeader locale={locale} />
+
+      <section className="mx-auto max-w-6xl px-4 py-10">
+
+        <div className="mb-6 flex items-center gap-2 text-sm text-gray-400">
+          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">РќР°С‡Р°Р»Рѕ</Link>
+          <span>/</span>
+          <Link href={`/${locale}/specialists`} className="text-[#1DB954] hover:underline">РЎРїРµС†РёР°Р»РёСЃС‚Рё</Link>
+          <span>/</span>
+          <span className="text-white">{serviceName} РІ {cityBg}</span>
+        </div>
+
+        <h1 className="mb-4 text-4xl font-bold">
+          {serviceName} РІ {cityBg}
+        </h1>
+
+        {svc && (
+          <p className="mb-8 max-w-2xl text-gray-300 leading-relaxed">
+            {svc.description(cityBg)}
+          </p>
+        )}
+
+        <div className="mb-8 flex items-center gap-4">
+          <span className="rounded-full bg-[#1DB954]/10 px-4 py-1.5 text-sm text-[#1DB954] font-medium">
+            {filled.length} СЃРїРµС†РёР°Р»РёСЃС‚Р° РЅР°РјРµСЂРµРЅРё
+          </span>
+          <span className="text-sm text-gray-500">РІ {cityBg}</span>
+        </div>
+
+        {filled.length === 0 ? (
+          <div className="mb-10 space-y-6">
+            <div className="rounded-2xl border border-white/10 bg-[#151528] p-10 text-center">
+              <p className="mb-2 text-lg text-gray-300">
+                РќСЏРјР° РЅР°РјРµСЂРµРЅРё СЃРїРµС†РёР°Р»РёСЃС‚Рё Р·Р° {serviceName} РІ {cityBg} РІ РјРѕРјРµРЅС‚Р°.
+              </p>
+              <p className="mb-6 text-sm text-gray-500">
+                РџСѓР±Р»РёРєСѓРІР°Р№ Р·Р°РїРёС‚РІР°РЅРµ Рё СЃРїРµС†РёР°Р»РёСЃС‚Рё С‰Рµ СЃРµ СЃРІСЉСЂР¶Р°С‚ СЃ С‚РµР±.
+              </p>
+              <Link
+                href={`/${locale}/request`}
+                className="rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black hover:bg-[#1ed760] transition"
+              >
+                рџ“© РџСѓР±Р»РёРєСѓРІР°Р№ Р·Р°РїРёС‚РІР°РЅРµ
+              </Link>
+            </div>
+
+            <div className="rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 p-10 text-center">
+              <div className="mb-3 text-4xl">рџ”§</div>
+              <h2 className="mb-3 text-2xl font-bold text-white">
+                РўСЉСЂСЃРёРј {serviceName} РІ {cityBg}!
+              </h2>
+              <p className="mb-2 text-gray-300 max-w-xl mx-auto">
+                Р‘СЉРґРё РїСЉСЂРІРёСЏС‚ СЃРїРµС†РёР°Р»РёСЃС‚ Р·Р°{" "}
+                <strong className="text-[#1DB954]">{serviceName}</strong>{" "}
+                РІ <strong className="text-[#1DB954]">{cityBg}</strong> РІ ProZona.
+              </p>
+              <p className="mb-6 text-sm text-gray-400">
+                Р‘РµР·РїР»Р°С‚РЅР° СЂРµРіРёСЃС‚СЂР°С†РёСЏ В· РџСЉСЂРІРёС‚Рµ 200 РїРѕР»СѓС‡Р°РІР°С‚ 6 РјРµСЃРµС†Р° Premium В· Р‘РµР· Р°Р±РѕРЅР°РјРµРЅС‚
+              </p>
+              <Link
+                href={`/${locale}/become-specialist`}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black hover:bg-[#1ed760] transition text-base"
+              >
+                вњ… Р РµРіРёСЃС‚СЂРёСЂР°Р№ СЃРµ Р±РµР·РїР»Р°С‚РЅРѕ в†’
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filled.map((specialist) => {
+              const image = specialist.user?.image || null
+              const name = specialist.businessName || specialist.user?.name || "РЎРїРµС†РёР°Р»РёСЃС‚"
+              const cats = Array.from(new Set(
+                specialist.SpecialistCategory.map(sc => sc.Category?.name).filter(Boolean)
+              )).slice(0, 2) as string[]
+
+              return (
+                <div
+                  key={specialist.id}
+                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 flex flex-col transition hover:border-[#1DB954]/40"
+                >
+                  <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-4 block">
+                    {image ? (
+                      <img src={image} alt={name} className="h-40 w-full rounded-xl object-cover" />
+                    ) : (
+                      <div className="flex h-40 w-full items-center justify-center rounded-xl bg-[#23233A] text-4xl font-bold text-[#1DB954]">
+                        {name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </Link>
+
+                  <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-1 block hover:text-[#1DB954] transition">
+                    <h2 className="text-xl font-semibold">{name}</h2>
+                  </Link>
+
+                  {specialist.city && (
+                    <p className="mb-2 text-sm text-gray-400">рџ“Ќ {specialist.city}</p>
+                  )}
+
+                  {cats.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      {cats.map(c => (
+                        <span key={c} className="rounded-full bg-[#1DB954]/10 px-2 py-0.5 text-xs text-[#1DB954]">
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="line-clamp-3 text-sm text-gray-300 flex-1 mb-4">
+                    {specialist.description}
+                  </p>
+
+                  <div className="mt-4 flex gap-2">
+                    <Link
+                      href={`/${locale}/specialist/${specialist.id}#inquiry`}
+                      className="flex-1 rounded-lg bg-[#1DB954] px-3 py-2 text-center text-xs font-semibold text-black hover:bg-[#1ed760] transition"
+                    >
+                      рџ“© РР·РїСЂР°С‚Рё Р·Р°РїРёС‚РІР°РЅРµ
+                    </Link>
+                    <Link
+                      href={`/${locale}/specialist/${specialist.id}`}
+                      className="flex-1 rounded-lg border border-white/20 px-3 py-2 text-center text-xs font-semibold text-gray-300 hover:border-white/40 hover:text-white transition"
+                    >
+                      Р’РёР¶ РїСЂРѕС„РёР» в†’
+                    </Link>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        <div className="mb-10 rounded-2xl border border-[#1DB954]/20 bg-[#1DB954]/5 p-8 text-center">
+          <h2 className="mb-2 text-2xl font-bold">РќРµ РЅР°РјРµСЂРё РїРѕРґС…РѕРґСЏС‰ СЃРїРµС†РёР°Р»РёСЃС‚?</h2>
+          <p className="mb-6 text-gray-400">
+            РџСѓР±Р»РёРєСѓРІР°Р№ Р·Р°РїРёС‚РІР°РЅРµ Рё СЃРїРµС†РёР°Р»РёСЃС‚Рё РѕС‚ {cityBg} С‰Рµ СЃРµ СЃРІСЉСЂР¶Р°С‚ СЃ С‚РµР± РґРёСЂРµРєС‚РЅРѕ.
+          </p>
+          <Link
+            href={`/${locale}/request`}
+            className="rounded-xl bg-[#1DB954] px-8 py-3 font-semibold text-black hover:bg-[#1ed760] transition"
+          >
+            рџ“© РџСѓР±Р»РёРєСѓРІР°Р№ Р·Р°РїРёС‚РІР°РЅРµ Р±РµР·РїР»Р°С‚РЅРѕ
+          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-[#151528] p-6">
+          <h3 className="mb-4 text-lg font-semibold text-gray-300">Р”СЂСѓРіРё СѓСЃР»СѓРіРё РІ {cityBg}</h3>
+          <div className="flex flex-wrap gap-2">
+            {relatedServices.map(([slug, info]) => (
+              <Link
+                key={slug}
+                href={`/${locale}/uslugi/${city}/${slug}`}
+                className="rounded-lg border border-white/10 px-3 py-2 text-sm text-gray-400 hover:border-[#1DB954]/40 hover:text-[#1DB954] transition"
+              >
+                {info.name} РІ {cityBg}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {Object.entries(CITY_MAP).filter(([slug]) => slug !== city).slice(0, 5).map(([slug, name]) => (
+              <Link
+                key={slug}
+                href={`/${locale}/uslugi/${slug}/${service}`}
+                className="rounded-lg border border-white/10 px-3 py-2 text-sm text-gray-400 hover:border-[#1DB954]/40 hover:text-[#1DB954] transition"
+              >
+                {serviceName} РІ {name}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+      </section>
+
+      <ProZonaFooter locale={locale} />
+    </main>
+  )
+}

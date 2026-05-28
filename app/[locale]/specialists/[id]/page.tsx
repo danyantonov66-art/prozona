@@ -53,8 +53,9 @@ export async function generateMetadata({ params }: Props) {
       locale: locale === "bg" ? "bg_BG" : "en_US", type: "profile",
       ...(image && { images: [{ url: image, width: 800, height: 600, alt: name }] }),
     },
-    twitter: { card: "summary_large_image", title, description, ...(image && { images: [image] }) },
+  twitter: { card: "summary_large_image", title, description, ...(image && { images: [image] }) },
   }
+}
 
 export const dynamic = "force-dynamic"
 

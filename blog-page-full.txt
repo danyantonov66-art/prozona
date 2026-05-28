@@ -1,0 +1,244 @@
+﻿import { prisma } from "@/lib/prisma"
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import ProZonaHeader from "@/components/header/ProZonaHeader"
+import ProZonaFooter from "@/components/footer/ProZonaFooter"
+
+interface Props {
+  params: Promise<{ locale: string; slug: string }>
+}
+
+// Mapping РѕС‚ РєР»СЋС‡РѕРІРё РґСѓРјРё РІ slug РєСЉРј uslugi Р»РёРЅРєРѕРІРµ
+const SLUG_TO_USLUGI: Record<string, { service: string; name: string }[]> = {
+  "vik": [
+    { service: "vik", name: "Р’РёРљ РјР°Р№СЃС‚РѕСЂ" },
+  ],
+  "elektrotehnik": [
+    { service: "elektrotehnik", name: "Р•Р»РµРєС‚СЂРѕС‚РµС…РЅРёРє" },
+    { service: "elektro", name: "Р•Р»РµРєС‚СЂРѕРёРЅСЃС‚Р°Р»Р°С†РёРё" },
+  ],
+  "elektro": [
+    { service: "elektrotehnik", name: "Р•Р»РµРєС‚СЂРѕС‚РµС…РЅРёРє" },
+    { service: "elektro", name: "Р•Р»РµРєС‚СЂРѕРёРЅСЃС‚Р°Р»Р°С†РёРё" },
+  ],
+  "klimatik": [
+    { service: "klimatik", name: "РњРѕРЅС‚Р°Р¶ РЅР° РєР»РёРјР°С‚РёРє" },
+    { service: "klimatici", name: "РљР»РёРјР°С‚РёС†Рё" },
+  ],
+  "pochistvane": [
+    { service: "pochistvane", name: "РџРѕС‡РёСЃС‚РІР°РЅРµ" },
+    { service: "domashno", name: "Р”РѕРјР°С€РЅРѕ РїРѕС‡РёСЃС‚РІР°РЅРµ" },
+  ],
+  "hamali": [
+    { service: "hamali", name: "РҐР°РјР°Р»СЃРєРё СѓСЃР»СѓРіРё" },
+  ],
+  "shpaklovka": [
+    { service: "shpaklovka", name: "РЁРїР°РєР»РѕРІРєР° Рё Р±РѕСЏ" },
+    { service: "boyadisvane", name: "Р‘РѕСЏРґРёСЃРІР°РЅРµ" },
+  ],
+  "boyadisvane": [
+    { service: "shpaklovka", name: "РЁРїР°РєР»РѕРІРєР° Рё Р±РѕСЏ" },
+    { service: "boyadisvane", name: "Р‘РѕСЏРґРёСЃРІР°РЅРµ" },
+  ],
+  "remont": [
+    { service: "drebni-remonti", name: "Р”СЂРµР±РЅРё СЂРµРјРѕРЅС‚Рё" },
+    { service: "dovarshitelni-remonti", name: "Р”РѕРІСЉСЂС€РёС‚РµР»РЅРё СЂРµРјРѕРЅС‚Рё" },
+    { service: "remont-banya", name: "Р РµРјРѕРЅС‚ РЅР° Р±Р°РЅСЏ" },
+  ],
+  "banya": [
+    { service: "remont-banya", name: "Р РµРјРѕРЅС‚ РЅР° Р±Р°РЅСЏ" },
+    { service: "vik", name: "Р’РёРљ РјР°Р№СЃС‚РѕСЂ" },
+  ],
+  "pokrГ­v": [
+    { service: "pokrivi", name: "Р РµРјРѕРЅС‚ РЅР° РїРѕРєСЂРёРІРё" },
+    { service: "remont-pokrivi", name: "Р РµРјРѕРЅС‚ РЅР° РїРѕРєСЂРёРІРё" },
+  ],
+  "pokrivi": [
+    { service: "pokrivi", name: "Р РµРјРѕРЅС‚ РЅР° РїРѕРєСЂРёРІРё" },
+  ],
+  "gipsokarton": [
+    { service: "gipsokarton", name: "Р“РёРїСЃРѕРєР°СЂС‚РѕРЅ" },
+  ],
+  "gradina": [
+    { service: "gradina", name: "Р“СЂР°РґРёРЅР°СЂСЃС‚РІРѕ" },
+  ],
+  "maystor": [
+    { service: "drebni-remonti", name: "Р”СЂРµР±РЅРё СЂРµРјРѕРЅС‚Рё" },
+    { service: "elektrotehnik", name: "Р•Р»РµРєС‚СЂРѕС‚РµС…РЅРёРє" },
+    { service: "vik", name: "Р’РёРљ РјР°Р№СЃС‚РѕСЂ" },
+  ],
+}
+
+const TOP_CITIES = ["sofia", "plovdiv", "varna", "burgas", "ruse"]
+const CITY_NAMES: Record<string, string> = {
+  "sofia": "РЎРѕС„РёСЏ",
+  "plovdiv": "РџР»РѕРІРґРёРІ",
+  "varna": "Р’Р°СЂРЅР°",
+  "burgas": "Р‘СѓСЂРіР°СЃ",
+  "ruse": "Р СѓСЃРµ",
+}
+
+function getRelatedUslugi(slug: string): { service: string; name: string }[] {
+  const parts = slug.split("-")
+  for (const part of parts) {
+    if (SLUG_TO_USLUGI[part]) return SLUG_TO_USLUGI[part]
+  }
+  // fallback вЂ” С‚СЉСЂСЃРё РІ С†РµР»РёСЏ slug
+  for (const key of Object.keys(SLUG_TO_USLUGI)) {
+    if (slug.includes(key)) return SLUG_TO_USLUGI[key]
+  }
+  return []
+}
+
+export async function generateMetadata({ params }: Props) {
+  const { slug, locale } = await params
+  const post = await prisma.blogPost.findUnique({
+    where: { slug, published: true }
+  })
+  if (!post) return {}
+
+  const title = post.metaTitle || post.title
+  const description = post.metaDescription || post.excerpt || post.title
+  const canonicalUrl = `https://prozona.bg/${locale}/blog/${slug}`
+
+  return {
+    title: `${title} | ProZona Р‘Р»РѕРі`,
+    description,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title, description, url: canonicalUrl, siteName: 'ProZona', type: 'article',
+      ...(post.coverImage && { images: [{ url: post.coverImage, width: 1200, height: 630, alt: title }] }),
+    },
+    twitter: { card: 'summary_large_image', title, description },
+  }
+}
+
+export const dynamic = "force-dynamic"
+
+export default async function BlogPostPage({ params }: Props) {
+  const { locale, slug } = await params
+
+  const post = await prisma.blogPost.findUnique({
+    where: { slug, published: true },
+    include: { author: { select: { name: true, image: true } } }
+  })
+
+  if (!post) notFound()
+
+  const relatedUslugi = getRelatedUslugi(slug)
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt || post.title,
+    ...(post.coverImage && { image: post.coverImage }),
+    datePublished: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
+    dateModified: post.updatedAt.toISOString(),
+    author: { "@type": "Person", name: post.author?.name || "ProZona" },
+    publisher: { "@type": "Organization", name: "ProZona", url: "https://prozona.bg" },
+  }
+
+  const formattedDate = new Date(post.publishedAt || post.createdAt)
+    .toLocaleDateString('bg-BG', { year: 'numeric', month: 'long', day: 'numeric' })
+
+  return (
+    <main className="min-h-screen bg-[#0D0D1A] text-white" suppressHydrationWarning>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <ProZonaHeader locale={locale} />
+      <article className="mx-auto max-w-3xl px-4 py-12">
+
+        {/* Breadcrumb */}
+        <div className="mb-6 text-sm text-gray-400">
+          <Link href={`/${locale}`} className="text-[#1DB954] hover:underline">РќР°С‡Р°Р»Рѕ</Link>
+          <span className="mx-2">/</span>
+          <Link href={`/${locale}/blog`} className="text-[#1DB954] hover:underline">Р‘Р»РѕРі</Link>
+          <span className="mx-2">/</span>
+          <span className="text-white">{post.title}</span>
+        </div>
+
+        {post.coverImage && (
+          <img
+            src={post.coverImage}
+            alt={post.title}
+            className="w-full h-64 md:h-96 object-cover rounded-2xl mb-8"
+          />
+        )}
+
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">{post.title}</h1>
+
+        <div className="flex items-center gap-4 text-sm text-gray-400 mb-8 pb-8 border-b border-white/10">
+          {post.author?.image && (
+            <img src={post.author.image} alt={post.author?.name ?? 'ProZona'} className="w-8 h-8 rounded-full" />
+          )}
+          <span>{post.author?.name ?? 'ProZona'}</span>
+          <span>В·</span>
+          <span suppressHydrationWarning>{formattedDate}</span>
+        </div>
+
+        <div
+          className="prose prose-invert prose-lg max-w-none
+            prose-headings:text-white prose-headings:font-bold
+            prose-p:text-gray-300 prose-p:leading-8
+            prose-a:text-[#1DB954] prose-a:no-underline hover:prose-a:underline
+            prose-strong:text-white
+            prose-ul:text-gray-300 prose-ol:text-gray-300
+            prose-li:my-1
+            prose-blockquote:border-[#1DB954] prose-blockquote:text-gray-400
+            prose-code:bg-[#1A1A2E] prose-code:text-[#1DB954] prose-code:px-1 prose-code:rounded
+            prose-hr:border-white/10"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
+
+        {/* Р РµР»РµРІР°РЅС‚РЅРё uslugi Р»РёРЅРєРѕРІРµ */}
+        {relatedUslugi.length > 0 && (
+          <div className="mt-10 p-6 bg-[#151528] border border-white/10 rounded-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">
+              рџ”§ РќР°РјРµСЂРё СЃРїРµС†РёР°Р»РёСЃС‚ РїРѕ С‚РµРјР°С‚Р°
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {relatedUslugi.map(({ service, name }) =>
+                TOP_CITIES.map((city) => (
+                  <Link
+                    key={`${service}-${city}`}
+                    href={`/${locale}/uslugi/${city}/${service}`}
+                    className="rounded-lg border border-white/10 px-3 py-2 text-sm text-gray-300 hover:border-[#1DB954]/40 hover:text-[#1DB954] transition"
+                  >
+                    {name} РІ {CITY_NAMES[city]}
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* CTA РєСЉРј СЃРїРµС†РёР°Р»РёСЃС‚Рё */}
+        <div className="mt-8 p-6 bg-[#151528] border border-[#1DB954]/20 rounded-2xl text-center">
+          <h3 className="text-xl font-bold text-white mb-2">
+            РўСЉСЂСЃРёС€ СЃРїРµС†РёР°Р»РёСЃС‚?
+          </h3>
+          <p className="text-gray-400 mb-4">
+            РќР°РјРµСЂРё РїСЂРѕРІРµСЂРµРЅ РјР°Р№СЃС‚РѕСЂ Р±Р»РёР·Рѕ РґРѕ С‚РµР± вЂ” Р±РµР·РїР»Р°С‚РЅРѕ Рё Р±РµР· СЂРµРіРёСЃС‚СЂР°С†РёСЏ.
+          </p>
+          <Link
+            href={`/${locale}/search`}
+            className="inline-block bg-[#1DB954] text-[#0D0D1A] font-bold px-8 py-3 rounded-xl hover:bg-[#17a847] transition-colors"
+          >
+            РќР°РјРµСЂРё СЃРїРµС†РёР°Р»РёСЃС‚ в†’
+          </Link>
+        </div>
+
+        <div className="mt-8 pt-8 border-t border-white/10">
+          <Link
+            href={`/${locale}/blog`}
+            className="inline-flex items-center gap-2 text-[#1DB954] hover:underline"
+          >
+            в†ђ РћР±СЂР°С‚РЅРѕ РєСЉРј Р±Р»РѕРіР°
+          </Link>
+        </div>
+
+      </article>
+      <ProZonaFooter locale={locale} />
+    </main>
+  )
+}

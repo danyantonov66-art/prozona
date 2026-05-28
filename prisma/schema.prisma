@@ -469,5 +469,6 @@ model BlogPost {
   authorId        String
   metaTitle       String?
   metaDescription String?
+  category        String?   @default("general")
   author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
