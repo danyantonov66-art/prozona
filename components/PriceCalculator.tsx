@@ -289,9 +289,21 @@ export default function PriceCalculator({ locale }: { locale: string }) {
           <div className="p-6 flex flex-col justify-center">
             {!calculated ? (
               <div className="text-center text-gray-500">
-                <div className="text-5xl mb-4">🧮</div>
-                <p className="text-sm">Попълни параметрите вляво и натисни "Изчисли"</p>
-              </div>
+                 <div className="mb-4">
+  <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="56" height="56" rx="12" fill="#1DB954" fillOpacity="0.1"/>
+    <rect x="14" y="14" width="28" height="28" rx="4" stroke="#1DB954" strokeWidth="2"/>
+    <rect x="18" y="18" width="8" height="5" rx="1.5" fill="#1DB954"/>
+    <rect x="30" y="18" width="8" height="5" rx="1.5" fill="#1DB954" fillOpacity="0.5"/>
+    <circle cx="19" cy="30" r="2" fill="#1DB954"/>
+    <circle cx="28" cy="30" r="2" fill="#1DB954"/>
+    <circle cx="37" cy="30" r="2" fill="#1DB954"/>
+    <circle cx="19" cy="38" r="2" fill="#1DB954"/>
+    <circle cx="28" cy="38" r="2" fill="#1DB954"/>
+    <circle cx="37" cy="38" r="2" fill="#1DB954" fillOpacity="0.5"/>
+  </svg>
+</div>
+<p className="text-sm">Попълни параметрите вляво и натисни "Изчисли"</p>
             ) : result ? (
               <div className="text-center">
                 <p className="text-sm text-gray-400 mb-2">Приблизителна цена за</p>
