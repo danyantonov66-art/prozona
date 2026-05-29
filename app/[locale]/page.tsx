@@ -5,6 +5,7 @@ import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import { prisma } from "@/lib/prisma"
 import SpecialistsMapWrapper from "@/components/SpecialistsMapWrapper"
+import PriceCalculator from "@/components/PriceCalculator"
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -342,6 +343,8 @@ export default async function Home({ params }: Props) {
           ))}
         </div>
       </section>
+      {/* PRICE CALCULATOR */}
+<PriceCalculator locale={locale} />
 
       {/* POPULAR CITIES */}
       <section className="mx-auto max-w-6xl px-4 pb-12">
