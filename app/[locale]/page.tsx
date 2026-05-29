@@ -274,6 +274,8 @@ export default async function Home({ params }: Props) {
           </div>
         </div>
       </section>
+      {/* PRICE CALCULATOR */}
+<PriceCalculator locale={locale} />
 
       {/* ДОВЕРИЕ — нова секция */}
       <section className="mx-auto max-w-6xl px-4 py-10">
@@ -343,8 +345,6 @@ export default async function Home({ params }: Props) {
           ))}
         </div>
       </section>
-      {/* PRICE CALCULATOR */}
-<PriceCalculator locale={locale} />
 
       {/* POPULAR CITIES */}
       <section className="mx-auto max-w-6xl px-4 pb-12">
