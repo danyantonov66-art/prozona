@@ -7,9 +7,49 @@ import { sendNewSpecialistNotification, sendSpecialistRegistrationConfirmation }
 
 const EARLY_PROGRAM_LIMIT = 200
 
-// ✅ Валидира че URL-ът е YouTube или TikTok
 function isValidVideoUrl(url: string): boolean {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|tiktok\.com)/.test(url)
+}
+
+async function getOrCreateCategory(categoryId: string) {
+  const selectedCategory = categories.find((c: any) => String(c.id) === String(categoryId))
+  if (!selectedCategory) return null
+
+  let categoryRecord = await prisma.category.findUnique({ where: { slug: selectedCategory.slug } })
+  if (!categoryRecord) categoryRecord = await prisma.category.findUnique({ where: { name: selectedCategory.name } })
+  if (!categoryRecord) {
+    categoryRecord = await prisma.category.create({
+      data: {
+        name: selectedCategory.name,
+        slug: selectedCategory.slug,
+        description: selectedCategory.description || selectedCategory.name,
+        icon: selectedCategory.icon || null,
+        updatedAt: new Date()
+      },
+    })
+  }
+  return { categoryRecord, selectedCategory }
+}
+
+async function getOrCreateSubcategory(selectedCategory: any, subcategoryId: string, categoryRecordId: number) {
+  if (!subcategoryId) return null
+  const selectedSubcategory = selectedCategory.subcategories?.find((s: any) => String(s.id) === String(subcategoryId))
+  if (!selectedSubcategory) return null
+
+  let subcategoryRecord = await prisma.subcategory.findFirst({ where: { categoryId: categoryRecordId, slug: selectedSubcategory.id } })
+  if (!subcategoryRecord) subcategoryRecord = await prisma.subcategory.findFirst({ where: { categoryId: categoryRecordId, name: selectedSubcategory.name } })
+  if (!subcategoryRecord) {
+    subcategoryRecord = await prisma.subcategory.create({
+      data: {
+        categoryId: categoryRecordId,
+        name: selectedSubcategory.name,
+        slug: selectedSubcategory.id,
+        description: selectedSubcategory.name,
+        updatedAt: new Date()
+      },
+    })
+  }
+  return subcategoryRecord
 }
 
 export async function POST(request: NextRequest) {
@@ -20,36 +60,18 @@ export async function POST(request: NextRequest) {
     }
     const userId = (session.user as any)?.id
     const body = await request.json()
-    const { businessName, description, city, phone, categoryId, subcategoryId, experience } = body ?? {}
+    const { businessName, description, city, phone, experience } = body ?? {}
 
-    if (!description || !city || !categoryId || !subcategoryId || !phone) {
+    // Поддържа и стар формат (categoryId/subcategoryId) и нов (categories масив)
+    const categoriesInput: { categoryId: string; subcategoryId?: string }[] =
+      body.categories && Array.isArray(body.categories)
+        ? body.categories
+        : body.categoryId
+        ? [{ categoryId: String(body.categoryId), subcategoryId: body.subcategoryId ? String(body.subcategoryId) : "" }]
+        : []
+
+    if (!description || !city || !phone || categoriesInput.length === 0) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
-
-    const selectedCategory = categories.find((c: any) => c.id === categoryId)
-    if (!selectedCategory) {
-      return NextResponse.json({ error: "Invalid category" }, { status: 400 })
-    }
-
-    const selectedSubcategory = selectedCategory.subcategories?.find((s: any) => s.id === subcategoryId)
-    if (!selectedSubcategory) {
-      return NextResponse.json({ error: "Invalid subcategory" }, { status: 400 })
-    }
-
-    let categoryRecord = await prisma.category.findUnique({ where: { slug: selectedCategory.slug } })
-    if (!categoryRecord) categoryRecord = await prisma.category.findUnique({ where: { name: selectedCategory.name } })
-    if (!categoryRecord) {
-      categoryRecord = await prisma.category.create({
-        data: { name: selectedCategory.name, slug: selectedCategory.slug, description: selectedCategory.description || selectedCategory.name, icon: selectedCategory.icon || null, updatedAt: new Date() },
-      })
-    }
-
-    let subcategoryRecord = await prisma.subcategory.findFirst({ where: { categoryId: categoryRecord.id, slug: selectedSubcategory.id } })
-    if (!subcategoryRecord) subcategoryRecord = await prisma.subcategory.findFirst({ where: { categoryId: categoryRecord.id, name: selectedSubcategory.name } })
-    if (!subcategoryRecord) {
-      subcategoryRecord = await prisma.subcategory.create({
-        data: { categoryId: categoryRecord.id, name: selectedSubcategory.name, slug: selectedSubcategory.id, description: selectedSubcategory.name, updatedAt: new Date() },
-      })
     }
 
     const existing = await prisma.specialist.findUnique({ where: { userId } })
@@ -84,19 +106,43 @@ export async function POST(request: NextRequest) {
       ? await prisma.specialist.update({ where: { userId }, data: specialistData, include: { user: true } })
       : await prisma.specialist.create({ data: { userId, ...specialistData, credits: 20 }, include: { user: true } })
 
-    await prisma.specialistCategory.upsert({
-      where: { specialistId_categoryId_subcategoryId: { specialistId: specialist.id, categoryId: categoryRecord.id, subcategoryId: subcategoryRecord.id } },
-      update: {},
-      create: { specialistId: specialist.id, categoryId: categoryRecord.id, subcategoryId: subcategoryRecord.id },
-    })
+    // Добавяне на всички категории
+    for (const cat of categoriesInput) {
+      if (!cat.categoryId) continue
+      const result = await getOrCreateCategory(cat.categoryId)
+      if (!result) continue
+      const { categoryRecord, selectedCategory } = result
+
+      const subcategoryRecord = cat.subcategoryId
+        ? await getOrCreateSubcategory(selectedCategory, cat.subcategoryId, categoryRecord.id)
+        : null
+
+      await prisma.specialistCategory.upsert({
+        where: {
+          specialistId_categoryId_subcategoryId: {
+            specialistId: specialist.id,
+            categoryId: categoryRecord.id,
+            subcategoryId: subcategoryRecord?.id ?? 0,
+          }
+        },
+        update: {},
+        create: {
+          specialistId: specialist.id,
+          categoryId: categoryRecord.id,
+          subcategoryId: subcategoryRecord?.id ?? null,
+        },
+      })
+    }
 
     if (!existing) {
       try {
+        const firstCat = categoriesInput[0]
+        const firstCatObj = categories.find((c: any) => String(c.id) === String(firstCat?.categoryId))
         await sendNewSpecialistNotification({
           specialistName: specialist.user?.name || 'Непознат',
           specialistEmail: specialist.user?.email || '',
           city,
-          category: selectedCategory.name,
+          category: firstCatObj?.name || 'Неизвестна',
           specialistId: specialist.id,
         })
         await sendSpecialistRegistrationConfirmation({
@@ -126,10 +172,9 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { businessName, description, city, phone, experienceYears, serviceAreas, videoUrl } = body ?? {}
 
-    // ✅ Валидирай videoUrl ако е подаден
     if (videoUrl && !isValidVideoUrl(videoUrl)) {
       return NextResponse.json(
-        { error: "Моля въведете валиден YouTube или TikTок линк." },
+        { error: "Моля въведете валиден YouTube или TikTok линк." },
         { status: 400 }
       )
     }
