@@ -286,56 +286,48 @@ export default function PriceCalculator({ locale }: { locale: string }) {
           </div>
 
           {/* Result */}
-          <div className="p-6 flex flex-col justify-center">
-            {!calculated ? (
-              <div className="text-center text-gray-500">
-                 <div className="mb-4">
-  <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="56" height="56" rx="12" fill="#1DB954" fillOpacity="0.1"/>
-    <rect x="14" y="14" width="28" height="28" rx="4" stroke="#1DB954" strokeWidth="2"/>
-    <rect x="18" y="18" width="8" height="5" rx="1.5" fill="#1DB954"/>
-    <rect x="30" y="18" width="8" height="5" rx="1.5" fill="#1DB954" fillOpacity="0.5"/>
-    <circle cx="19" cy="30" r="2" fill="#1DB954"/>
-    <circle cx="28" cy="30" r="2" fill="#1DB954"/>
-    <circle cx="37" cy="30" r="2" fill="#1DB954"/>
-    <circle cx="19" cy="38" r="2" fill="#1DB954"/>
-    <circle cx="28" cy="38" r="2" fill="#1DB954"/>
-    <circle cx="37" cy="38" r="2" fill="#1DB954" fillOpacity="0.5"/>
-  </svg>
+<div className="p-6 flex flex-col justify-center">
+  {!calculated ? (
+    <div className="text-center text-gray-500">
+      <div className="mb-4 flex justify-center">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="56" height="56" rx="12" fill="#1DB954" fillOpacity="0.1"/>
+          <rect x="14" y="14" width="28" height="28" rx="4" stroke="#1DB954" strokeWidth="2"/>
+          <rect x="18" y="18" width="8" height="5" rx="1.5" fill="#1DB954"/>
+          <rect x="30" y="18" width="8" height="5" rx="1.5" fill="#1DB954" fillOpacity="0.5"/>
+          <circle cx="19" cy="30" r="2" fill="#1DB954"/>
+          <circle cx="28" cy="30" r="2" fill="#1DB954"/>
+          <circle cx="37" cy="30" r="2" fill="#1DB954"/>
+          <circle cx="19" cy="38" r="2" fill="#1DB954"/>
+          <circle cx="28" cy="38" r="2" fill="#1DB954"/>
+          <circle cx="37" cy="38" r="2" fill="#1DB954" fillOpacity="0.5"/>
+        </svg>
+      </div>
+      <p className="text-sm">Попълни параметрите вляво и натисни "Изчисли"</p>
+    </div>
+  ) : result ? (
+    <div className="text-center">
+      <p className="text-sm text-gray-400 mb-2">Приблизителна цена за</p>
+      <p className="text-lg font-semibold text-white mb-6">{selectedService.name}</p>
+      <div className="rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 p-6 mb-6">
+        <p className="text-sm text-gray-400 mb-1">Очакван диапазон</p>
+        <p className="text-4xl font-bold text-[#1DB954]">
+          {result.min.toLocaleString('bg-BG')} – {result.max.toLocaleString('bg-BG')} лв.
+        </p>
+      </div>
+      <div className="text-xs text-gray-500 mb-6 text-left space-y-1">
+        <p>⚠️ Цената е ориентировъчна и зависи от конкретните условия.</p>
+        <p>✅ Реалната оферта получаваш безплатно от специалист.</p>
+      </div>
+      <a href={`/${locale}/request`} className="block w-full rounded-xl bg-[#1DB954] py-3 font-semibold text-black hover:bg-[#1ed760] transition text-center">
+        📩 Получи реална оферта безплатно
+      </a>
+      <a href={`/${locale}/search`} className="block w-full mt-2 rounded-xl border border-white/20 py-3 font-semibold text-gray-300 hover:bg-white/5 transition text-center text-sm">
+        🔍 Намери специалист сега
+      </a>
+    </div>
+  ) : null}
 </div>
-<p className="text-sm">Попълни параметрите вляво и натисни "Изчисли"</p>
-            ) : result ? (
-              <div className="text-center">
-                <p className="text-sm text-gray-400 mb-2">Приблизителна цена за</p>
-                <p className="text-lg font-semibold text-white mb-6">{selectedService.name}</p>
-
-                <div className="rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 p-6 mb-6">
-                  <p className="text-sm text-gray-400 mb-1">Очакван диапазон</p>
-                  <p className="text-4xl font-bold text-[#1DB954]">
-                    {result.min.toLocaleString('bg-BG')} – {result.max.toLocaleString('bg-BG')} лв.
-                  </p>
-                </div>
-
-                <div className="text-xs text-gray-500 mb-6 text-left space-y-1">
-                  <p>⚠️ Цената е ориентировъчна и зависи от конкретните условия.</p>
-                  <p>✅ Реалната оферта получаваш безплатно от специалист.</p>
-                </div>
-
-                <a
-                  href={`/${locale}/request`}
-                  className="block w-full rounded-xl bg-[#1DB954] py-3 font-semibold text-black hover:bg-[#1ed760] transition text-center"
-                >
-                  📩 Получи реална оферта безплатно
-                </a>
-                <a
-                  href={`/${locale}/search`}
-                  className="block w-full mt-2 rounded-xl border border-white/20 py-3 font-semibold text-gray-300 hover:bg-white/5 transition text-center text-sm"
-                >
-                  🔍 Намери специалист сега
-                </a>
-              </div>
-            ) : null}
-          </div>
         </div>
       </div>
     </section>
