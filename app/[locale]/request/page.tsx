@@ -10,13 +10,21 @@ const BULGARIAN_CITIES = [
   "София", "Пловдив", "Варна", "Бургас", "Русе", "Стара Загора",
   "Плевен", "Сливен", "Добрич", "Шумен", "Враца", "Хасково",
   "Благоевград", "Велико Търново", "Габрово", "Пазарджик",
+  "Перник", "Видин", "Монтана", "Кюстендил", "Ямбол", "Кърджали",
+  "Разград", "Силистра", "Търговище", "Ловеч", "Смолян", "Виден",
+  "Самоков", "Казанлък", "Асеновград", "Горна Оряховица",
 ]
 
 const CATEGORIES = [
-  { id: 9, name: "Ремонти и майстори" },
-  { id: 11, name: "Почистване" },
-  { id: 12, name: "Монтаж и дребни услуги" },
-  { id: 8, name: "Градина и двор" },
+  { id: 9, name: "Ремонти и майстори", icon: "🔨" },
+  { id: 11, name: "Почистване", icon: "🧹" },
+  { id: 12, name: "Монтаж и дребни услуги", icon: "🔧" },
+  { id: 8, name: "Градина и двор", icon: "🌿" },
+  { id: 3, name: "Климатици", icon: "❄️" },
+  { id: 5, name: "Транспортни услуги", icon: "📦" },
+  { id: 6, name: "Мебели и обзавеждане", icon: "🛋️" },
+  { id: 7, name: "Авто услуги", icon: "🚗" },
+  { id: 10, name: "Компютърни и IT услуги", icon: "💻" },
 ]
 
 export default function RequestPage() {
@@ -71,7 +79,8 @@ export default function RequestPage() {
           <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-8 text-center">
             <div className="mb-4 text-5xl">✅</div>
             <h2 className="mb-2 text-2xl font-bold text-green-400">Заявката е изпратена!</h2>
-            <p className="mb-6 text-gray-300">Специалисти в твоя район ще се свържат с теб скоро.</p>
+            <p className="mb-2 text-gray-300">Специалисти в твоя район ще се свържат с теб скоро.</p>
+            <p className="mb-6 text-sm text-gray-500">Провери имейла си за потвърждение.</p>
             <Link href={`/${locale}`} className="inline-block rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black hover:bg-[#1ed760]">
               Към началото
             </Link>
@@ -79,12 +88,24 @@ export default function RequestPage() {
         ) : (
           <>
             <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold">Търсиш специалист?</h1>
-              <p className="mt-2 text-gray-400">Опиши от какво имаш нужда и специалисти ще се свържат с теб.</p>
+              <div className="mb-3 inline-flex items-center rounded-full border border-[#1DB954]/30 bg-[#1DB954]/10 px-4 py-1 text-sm text-[#86efac]">
+                📩 Безплатна заявка
+              </div>
+              <h1 className="mb-2 text-3xl font-bold">Търсиш специалист?</h1>
+              <p className="text-gray-400">Опиши от какво имаш нужда и специалисти ще се свържат с теб.</p>
+
+              {/* Trust signals */}
+              <div className="mt-4 flex justify-center gap-4 text-xs text-gray-500">
+                <span>✅ Безплатно</span>
+                <span>✅ До 5 специалиста</span>
+                <span>✅ Отговор до 24 часа</span>
+              </div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-[#151528] p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Category */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">Категория *</label>
                   <select
@@ -96,11 +117,12 @@ export default function RequestPage() {
                   >
                     <option value="">Изберете категория</option>
                     {CATEGORIES.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                     ))}
                   </select>
                 </div>
 
+                {/* City */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">Град *</label>
                   <select
@@ -117,6 +139,7 @@ export default function RequestPage() {
                   </select>
                 </div>
 
+                {/* Message */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">Опишете заявката *</label>
                   <textarea
@@ -125,11 +148,12 @@ export default function RequestPage() {
                     onChange={handleChange}
                     required
                     rows={4}
-                    placeholder="Например: Търся монтаж на климатик 12k BTU в апартамент..."
+                    placeholder="Например: Търся монтаж на климатик 12k BTU в апартамент на 3-ти етаж..."
                     className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50 resize-none"
                   />
                 </div>
 
+                {/* Name */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">Вашето име *</label>
                   <input
@@ -142,6 +166,7 @@ export default function RequestPage() {
                   />
                 </div>
 
+                {/* Email */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">Имейл *</label>
                   <input
@@ -155,6 +180,7 @@ export default function RequestPage() {
                   />
                 </div>
 
+                {/* Phone */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">Телефон (незадължително)</label>
                   <input
@@ -177,17 +203,17 @@ export default function RequestPage() {
                   disabled={loading}
                   className="w-full rounded-xl bg-[#1DB954] py-3 font-semibold text-black transition hover:bg-[#1ed760] disabled:opacity-60 text-lg"
                 >
-                  {loading ? "Изпращане..." : "🚀 Изпрати заявката"}
+                  {loading ? "Изпращане..." : "🚀 Изпрати заявката безплатно"}
                 </button>
 
                 <p className="text-center text-xs text-gray-500">
-                   До 5 специалисти ще видят заявката ти. Безплатно за теб.
-                   </p>
-                   <p className="text-center text-xs text-gray-500 mt-1">
+                  До 5 специалиста ще видят заявката ти. Безплатно за теб.
+                </p>
+                <p className="text-center text-xs text-gray-500 mt-1">
                   Или{" "}
-                <Link href={`/${locale}/specialists`} className="text-[#1DB954] hover:underline">
-                разгледай специалистите директно →
-              </Link>
+                  <Link href={`/${locale}/specialists`} className="text-[#1DB954] hover:underline">
+                    разгледай специалистите директно →
+                  </Link>
                 </p>
               </form>
             </div>
