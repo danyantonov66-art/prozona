@@ -5,6 +5,7 @@ import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import InquiryButton from "@/components/InquiryButton"
 import type { Metadata } from "next"
+import ExitIntentPopup from "@/components/ExitIntentPopup"
 
 export const dynamic = 'force-dynamic'
 
@@ -195,6 +196,11 @@ export default async function SpecialistPage({ params }: Props) {
         </div>
       </section>
       <ProZonaFooter locale={locale} />
+      <ExitIntentPopup
+  specialistId={specialist.id}
+  specialistName={specialist.businessName || specialist.user?.name || "специалиста"}
+  locale={locale}
+/>
     </main>
   )
 }
