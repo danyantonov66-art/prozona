@@ -20,7 +20,6 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const cityRef = useRef<HTMLDivElement>(null)
 
-  // Затвори suggestions при клик извън
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (cityRef.current && !cityRef.current.contains(e.target as Node)) {
@@ -68,14 +67,14 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || "Грешка")
-     trackLead("Inquiry Submitted")
-     if (typeof window !== "undefined" && (window as any).gtag) {
-     (window as any).gtag("event", "inquiry_sent", {
-      event_category: "engagement",
-      event_label: specialistName,
-      specialist_id: specialistId,
-    })
-  }
+      trackLead("Inquiry Submitted")
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "inquiry_sent", {
+          event_category: "engagement",
+          event_label: specialistName,
+          specialist_id: specialistId,
+        })
+      }
       setSuccess("Запитването е изпратено успешно!")
       setForm({ name: "", email: "", phone: "", message: "", city: "" })
       setCityInput("")
@@ -88,16 +87,29 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="mt-6 inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black transition hover:bg-[#1ed760]">
-        📩 Изпрати запитване
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-6 inline-flex items-center justify-center rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black transition hover:bg-[#1ed760]"
+      >
+        📩 Получи безплатна оферта
       </button>
+
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#151528] p-6">
-            <div className="mb-4 flex items-center justify-between">
+
+            <div className="mb-3 flex items-center justify-between">
               <h2 className="text-xl font-bold">Запитване към {specialistName}</h2>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-white text-xl">✕</button>
             </div>
+
+            {/* Trust signals */}
+            <div className="mb-4 flex gap-3 text-xs text-gray-400">
+              <span>✅ Безплатно</span>
+              <span>✅ Без регистрация</span>
+              <span>✅ Отговор до 24 часа</span>
+            </div>
+
             {success ? (
               <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-green-300">
                 {success}
@@ -105,9 +117,30 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <input name="name" value={form.name} onChange={handleChange} required placeholder="Вашето име" className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none" />
-                <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="Имейл" className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none" />
-                <input name="phone" value={form.phone} onChange={handleChange} placeholder="Телефон (незадължително)" className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none" />
+                <input
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Вашето име"
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none"
+                />
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="Имейл"
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none"
+                />
+                <input
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="Телефон (незадължително)"
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none"
+                />
 
                 {/* City autocomplete */}
                 <div ref={cityRef} className="relative">
@@ -136,10 +169,28 @@ export default function InquiryButton({ specialistId, specialistName }: Props) {
                   )}
                 </div>
 
-                <textarea name="message" value={form.message} onChange={handleChange} required rows={4} placeholder="Опишете от какво имате нужда..." className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none resize-none" />
-                {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300">{error}</div>}
-                <button type="submit" disabled={loading} className="w-full rounded-xl bg-[#1DB954] py-3 font-semibold text-black transition hover:bg-[#1ed760] disabled:opacity-60">
-                  {loading ? "Изпращане..." : "Изпрати"}
+                <textarea
+                  name="message"
+                  value={form.message}
+                  onChange={handleChange}
+                  required
+                  rows={4}
+                  placeholder="Опишете от какво имате нужда..."
+                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none resize-none"
+                />
+
+                {error && (
+                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-xl bg-[#1DB954] py-3 font-semibold text-black transition hover:bg-[#1ed760] disabled:opacity-60"
+                >
+                  {loading ? "Изпращане..." : "📩 Изпрати запитването"}
                 </button>
               </form>
             )}
