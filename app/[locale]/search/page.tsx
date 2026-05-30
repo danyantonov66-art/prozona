@@ -19,40 +19,48 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const { q, city, category, subcategory } = await searchParams
   const query = q?.trim() || ""
 
-  const where: any = {
-    verified: true,
-    ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
-  }
-
-  if (category || subcategory) {
-    where.SpecialistCategory = {
-      some: {
-        ...(category ? { Category: { slug: category } } : {}),
-        ...(subcategory ? { Subcategory: { slug: subcategory } } : {}),
+  const [dbCategories, specialists] = await Promise.all([
+    prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      include: {
+        Subcategory: {
+          where: { isActive: true },
+          orderBy: { sortOrder: "asc" },
+        }
+      }
+    }),
+    prisma.specialist.findMany({
+      where: {
+        verified: true,
+        ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
+        ...(category || subcategory ? {
+          SpecialistCategory: {
+            some: {
+              ...(category ? { Category: { slug: category } } : {}),
+              ...(subcategory ? { Subcategory: { slug: subcategory } } : {}),
+            }
+          }
+        } : {}),
+        ...(query ? {
+          OR: [
+            { businessName: { contains: query, mode: "insensitive" } },
+            { description: { contains: query, mode: "insensitive" } },
+            { user: { is: { name: { contains: query, mode: "insensitive" } } } },
+            { SpecialistCategory: { some: { Category: { name: { contains: query, mode: "insensitive" } } } } },
+            { SpecialistCategory: { some: { Subcategory: { name: { contains: query, mode: "insensitive" } } } } },
+          ]
+        } : {}),
       },
-    }
-  }
-
-  if (query) {
-    where.OR = [
-      { businessName: { contains: query, mode: "insensitive" } },
-      { description: { contains: query, mode: "insensitive" } },
-      { user: { is: { name: { contains: query, mode: "insensitive" } } } },
-      { SpecialistCategory: { some: { Category: { name: { contains: query, mode: "insensitive" } } } } },
-      { SpecialistCategory: { some: { Subcategory: { name: { contains: query, mode: "insensitive" } } } } },
-    ]
-  }
-
-  const specialists = await prisma.specialist.findMany({
-    where,
-    include: {
-      user: true,
-      SpecialistCategory: {
-        include: { Category: true, Subcategory: true },
+      include: {
+        user: true,
+        SpecialistCategory: {
+          include: { Category: true, Subcategory: true },
+        },
       },
-    },
-    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-  })
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    })
+  ])
 
   const hasFilters = query || city || category
 
@@ -63,7 +71,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
 
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-1">
-            {query ? `Резултати за „${query}"` : "Намери специалист"}
+            {query ? `Резултати за „${query}"` : category ? `Специалисти` : "Намери специалист"}
           </h1>
           <p className="text-sm text-gray-400">
             {specialists.length} специалиста намерени{city ? ` в ${city}` : ""}
@@ -76,6 +84,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
           initialQ={query}
           initialCity={city}
           initialCategory={category}
+          categories={dbCategories}
         />
 
         {/* Активни филтри */}
@@ -89,6 +98,11 @@ export default async function SearchPage({ params, searchParams }: Props) {
             {city && (
               <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-gray-300">
                 📍 {city}
+              </span>
+            )}
+            {category && (
+              <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-gray-300">
+                📂 {dbCategories.find(c => c.slug === category)?.name || category}
               </span>
             )}
             <Link

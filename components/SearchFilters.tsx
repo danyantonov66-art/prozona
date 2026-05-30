@@ -10,57 +10,96 @@ const CITIES = [
   "Перник", "Видин", "Монтана", "Кюстендил", "Ямбол", "Кърджали",
 ]
 
-const SERVICES = [
-  "електротехник", "вик майстор", "почистване", "хамали",
-  "климатик монтаж", "боядисване", "шпакловка", "ремонт баня",
-  "градинар", "гипсокартон", "дребни ремонти", "ремонт покриви",
-]
+interface Category {
+  id: number
+  name: string
+  slug: string
+  Subcategory: { id: number; name: string; slug: string }[]
+}
 
 interface SearchFiltersProps {
   locale: string
   initialQ?: string
   initialCity?: string
   initialCategory?: string
+  categories: Category[]
 }
 
-export default function SearchFilters({ locale, initialQ, initialCity, initialCategory }: SearchFiltersProps) {
+export default function SearchFilters({ locale, initialQ, initialCity, initialCategory, categories }: SearchFiltersProps) {
   const router = useRouter()
   const [q, setQ] = useState(initialQ || "")
   const [city, setCity] = useState(initialCity || "")
+  const [categorySlug, setCategorySlug] = useState(initialCategory || "")
+  const [subcategorySlug, setSubcategorySlug] = useState("")
+
+  const selectedCategory = categories.find(c => c.slug === categorySlug)
+  const subcategories = selectedCategory?.Subcategory ?? []
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const params = new URLSearchParams()
     if (q) params.set("q", q)
     if (city) params.set("city", city)
+    if (categorySlug) params.set("category", categorySlug)
+    if (subcategorySlug) params.set("subcategory", subcategorySlug)
     router.push(`/${locale}/search?${params.toString()}`)
   }
 
   function handleClear() {
     setQ("")
     setCity("")
+    setCategorySlug("")
+    setSubcategorySlug("")
     router.push(`/${locale}/search`)
+  }
+
+  function handleCategoryClick(slug: string) {
+    setCategorySlug(slug)
+    setSubcategorySlug("")
+    setQ("")
+    const params = new URLSearchParams()
+    if (city) params.set("city", city)
+    params.set("category", slug)
+    router.push(`/${locale}/search?${params.toString()}`)
   }
 
   return (
     <div className="mb-8 rounded-2xl border border-white/10 bg-[#151528] p-6">
       <h2 className="text-lg font-semibold mb-4 text-white">🔍 Намери специалист</h2>
-      <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-1">
-          <label className="block text-xs text-gray-400 mb-1">Вид услуга</label>
-          <input
-            type="text"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            placeholder="Пр: ВиК, климатик, почистване..."
+      <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        {/* Категория */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Категория</label>
+          <select
+            value={categorySlug}
+            onChange={e => { setCategorySlug(e.target.value); setSubcategorySlug("") }}
             className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50 text-sm"
-            list="services-list"
-          />
-          <datalist id="services-list">
-            {SERVICES.map(s => <option key={s} value={s} />)}
-          </datalist>
+          >
+            <option value="">Всички категории</option>
+            {categories.map(c => (
+              <option key={c.id} value={c.slug}>{c.name}</option>
+            ))}
+          </select>
         </div>
 
+        {/* Подкатегория */}
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Подкатегория</label>
+          <select
+            value={subcategorySlug}
+            onChange={e => setSubcategorySlug(e.target.value)}
+            disabled={subcategories.length === 0}
+            className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50 text-sm disabled:opacity-40"
+          >
+            <option value="">Всички</option>
+            {subcategories.map(s => (
+              <option key={s.id} value={s.slug}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Град */}
         <div>
           <label className="block text-xs text-gray-400 mb-1">Град</label>
           <select
@@ -73,6 +112,7 @@ export default function SearchFilters({ locale, initialQ, initialCity, initialCa
           </select>
         </div>
 
+        {/* Бутони */}
         <div className="flex gap-2 items-end">
           <button
             type="submit"
@@ -80,7 +120,7 @@ export default function SearchFilters({ locale, initialQ, initialCity, initialCa
           >
             🔍 Търси
           </button>
-          {(q || city) && (
+          {(q || city || categorySlug) && (
             <button
               type="button"
               onClick={handleClear}
@@ -92,26 +132,20 @@ export default function SearchFilters({ locale, initialQ, initialCity, initialCa
         </div>
       </form>
 
-      {/* Бързи услуги */}
+      {/* Бързи категории */}
       <div className="mt-4 flex flex-wrap gap-2">
-        {SERVICES.slice(0, 8).map(s => (
+        {categories.map(c => (
           <button
-            key={s}
+            key={c.id}
             type="button"
-            onClick={() => {
-              setQ(s)
-              const params = new URLSearchParams()
-              params.set("q", s)
-              if (city) params.set("city", city)
-              router.push(`/${locale}/search?${params.toString()}`)
-            }}
+            onClick={() => handleCategoryClick(c.slug)}
             className={`rounded-full px-3 py-1 text-xs border transition ${
-              q === s
+              categorySlug === c.slug
                 ? "bg-[#1DB954] border-[#1DB954] text-black"
                 : "border-white/10 text-gray-400 hover:border-[#1DB954]/40 hover:text-[#1DB954]"
             }`}
           >
-            {s}
+            {c.name}
           </button>
         ))}
       </div>
