@@ -253,7 +253,7 @@ export default function SpecialistsList({ specialists, locale }: SpecialistsList
                     value={form.name}
                     onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                     required
-                    placeholder="Вашето ime"
+                    placeholder="Вашето име"
                     className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 text-white outline-none text-sm"
                   />
                   <input
