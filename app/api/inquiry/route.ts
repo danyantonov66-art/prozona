@@ -3,6 +3,12 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "../../../lib/prisma"
 import { Resend } from "resend"
+import twilio from "twilio"
+
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+)
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
