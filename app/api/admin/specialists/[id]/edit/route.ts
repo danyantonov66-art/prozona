@@ -4,16 +4,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-function containsContactInfo(text: string): boolean {
-  const patterns = [
-    /(\+359|08|00359)\s?[\d\s\-]{8,}/,
-    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,
-    /(https?:\/\/|www\.)/i,
-    /facebook\.com|instagram\.com|viber|whatsapp/i,
-  ]
-  return patterns.some((p) => p.test(text))
-}
-
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -23,11 +13,11 @@ export async function PATCH(
     if (!session || (session.user as any)?.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
     const { id } = await params
-    const { description, city, businessName, categoryId, subcategoryId } = await request.json()
+    const body = await request.json()
+    const { description, city, businessName, categoryId, subcategoryId, categories } = body
 
-    // Обнови основните полета на специалиста
+    // Обнови основните полета
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
@@ -37,19 +27,28 @@ export async function PATCH(
       },
     })
 
-    // Ако е подадена категория — обнови SpecialistCategory
-    if (categoryId !== undefined) {
+    // Поддържа и стар формат (categoryId) и нов (categories масив)
+    const categoriesInput = categories && Array.isArray(categories)
+      ? categories
+      : categoryId !== undefined
+      ? [{ categoryId: Number(categoryId), subcategoryId: subcategoryId ? Number(subcategoryId) : null }]
+      : null
+
+    if (categoriesInput && categoriesInput.length > 0) {
       // Изтрий старите категории
       await prisma.specialistCategory.deleteMany({ where: { specialistId: id } })
 
-      // Добави новата категория
-      await prisma.specialistCategory.create({
-        data: {
-          specialistId: id,
-          categoryId: Number(categoryId),
-          ...(subcategoryId ? { subcategoryId: Number(subcategoryId) } : {}),
-        },
-      })
+      // Добави новите категории
+      for (const cat of categoriesInput) {
+        if (!cat.categoryId) continue
+        await prisma.specialistCategory.create({
+          data: {
+            specialistId: id,
+            categoryId: Number(cat.categoryId),
+            subcategoryId: cat.subcategoryId ? Number(cat.subcategoryId) : null,
+          },
+        })
+      }
     }
 
     return NextResponse.json({ success: true, specialist })

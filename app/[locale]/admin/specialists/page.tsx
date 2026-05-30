@@ -32,6 +32,11 @@ interface Specialist {
   }[]
 }
 
+interface EditCategory {
+  categoryId: number | ""
+  subcategoryId: number | ""
+}
+
 function containsPhone(text: string): boolean {
   const patterns = [
     /(\+359|00359)\s?[\d\s\-]{8,}/,
@@ -67,8 +72,7 @@ export default function AdminSpecialistsPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDescription, setEditDescription] = useState("")
   const [editCity, setEditCity] = useState("")
-  const [editCategoryId, setEditCategoryId] = useState<number | "">("")
-  const [editSubcategoryId, setEditSubcategoryId] = useState<number | "">("")
+  const [editCategories, setEditCategories] = useState<EditCategory[]>([{ categoryId: "", subcategoryId: "" }])
   const [editSaving, setEditSaving] = useState(false)
   const [cleaning, setCleaning] = useState<string | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
@@ -120,21 +124,47 @@ export default function AdminSpecialistsPage() {
     setEditingId(s.id)
     setEditDescription(s.description || "")
     setEditCity(s.city || "")
-    const firstCat = s.SpecialistCategory?.[0]
-    setEditCategoryId(firstCat?.Category?.id ?? "")
-    setEditSubcategoryId(firstCat?.Subcategory?.id ?? "")
+    if (s.SpecialistCategory && s.SpecialistCategory.length > 0) {
+      setEditCategories(s.SpecialistCategory.map(sc => ({
+        categoryId: sc.Category?.id ?? "",
+        subcategoryId: sc.Subcategory?.id ?? "",
+      })))
+    } else {
+      setEditCategories([{ categoryId: "", subcategoryId: "" }])
+    }
+  }
+
+  function handleCategoryChange(idx: number, field: "categoryId" | "subcategoryId", value: string) {
+    const updated = [...editCategories]
+    if (field === "categoryId") {
+      updated[idx] = { categoryId: value === "" ? "" : Number(value), subcategoryId: "" }
+    } else {
+      updated[idx] = { ...updated[idx], subcategoryId: value === "" ? "" : Number(value) }
+    }
+    setEditCategories(updated)
+  }
+
+  function addEditCategory() {
+    setEditCategories(prev => [...prev, { categoryId: "", subcategoryId: "" }])
+  }
+
+  function removeEditCategory(idx: number) {
+    setEditCategories(prev => prev.filter((_, i) => i !== idx))
   }
 
   async function saveEdit(id: string) {
     setEditSaving(true)
+    const validCategories = editCategories.filter(ec => ec.categoryId !== "")
     await fetch(`/api/admin/specialists/${id}/edit`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         description: editDescription,
         city: editCity,
-        ...(editCategoryId !== "" && { categoryId: editCategoryId }),
-        ...(editSubcategoryId !== "" && { subcategoryId: editSubcategoryId }),
+        categories: validCategories.map(ec => ({
+          categoryId: ec.categoryId,
+          subcategoryId: ec.subcategoryId || null,
+        })),
       }),
     })
     setEditingId(null)
@@ -382,40 +412,62 @@ export default function AdminSpecialistsPage() {
                       />
                     </div>
 
+                    {/* Множество категории */}
                     <div>
-                      <label className="text-xs text-gray-400 mb-1 block">Категория</label>
-                      <select
-                        value={editCategoryId}
-                        onChange={(e) => {
-                          setEditCategoryId(e.target.value === "" ? "" : Number(e.target.value))
-                          setEditSubcategoryId("")
-                        }}
-                        className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
+                      <label className="text-xs text-gray-400 mb-2 block">
+                        Категории
+                        <span className="ml-2 text-gray-600">(можеш да добавиш повече)</span>
+                      </label>
+                      {editCategories.map((ec, idx) => {
+                        const catObj = categories.find(c => c.id === ec.categoryId)
+                        const subs = catObj?.Subcategory ?? []
+                        return (
+                          <div key={idx} className="mb-2 rounded-lg border border-white/10 bg-[#151528] p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-gray-500">Категория {idx + 1}</span>
+                              {idx > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeEditCategory(idx)}
+                                  className="text-red-400 text-xs hover:text-red-300"
+                                >
+                                  ✕ Премахни
+                                </button>
+                              )}
+                            </div>
+                            <select
+                              value={ec.categoryId}
+                              onChange={(e) => handleCategoryChange(idx, "categoryId", e.target.value)}
+                              className="w-full px-3 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none mb-2"
+                            >
+                              <option value="">— Без категория —</option>
+                              {categories.map((c) => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                              ))}
+                            </select>
+                            {subs.length > 0 && (
+                              <select
+                                value={ec.subcategoryId}
+                                onChange={(e) => handleCategoryChange(idx, "subcategoryId", e.target.value)}
+                                className="w-full px-3 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
+                              >
+                                <option value="">— Без подкатегория —</option>
+                                {subs.map((sub) => (
+                                  <option key={sub.id} value={sub.id}>{sub.name}</option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+                        )
+                      })}
+                      <button
+                        type="button"
+                        onClick={addEditCategory}
+                        className="w-full rounded-lg border border-[#1DB954]/30 text-[#1DB954] py-1.5 text-xs hover:bg-[#1DB954]/10 transition"
                       >
-                        <option value="">— Без категория —</option>
-                        {categories.map((c) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
+                        + Добави категория
+                      </button>
                     </div>
-
-                    {editCategoryId !== "" && (
-                      <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Подкатегория</label>
-                        <select
-                          value={editSubcategoryId}
-                          onChange={(e) => setEditSubcategoryId(e.target.value === "" ? "" : Number(e.target.value))}
-                          className="w-full px-3 py-2 bg-[#151528] border border-gray-700 rounded-lg text-white text-sm focus:border-[#1DB954] outline-none"
-                        >
-                          <option value="">— Без подкатегория —</option>
-                          {categories
-                            .find((c) => c.id === editCategoryId)
-                            ?.Subcategory.map((sub) => (
-                              <option key={sub.id} value={sub.id}>{sub.name}</option>
-                            ))}
-                        </select>
-                      </div>
-                    )}
 
                     <div>
                       <label className="text-xs text-gray-400 mb-1 block">Описание</label>
