@@ -6,6 +6,11 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { categories } from "@/lib/constants"
 
+interface SelectedCategory {
+  categoryId: string
+  subcategoryId: string
+}
+
 export default function SpecialistProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -19,15 +24,12 @@ export default function SpecialistProfilePage() {
     phone: "",
     experienceYears: "",
     serviceAreas: "",
-    categoryId: "",
-    subcategoryId: "",
+    selectedCategories: [{ categoryId: "", subcategoryId: "" }] as SelectedCategory[],
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
-
-  const selectedCategory = categories.find((c) => c.id === form.categoryId)
 
   useEffect(() => {
     if (status === "unauthenticated") router.push(`/${locale}/login`)
@@ -38,6 +40,13 @@ export default function SpecialistProfilePage() {
       fetch("/api/specialist/me")
         .then((r) => r.json())
         .then((data) => {
+          const existingCats = data.SpecialistCategory?.length > 0
+            ? data.SpecialistCategory.map((sc: any) => ({
+                categoryId: String(sc.categoryId || ""),
+                subcategoryId: String(sc.subcategoryId || ""),
+              }))
+            : [{ categoryId: data.categoryId || "", subcategoryId: data.subcategoryId || "" }]
+
           setForm({
             businessName: data.businessName || "",
             description: data.description || "",
@@ -45,13 +54,34 @@ export default function SpecialistProfilePage() {
             phone: data.phone || "",
             experienceYears: data.experienceYears || "",
             serviceAreas: data.serviceAreas?.join(", ") || "",
-            categoryId: data.categoryId || "",
-            subcategoryId: data.subcategoryId || "",
+            selectedCategories: existingCats.length > 0 ? existingCats : [{ categoryId: "", subcategoryId: "" }],
           })
           setLoading(false)
         })
     }
   }, [status])
+
+  function handleCategoryChange(idx: number, field: "categoryId" | "subcategoryId", value: string) {
+    const updated = [...form.selectedCategories]
+    if (field === "categoryId") {
+      updated[idx] = { categoryId: value, subcategoryId: "" }
+    } else {
+      updated[idx] = { ...updated[idx], subcategoryId: value }
+    }
+    setForm((prev) => ({ ...prev, selectedCategories: updated }))
+  }
+
+  function addCategory() {
+    setForm((prev) => ({
+      ...prev,
+      selectedCategories: [...prev.selectedCategories, { categoryId: "", subcategoryId: "" }]
+    }))
+  }
+
+  function removeCategory(idx: number) {
+    const updated = form.selectedCategories.filter((_, i) => i !== idx)
+    setForm((prev) => ({ ...prev, selectedCategories: updated }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -59,29 +89,12 @@ export default function SpecialistProfilePage() {
     setError("")
     setSuccess("")
 
-    if (!form.city) {
-      setError("Градът е задължителен.")
-      setSaving(false)
-      return
-    }
+    if (!form.city) { setError("Градът е задължителен."); setSaving(false); return }
+    if (!form.phone) { setError("Телефонът е задължителен."); setSaving(false); return }
+    if (!form.description || form.description.trim().length < 20) { setError("Описанието трябва да е поне 20 символа."); setSaving(false); return }
 
-    if (!form.phone) {
-      setError("Телефонът е задължителен.")
-      setSaving(false)
-      return
-    }
-
-    if (!form.categoryId || !form.subcategoryId) {
-      setError("Моля, избери категория и подкатегория.")
-      setSaving(false)
-      return
-    }
-
-    if (!form.description || form.description.trim().length < 20) {
-      setError("Описанието трябва да е поне 20 символа.")
-      setSaving(false)
-      return
-    }
+    const validCategories = form.selectedCategories.filter(sc => sc.categoryId)
+    if (validCategories.length === 0) { setError("Моля, избери поне една категория."); setSaving(false); return }
 
     try {
       const res = await fetch("/api/specialist/profile", {
@@ -94,8 +107,7 @@ export default function SpecialistProfilePage() {
           phone: form.phone,
           experienceYears: form.experienceYears ? parseInt(form.experienceYears) : null,
           serviceAreas: form.serviceAreas.split(",").map((s) => s.trim()).filter(Boolean),
-          categoryId: form.categoryId,
-          subcategoryId: form.subcategoryId,
+          categories: validCategories,
         }),
       })
 
@@ -165,43 +177,64 @@ export default function SpecialistProfilePage() {
               </div>
             </div>
 
-            {/* Категория */}
+            {/* Множество категории */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Категория <span className="text-red-400">*</span>
+              <label className="block text-sm text-gray-300 mb-3">
+                Категории и услуги <span className="text-red-400">*</span>
+                <span className="ml-2 text-xs text-gray-500">(можеш да добавиш повече от една)</span>
               </label>
-              <select
-                value={form.categoryId}
-                onChange={(e) => setForm({ ...form, categoryId: e.target.value, subcategoryId: "" })}
-                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
-                required
-              >
-                <option value="">-- Избери категория --</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
 
-            {/* Подкатегория */}
-            {selectedCategory && (
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Подкатегория <span className="text-red-400">*</span>
-                </label>
-                <select
-                  value={form.subcategoryId}
-                  onChange={(e) => setForm({ ...form, subcategoryId: e.target.value })}
-                  className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
-                  required
-                >
-                  <option value="">-- Избери подкатегория --</option>
-                  {selectedCategory.subcategories.map((sub) => (
-                    <option key={sub.id} value={sub.id}>{sub.icon} {sub.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+              {form.selectedCategories.map((sc, idx) => {
+                const catObj = categories.find((c) => String(c.id) === String(sc.categoryId))
+                const subs = catObj?.subcategories ?? []
+                return (
+                  <div key={idx} className="mb-3 rounded-xl border border-white/10 bg-[#0F1020] p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-400">Услуга {idx + 1}</span>
+                      {idx > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(idx)}
+                          className="text-red-400 hover:text-red-300 text-xs"
+                        >
+                          ✕ Премахни
+                        </button>
+                      )}
+                    </div>
+                    <select
+                      value={sc.categoryId}
+                      onChange={(e) => handleCategoryChange(idx, "categoryId", e.target.value)}
+                      className="w-full rounded-xl bg-[#151528] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50 mb-2"
+                    >
+                      <option value="">-- Избери категория --</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                    {subs.length > 0 && (
+                      <select
+                        value={sc.subcategoryId}
+                        onChange={(e) => handleCategoryChange(idx, "subcategoryId", e.target.value)}
+                        className="w-full rounded-xl bg-[#151528] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50"
+                      >
+                        <option value="">Подкатегория (по желание)</option>
+                        {subs.map((sub: any) => (
+                          <option key={sub.id} value={sub.id}>{sub.icon} {sub.name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                )
+              })}
+
+              <button
+                type="button"
+                onClick={addCategory}
+                className="w-full rounded-xl border border-[#1DB954]/30 text-[#1DB954] py-2 text-sm hover:bg-[#1DB954]/10 transition"
+              >
+                + Добави още категория
+              </button>
+            </div>
 
             <div>
               <label className="block text-sm text-gray-300 mb-2">Години опит</label>
@@ -255,17 +288,11 @@ export default function SpecialistProfilePage() {
 
             <button
               type="submit"
-              disabled={saving || !form.categoryId || !form.subcategoryId || !form.city || !form.phone || !form.description}
+              disabled={saving}
               className="w-full rounded-xl bg-[#1DB954] text-black font-semibold px-6 py-3 hover:bg-[#1ed760] transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {saving ? "Запазване..." : "Запази промените"}
             </button>
-
-            {(!form.categoryId || !form.subcategoryId) && (
-              <p className="text-center text-xs text-gray-500">
-                Избери категория и подкатегория за да активираш бутона
-              </p>
-            )}
           </form>
         </div>
       </section>
