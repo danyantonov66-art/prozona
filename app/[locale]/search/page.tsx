@@ -1,8 +1,10 @@
+
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 import SearchFilters from "@/components/SearchFilters"
+import SpecialistsList from "@/components/SpecialistsList"
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -75,6 +77,9 @@ export default async function SearchPage({ params, searchParams }: Props) {
           </h1>
           <p className="text-sm text-gray-400">
             {specialists.length} специалиста намерени{city ? ` в ${city}` : ""}
+            {specialists.length > 0 && (
+              <span className="ml-2 text-[#1DB954]">— избери до 3 и изпрати едно запитване</span>
+            )}
           </p>
         </div>
 
@@ -127,50 +132,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {specialists.map((specialist) => {
-              const image = specialist.user?.image || null
-              const name = specialist.businessName || specialist.user?.name || "Специалист"
-              const cats = specialist.SpecialistCategory
-                .map((sc) => sc.Subcategory?.name || sc.Category?.name)
-                .filter(Boolean)
-                .slice(0, 2)
-
-              return (
-                <Link
-                  key={specialist.id}
-                  href={`/${locale}/specialists/${specialist.id}`}
-                  className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40"
-                >
-                  <div className="mb-4">
-                    {image ? (
-                      <img src={image} alt={name} className="h-40 w-full rounded-xl object-cover" />
-                    ) : (
-                      <div className="flex h-40 w-full items-center justify-center rounded-xl bg-[#23233A] text-4xl font-bold text-[#1DB954]">
-                        {name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <h2 className="mb-1 text-xl font-semibold">{name}</h2>
-                  {specialist.city && (
-                    <p className="mb-2 text-sm text-gray-400">📍 {specialist.city}</p>
-                  )}
-                  {cats.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-1">
-                      {cats.map((cat, i) => (
-                        <span key={i} className="rounded-full bg-[#1DB954]/10 px-2 py-0.5 text-xs text-[#1DB954]">
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <p className="line-clamp-3 text-sm text-gray-300">
-                    {specialist.description || "Няма добавено описание."}
-                  </p>
-                </Link>
-              )
-            })}
-          </div>
+          <SpecialistsList specialists={specialists} locale={locale} />
         )}
 
         {/* CTA */}
