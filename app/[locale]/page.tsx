@@ -231,7 +231,7 @@ export default async function Home({ params }: Props) {
                   🔍 Намери специалист
                 </Link>
                 <Link
-                  href={`/${locale}/request`}
+                  href={`/${locale}/search`}
                   className="inline-flex items-center justify-center rounded-xl border border-blue-500/30 px-6 py-3 font-semibold text-blue-300 transition hover:bg-blue-500/10"
                 >
                   📩 Публикувай заявка безплатно

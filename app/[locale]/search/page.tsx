@@ -2,11 +2,10 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
+import SearchFilters from "@/components/SearchFilters"
 
 interface Props {
-  params: Promise<{
-    locale: string
-  }>
+  params: Promise<{ locale: string }>
   searchParams: Promise<{
     q?: string
     city?: string
@@ -25,7 +24,6 @@ export default async function SearchPage({ params, searchParams }: Props) {
     ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
   }
 
-  // Търсене по категория/подкатегория
   if (category || subcategory) {
     where.SpecialistCategory = {
       some: {
@@ -35,26 +33,13 @@ export default async function SearchPage({ params, searchParams }: Props) {
     }
   }
 
-  // Търсене по текст
   if (query) {
     where.OR = [
       { businessName: { contains: query, mode: "insensitive" } },
       { description: { contains: query, mode: "insensitive" } },
       { user: { is: { name: { contains: query, mode: "insensitive" } } } },
-      {
-        SpecialistCategory: {
-          some: {
-            Category: { name: { contains: query, mode: "insensitive" } },
-          },
-        },
-      },
-      {
-        SpecialistCategory: {
-          some: {
-            Subcategory: { name: { contains: query, mode: "insensitive" } },
-          },
-        },
-      },
+      { SpecialistCategory: { some: { Category: { name: { contains: query, mode: "insensitive" } } } } },
+      { SpecialistCategory: { some: { Subcategory: { name: { contains: query, mode: "insensitive" } } } } },
     ]
   }
 
@@ -63,36 +48,38 @@ export default async function SearchPage({ params, searchParams }: Props) {
     include: {
       user: true,
       SpecialistCategory: {
-        include: {
-          Category: true,
-          Subcategory: true,
-        },
+        include: { Category: true, Subcategory: true },
       },
     },
-    orderBy: [
-      { isFeatured: "desc" },
-      { createdAt: "desc" },
-    ],
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
   })
 
-  const searchTitle = query
-    ? `Резултати за „${query}"`
-    : category
-    ? `Специалисти в категория`
-    : "Всички специалисти"
+  const hasFilters = query || city || category
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
       <ProZonaHeader locale={locale} />
       <section className="mx-auto max-w-6xl px-4 py-10">
 
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{searchTitle}</h1>
-          <p className="text-sm text-gray-400">{specialists.length} намерени</p>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-1">
+            {query ? `Резултати за „${query}"` : "Намери специалист"}
+          </h1>
+          <p className="text-sm text-gray-400">
+            {specialists.length} специалиста намерени{city ? ` в ${city}` : ""}
+          </p>
         </div>
 
+        {/* Филтри */}
+        <SearchFilters
+          locale={locale}
+          initialQ={query}
+          initialCity={city}
+          initialCategory={category}
+        />
+
         {/* Активни филтри */}
-        {(query || city || category) && (
+        {hasFilters && (
           <div className="mb-6 flex flex-wrap gap-2">
             {query && (
               <span className="rounded-full border border-[#1DB954]/30 bg-[#1DB954]/10 px-3 py-1 text-sm text-[#1DB954]">
@@ -102,11 +89,6 @@ export default async function SearchPage({ params, searchParams }: Props) {
             {city && (
               <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-gray-300">
                 📍 {city}
-              </span>
-            )}
-            {category && (
-              <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-gray-300">
-                📂 {category}
               </span>
             )}
             <Link
@@ -120,12 +102,14 @@ export default async function SearchPage({ params, searchParams }: Props) {
 
         {specialists.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-[#151528] p-8 text-center">
-            <p className="mb-4 text-gray-300">Няма намерени специалисти.</p>
+            <div className="text-4xl mb-3">🔍</div>
+            <p className="mb-2 text-lg text-gray-300">Няма намерени специалисти.</p>
+            <p className="text-sm text-gray-500 mb-6">Опитай с различна услуга или град.</p>
             <Link
-              href={`/${locale}/specialists`}
-              className="text-[#1DB954] hover:underline"
+              href={`/${locale}/request`}
+              className="inline-block rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black hover:bg-[#1ed760] transition"
             >
-              Виж всички специалисти →
+              📩 Публикувай безплатно запитване
             </Link>
           </div>
         ) : (
@@ -146,11 +130,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
                 >
                   <div className="mb-4">
                     {image ? (
-                      <img
-                        src={image}
-                        alt={name}
-                        className="h-40 w-full rounded-xl object-cover"
-                      />
+                      <img src={image} alt={name} className="h-40 w-full rounded-xl object-cover" />
                     ) : (
                       <div className="flex h-40 w-full items-center justify-center rounded-xl bg-[#23233A] text-4xl font-bold text-[#1DB954]">
                         {name.charAt(0).toUpperCase()}
@@ -178,6 +158,18 @@ export default async function SearchPage({ params, searchParams }: Props) {
             })}
           </div>
         )}
+
+        {/* CTA */}
+        <div className="mt-10 rounded-2xl border border-[#1DB954]/20 bg-[#1DB954]/5 p-6 text-center">
+          <p className="text-gray-300 mb-3">Не намери подходящ специалист?</p>
+          <Link
+            href={`/${locale}/request`}
+            className="inline-block rounded-xl bg-[#1DB954] px-6 py-3 font-semibold text-black hover:bg-[#1ed760] transition"
+          >
+            📩 Публикувай безплатно запитване
+          </Link>
+        </div>
+
       </section>
       <ProZonaFooter locale={locale} />
     </main>
