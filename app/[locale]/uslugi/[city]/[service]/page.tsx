@@ -367,7 +367,7 @@ if (city !== cityLower || /[а-яё]/i.test(city)) {
                   key={specialist.id}
                   className="rounded-2xl border border-white/10 bg-[#151528] p-5 flex flex-col transition hover:border-[#1DB954]/40"
                 >
-                  <Link href={`/${locale}/specialists/${specialist.id}`} className="mb-4 block">
+                  href={`/${locale}/specialist/${specialist.slug || specialist.id}`} className="mb-4 block">
                     {image ? (
                       <img src={image} alt={name} className="h-40 w-full rounded-xl object-cover" />
                     ) : (
@@ -377,7 +377,7 @@ if (city !== cityLower || /[а-яё]/i.test(city)) {
                     )}
                   </Link>
 
-                  <Link href={`/${locale}/specialists/${specialist.id}`} className="mb-1 block hover:text-[#1DB954] transition">
+                  href={`/${locale}/specialist/${specialist.slug || specialist.id}`} className="mb-1 block hover:text-[#1DB954] transition">
                     <h2 className="text-xl font-semibold">{name}</h2>
                   </Link>
 
@@ -401,12 +401,12 @@ if (city !== cityLower || /[а-яё]/i.test(city)) {
 
                   <div className="mt-4 flex gap-2">
                     <Link
-                      href={`/${locale}/specialists/${specialist.id}`}
+                      href={`/${locale}/specialist/${specialist.slug || specialist.id}`}
                       className="flex-1 rounded-lg bg-[#1DB954] px-3 py-2 text-center text-xs font-semibold text-black hover:bg-[#1ed760] transition"
                     >
                       📩 Изпрати запитване
                     </Link>
-                    <Link
+                    href={`/${locale}/specialist/${specialist.slug || specialist.id}`}
                       href={`/${locale}/specialists/${specialist.id}`}
                       className="flex-1 rounded-lg border border-white/20 px-3 py-2 text-center text-xs font-semibold text-gray-300 hover:border-white/40 hover:text-white transition"
                     >
