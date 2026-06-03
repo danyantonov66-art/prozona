@@ -20,7 +20,7 @@ export default async function AdminInquiriesPage({ params }: Props) {
     take: 100,
     include: {
       Category: { select: { name: true } },
-      specialist: { include: { user: { select: { name: true, email: true } } } },
+      specialist: { select: { id: true, slug: true, user: { select: { name: true, email: true } } } },
       User: { select: { name: true, email: true } },
     },
   })
@@ -76,7 +76,7 @@ export default async function AdminInquiriesPage({ params }: Props) {
                   <td className="px-4 py-3 text-gray-400">
                     {inq.specialist ? (
                       <Link
-                        href={`/${locale}/specialist/${inq.specialist.id}`}
+                        href={`/${locale}/specialist/${inq.specialist.slug || inq.specialist.id}`}
                         className="text-[#1DB954] hover:underline"
                       >
                         {inq.specialist.user?.name || "—"}

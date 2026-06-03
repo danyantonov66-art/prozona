@@ -30,12 +30,12 @@ export default async function ClientInquiriesPage({ params }: Props) {
         orderBy: { createdAt: 'asc' },
         include: {
           Specialist: {
-            include: { user: { select: { name: true } } }
+            select: { id: true, slug: true, user: { select: { name: true } } }
           }
         }
       },
       specialist: {
-        include: { user: { select: { name: true } } }
+        select: { id: true, slug: true, user: { select: { name: true } } }
       }
     }
   })
@@ -78,7 +78,7 @@ export default async function ClientInquiriesPage({ params }: Props) {
                     </p>
                     {inquiry.specialist && (
                       <Link
-                        href={`/${locale}/specialist/${inquiry.specialist.id}`}
+                        href={`/${locale}/specialist/${inquiry.specialist.slug || inquiry.specialist.id}`}
                         className="text-[#1DB954] hover:underline text-sm mt-1 inline-block"
                       >
                         Специалист: {inquiry.specialist.user.name}

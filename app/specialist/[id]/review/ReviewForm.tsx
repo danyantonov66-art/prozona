@@ -7,9 +7,10 @@ import { useRouter } from 'next/navigation'
 interface Props {
   specialistId: string
   specialistName: string
+  specialistSlug?: string
 }
 
-export default function ReviewForm({ specialistId, specialistName }: Props) {
+export default function ReviewForm({ specialistId, specialistName, specialistSlug }: Props) {
   const router = useRouter()
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
@@ -47,11 +48,10 @@ export default function ReviewForm({ specialistId, specialistName }: Props) {
       const data = await res.json()
       console.log('📥 ОТГОВОР ОТ API:', data)
 
-      if (res.ok) {
-        router.push(`/specialist/${specialistId}?review=success`)
-      } else {
-        setError(data.error || 'Грешка при изпращане')
-      }
+     if (res.ok) {
+  // Редиректваме към същата страница - [slug] route ще хване и ID-то
+  router.push(`/bg/specialist/${specialistSlug || specialistId}?review=success`)
+}
     } catch (error) {
       console.error('❌ ГРЕШКА:', error)
       setError('Възникна грешка. Опитайте отново.')
@@ -62,10 +62,6 @@ export default function ReviewForm({ specialistId, specialistName }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* ДИАГНОСТИКА - показва ID-то за проверка */}
-      <div className="bg-[#0D0D1A] p-2 rounded text-xs text-gray-400">
-        Specialist ID: {specialistId}
-      </div>
 
       {error && (
         <div className="bg-red-500/10 border border-red-500 text-red-500 rounded-lg p-3">

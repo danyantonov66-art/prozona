@@ -24,7 +24,7 @@ export default async function AdminUsersPage({ params, searchParams }: Props) {
     where: role ? { role: role as any } : undefined,
     orderBy: { createdAt: "desc" },
     include: {
-      specialist: { select: { id: true, verified: true, city: true } },
+      specialist: { select: { id: true, slug: true, verified: true, city: true } },
     },
   })
 
@@ -88,7 +88,7 @@ export default async function AdminUsersPage({ params, searchParams }: Props) {
                     <div className="flex items-center gap-2 flex-wrap">
                       {u.specialist && (
                         <Link
-                          href={`/${locale}/specialist/${u.specialist.id}`}
+                          href={`/${locale}/specialist/${u.specialist.slug || u.specialist.id}`}
                           className="text-[#1DB954] hover:underline text-xs"
                         >
                           Виж профил
