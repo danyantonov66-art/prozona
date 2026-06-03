@@ -59,6 +59,7 @@ model Session {
 
 model Specialist {
   id                    String               @id @default(cuid())
+  slug                  String?              @unique
   userId                String               @unique
   businessName          String?
   description           String
