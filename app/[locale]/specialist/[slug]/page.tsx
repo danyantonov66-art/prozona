@@ -16,11 +16,38 @@ interface Props {
   }>
 }
 
+async function getSpecialist(slug: string) {
+  // Първо опитай по slug
+  let specialist = await prisma.specialist.findUnique({
+    where: { slug },
+    include: {
+      user: true,
+      GalleryImage: true,
+      reviews: { orderBy: { createdAt: "desc" }, take: 5 },
+      PriceListItem: true,
+    },
+  })
+
+  // Ако не намери по slug — опитай по ID (стар URL)
+  if (!specialist) {
+    specialist = await prisma.specialist.findUnique({
+      where: { id: slug },
+      include: {
+        user: true,
+        GalleryImage: true,
+        reviews: { orderBy: { createdAt: "desc" }, take: 5 },
+        PriceListItem: true,
+      },
+    })
+  }
+
+  return specialist
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-
-  const specialist = await prisma.specialist.findUnique({
-    where: { slug },
+  const specialist = await prisma.specialist.findFirst({
+    where: { OR: [{ slug }, { id: slug }] },
     include: { user: true },
   })
 
@@ -28,6 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const name = specialist.businessName || specialist.user?.name || "Специалист"
   const city = specialist.city || "България"
+  const canonicalSlug = specialist.slug || slug
   const description = specialist.description
     ? `${specialist.description.slice(0, 150)}...`
     : `${name} — верифициран специалист в ${city}. Намери го на ProZona.bg`
@@ -36,12 +64,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${name} — специалист в ${city}`,
     description,
     alternates: {
-      canonical: `https://www.prozona.bg/bg/specialist/${slug}`,
+      canonical: `https://www.prozona.bg/bg/specialist/${canonicalSlug}`,
     },
     openGraph: {
       title: `${name} — специалист в ${city} | ProZona`,
       description,
-      url: `https://www.prozona.bg/bg/specialist/${slug}`,
+      url: `https://www.prozona.bg/bg/specialist/${canonicalSlug}`,
       siteName: "ProZona",
       images: specialist.user?.image
         ? [{ url: specialist.user.image }]
@@ -53,20 +81,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SpecialistPage({ params }: Props) {
   const { locale, slug } = await params
 
-  const specialist = await prisma.specialist.findUnique({
-    where: { slug },
-    include: {
-      user: true,
-      GalleryImage: true,
-      reviews: {
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      },
-      PriceListItem: true,
-    },
-  })
+  const specialist = await getSpecialist(slug)
 
   if (!specialist) notFound()
+
+  // Ако е достъпен по ID (стар URL) — redirect към slug
+  if (specialist.slug && specialist.slug !== slug) {
+    redirect(`/${locale}/specialist/${specialist.slug}`)
+  }
 
   const name = specialist.businessName || specialist.user?.name || "Специалист"
   const image = specialist.user?.image || null
