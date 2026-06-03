@@ -96,7 +96,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
       const coords = s.city ? CITY_COORDS[s.city] : null
       if (!coords) return null
       return {
-        id: s.id,
+        id: s.slug || s.id,
         name: s.businessName || s.user?.name || "Специалист",
         city: s.city,
         lat: coords[0],
@@ -123,7 +123,6 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
           </Link>
         </div>
 
-        {/* Филтри */}
         <form method="GET" action={`/${locale}/specialists`} className="mb-8 flex flex-wrap gap-3">
           <select
             name="city"
@@ -155,7 +154,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
           </button>
 
           {(city || category) && (
-            <a
+            
               href={`/${locale}/specialists`}
               className="rounded-xl border border-white/20 px-4 py-2 text-sm text-gray-400 hover:text-white transition"
             >
@@ -188,6 +187,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
             {specialists.map((specialist) => {
               const image = specialist.user?.image || null
               const name = specialist.businessName || specialist.user?.name || "Специалист"
+              const slug = specialist.slug || specialist.id
               const cats = Array.from(new Set(
                 specialist.SpecialistCategory
                   .map(sc => sc.Category?.name)
@@ -199,7 +199,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                   key={specialist.id}
                   className="rounded-2xl border border-white/10 bg-[#151528] p-5 transition hover:border-[#1DB954]/40 flex flex-col min-h-[360px]"
                 >
-                  <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-4 block">
+                  <Link href={`/${locale}/specialist/${slug}`} className="mb-4 block">
                     {image ? (
                       <div className="relative h-40 w-full rounded-xl overflow-hidden">
                         <Image
@@ -217,7 +217,7 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
                     )}
                   </Link>
 
-                  <Link href={`/${locale}/specialist/${specialist.id}`} className="mb-1 block hover:text-[#1DB954] transition">
+                  <Link href={`/${locale}/specialist/${slug}`} className="mb-1 block hover:text-[#1DB954] transition">
                     <h2 className="text-xl font-semibold">{name}</h2>
                   </Link>
 
@@ -239,13 +239,13 @@ export default async function SpecialistsPage({ params, searchParams }: Props) {
 
                   <div className="mt-4 flex gap-2">
                     <Link
-                      href={`/${locale}/specialist/${specialist.id}#inquiry`}
+                      href={`/${locale}/specialist/${slug}#inquiry`}
                       className="flex-1 rounded-lg bg-[#1DB954] px-3 py-2 text-center text-xs font-semibold text-black hover:bg-[#1ed760] transition"
                     >
                       📩 Изпрати запитване
                     </Link>
                     <Link
-                      href={`/${locale}/specialist/${specialist.id}`}
+                      href={`/${locale}/specialist/${slug}`}
                       className="flex-1 rounded-lg border border-white/20 px-3 py-2 text-center text-xs font-semibold text-gray-300 hover:border-[#1DB954]/40 hover:text-white transition"
                     >
                       Виж профил →
