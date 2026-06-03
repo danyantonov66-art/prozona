@@ -11,6 +11,29 @@ function isValidVideoUrl(url: string): boolean {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|tiktok\.com)/.test(url)
 }
 
+function generateSlug(name: string, city: string, id: string): string {
+  const translitMap: Record<string, string> = {
+    'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ж':'zh','з':'z',
+    'и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p',
+    'р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'ts','ч':'ch',
+    'ш':'sh','щ':'sht','ъ':'a','ь':'','ю':'yu','я':'ya',
+    'А':'a','Б':'b','В':'v','Г':'g','Д':'d','Е':'e','Ж':'zh','З':'z',
+    'И':'i','Й':'y','К':'k','Л':'l','М':'m','Н':'n','О':'o','П':'p',
+    'Р':'r','С':'s','Т':'t','У':'u','Ф':'f','Х':'h','Ц':'ts','Ч':'ch',
+    'Ш':'sh','Щ':'sht','Ъ':'a','Ь':'','Ю':'yu','Я':'ya'
+  }
+  const transliterate = (str: string) =>
+    str.split('').map(c => translitMap[c] || c).join('')
+
+  const base = transliterate(`${name}-${city}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+
+  return `${base}-${id.slice(-6)}`
+}
+
 async function getOrCreateCategory(categoryId: string) {
   const selectedCategory = categories.find((c: any) => String(c.id) === String(categoryId))
   if (!selectedCategory) return null
@@ -62,7 +85,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { businessName, description, city, phone, experience } = body ?? {}
 
-    // Поддържа и стар формат (categoryId/subcategoryId) и нов (categories масив)
     const categoriesInput: { categoryId: string; subcategoryId?: string }[] =
       body.categories && Array.isArray(body.categories)
         ? body.categories
@@ -105,6 +127,16 @@ export async function POST(request: NextRequest) {
     const specialist = existing
       ? await prisma.specialist.update({ where: { userId }, data: specialistData, include: { user: true } })
       : await prisma.specialist.create({ data: { userId, ...specialistData, credits: 20 }, include: { user: true } })
+
+    // Генерирай slug за нов специалист
+    if (!existing && !specialist.slug) {
+      const name = specialist.businessName || specialist.user?.name || 'specialist'
+      const slug = generateSlug(name, city, specialist.id)
+      await prisma.specialist.update({
+        where: { id: specialist.id },
+        data: { slug }
+      })
+    }
 
     // Добавяне на всички категории
     for (const cat of categoriesInput) {
