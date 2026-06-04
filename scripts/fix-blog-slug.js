@@ -1,29 +1,21 @@
 const { PrismaClient } = require('@prisma/client')
-const p = new PrismaClient()
+const prisma = new PrismaClient()
 
 async function main() {
-  // Намери специалиста
-  const specialist = await p.specialist.findFirst({
-    where: { user: { name: { contains: 'Ефтим' } } },
-    select: { id: true }
-  })
-  console.log('Специалист:', specialist)
+  const updates = [
+    { name: 'Транспорт и хамали', icon: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800' },
+    { name: 'Мебели и интериор', icon: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800' },
+    { name: 'IT и компютри', icon: 'https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=800' },
+    { name: 'Красота и здраве', icon: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800' },
+  ]
 
-  // Намери подкатегория Геодезист
-  const sub = await p.subcategory.findFirst({
-    where: { slug: 'geodezist' },
-    select: { id: true, categoryId: true }
-  })
-  console.log('Подкатегория:', sub)
-
-  // Обнови категорията на специалиста
-  await p.specialistCategory.updateMany({
-    where: { specialistId: specialist.id },
-    data: { subcategoryId: sub.id, categoryId: sub.categoryId }
-  })
-  console.log('✅ Специалистът е преместен в Геодезист')
+  for (const u of updates) {
+    await prisma.category.update({
+      where: { name: u.name },
+      data: { icon: u.icon }
+    })
+    console.log(`✓ ${u.name}`)
+  }
 }
 
-main()
-  .catch(e => { console.error('❌', e); process.exit(1) })
-  .finally(() => p.$disconnect())
+main().finally(() => prisma.$disconnect())
