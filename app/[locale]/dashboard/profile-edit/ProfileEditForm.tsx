@@ -25,6 +25,83 @@ const BULGARIAN_CITIES = [
   "Монтана", "Силистра", "Ловеч", "Търговище", "Разград", "Смолян"
 ]
 
+function ChangePasswordForm() {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword !== confirmPassword) {
+      setMessage('Новите пароли не съвпадат')
+      setMessageType('error')
+      return
+    }
+    if (newPassword.length < 6) {
+      setMessage('Паролата трябва да е поне 6 символа')
+      setMessageType('error')
+      return
+    }
+    setSaving(true)
+    setMessage('')
+    try {
+      const res = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMessage('Паролата е сменена успешно!')
+        setMessageType('success')
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+      } else {
+        setMessage(data.error || 'Грешка при смяна на парола')
+        setMessageType('error')
+      }
+    } catch {
+      setMessage('Възникна грешка')
+      setMessageType('error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {message && (
+        <div className={`border rounded-lg p-3 ${messageType === 'success' ? 'bg-[#1DB954]/10 border-[#1DB954] text-[#1DB954]' : 'bg-red-500/10 border-red-500 text-red-400'}`}>
+          {message}
+        </div>
+      )}
+      <div>
+        <label className="block text-gray-300 mb-2">Текуща парола</label>
+        <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required
+          className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
+      </div>
+      <div>
+        <label className="block text-gray-300 mb-2">Нова парола</label>
+        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required
+          className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
+      </div>
+      <div>
+        <label className="block text-gray-300 mb-2">Потвърди нова парола</label>
+        <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
+          className="w-full px-4 py-2 bg-[#0D0D1A] border border-gray-700 rounded-lg text-white focus:border-[#1DB954] outline-none" />
+      </div>
+      <button type="submit" disabled={saving}
+        className="w-full py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 font-semibold">
+        {saving ? 'Смяна...' : 'Смени паролата'}
+      </button>
+    </form>
+  )
+}
+
 export default function ProfileEditForm({ locale, specialist }: Props) {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -183,6 +260,11 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
           {saving ? 'Запазване...' : 'Запази промените'}
         </button>
       </form>
+
+      <div className="bg-[#1A1A2E] rounded-xl p-6 mt-6 border border-white/10">
+        <h2 className="text-white font-semibold mb-4">Смяна на парола</h2>
+        <ChangePasswordForm />
+      </div>
     </div>
   )
 }
