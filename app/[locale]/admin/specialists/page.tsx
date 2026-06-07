@@ -208,6 +208,29 @@ export default function AdminSpecialistsPage() {
     }
   }
 
+  async function sendCreditsRefundedEmail(s: Specialist) {
+    if (!s.user?.email) return
+    setSendingEmail(s.id)
+    try {
+      await fetch("/api/admin/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: s.user.email,
+          name: s.businessName || s.user?.name,
+          type: "credits_refunded",
+          specialistId: s.id,
+        })
+      })
+      setEmailSent(s.id)
+      setTimeout(() => setEmailSent(null), 3000)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setSendingEmail(null)
+    }
+  }
+
   async function autoAssignCategory(id: string) {
     const res = await fetch(`/api/admin/specialists/${id}/auto-category`, { method: "POST" })
     const data = await res.json()
@@ -379,6 +402,13 @@ export default function AdminSpecialistsPage() {
                       }`}
                     >
                       {emailSent === s.id ? "✅ Изпратен!" : sendingEmail === s.id ? "Изпращане..." : "📧 Попълни профил"}
+                    </button>
+                    <button
+                      onClick={() => sendCreditsRefundedEmail(s)}
+                      disabled={sendingEmail === s.id}
+                      className="font-medium text-yellow-400 hover:text-yellow-300 hover:underline transition"
+                    >
+                      💰 Върнати кредити
                     </button>
                     <Link href={`/${locale}/specialists/${s.id}`} className="text-blue-400 hover:underline" target="_blank">
                       Виж

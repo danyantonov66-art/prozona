@@ -5,7 +5,7 @@ interface Props {
   email: string
   name: string
   specialistId?: string
-  type?: "complete_profile" | "wrong_role"
+  type?: "complete_profile" | "wrong_role" | "credits_refunded"
 }
 
 export default function SendEmailButton({ email, name, specialistId, type = "complete_profile" }: Props) {
@@ -29,7 +29,9 @@ export default function SendEmailButton({ email, name, specialistId, type = "com
     }
   }
 
-  const label = type === "wrong_role" ? "📧 Покани като специалист" : "📧 Попълни профил"
+  const label = type === "wrong_role" ? "📧 Покани като специалист" 
+    : type === "credits_refunded" ? "💰 Върнати кредити"
+    : "📧 Попълни профил"
 
   return (
     <button
@@ -40,6 +42,8 @@ export default function SendEmailButton({ email, name, specialistId, type = "com
           ? "bg-[#1DB954]/20 text-[#1DB954]"
           : type === "wrong_role"
           ? "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+          : type === "credits_refunded"
+          ? "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
           : "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30"
       }`}
     >

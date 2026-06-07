@@ -42,6 +42,44 @@ export default async function DashboardPage({ params }: Props) {
       <p className="mb-8 text-gray-400">
         Добре дошъл, {user.name || user.email}!
       </p>
+      {/* Кредитен баланс */}
+      {specialist && (
+        <div className="mb-8 rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/5 p-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <span className="text-4xl">🪙</span>
+              <div>
+                <p className="text-sm text-gray-400">Наличен баланс</p>
+                <p className="text-3xl font-bold text-[#1DB954]">{specialist.credits} кредита</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Link
+                href={`/${locale}/dashboard/credits`}
+                className="rounded-xl bg-[#1DB954] px-5 py-2.5 text-sm font-semibold text-black hover:bg-[#1ed760] transition"
+              >
+                + Купи кредити
+              </Link>
+              <Link
+                href={`/${locale}/specialist/dashboard`}
+                className="rounded-xl border border-white/20 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition"
+              >
+                Виж запитвания
+              </Link>
+            </div>
+          </div>
+          {specialist.credits > 0 && (
+            <p className="mt-3 text-xs text-gray-500">
+              💡 Имаш {specialist.credits} активни кредита — използвай ги за да се свържеш с клиенти
+            </p>
+          )}
+          {specialist.credits === 0 && (
+            <p className="mt-3 text-xs text-yellow-400">
+              ⚠️ Нямаш кредити — купи за да продължиш да получаваш клиенти
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Profile */}

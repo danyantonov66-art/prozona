@@ -132,6 +132,49 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    if (type === "credits_refunded") {
+      await resend.emails.send({
+        from: "ProZona <office@prozona.bg>",
+        to,
+        subject: "💰 Върнахме сумата за закупените кредити",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0D0D1A; color: #ffffff; padding: 40px; border-radius: 12px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <div style="display: inline-block; background: #1DB954; padding: 12px 24px; border-radius: 8px;">
+                <span style="color: #0D0D1A; font-size: 24px; font-weight: bold;">PZ ProZona</span>
+              </div>
+            </div>
+            <h1 style="color: #ffffff; font-size: 24px; margin-bottom: 16px;">
+              Здравей, ${name}! 👋
+            </h1>
+            <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin-bottom: 16px;">
+              Върнахме сумата за закупените кредити. До <strong style="color: #1DB954;">15 работни дни</strong> ще се появи по сметката ти в зависимост от банката.
+            </p>
+            <div style="background: #151528; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <p style="color: #cccccc; font-size: 15px; margin: 0;">
+                💡 При регистрация си получил <strong style="color: #1DB954;">25 стартови кредита</strong> които са активни в профила ти. Можеш да ги видиш в таблото си на <a href="https://www.prozona.bg/bg/dashboard" style="color: #1DB954;">prozona.bg</a>.
+              </p>
+            </div>
+            <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+              При въпроси сме насреща!
+            </p>
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="https://www.prozona.bg/bg/dashboard"
+                style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
+                Виж таблото си →
+              </a>
+            </div>
+            <p style="color: #666; font-size: 13px; text-align: center; margin-top: 32px;">
+              Ако имаш въпроси, пиши ни на <a href="mailto:office@prozona.bg" style="color: #1DB954;">office@prozona.bg</a>
+            </p>
+            <p style="color: #444; font-size: 12px; text-align: center;">
+              ProZona.bg — Платформата за професионални услуги в България
+            </p>
+          </div>
+        `,
+      })
+    }
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Send email error:", error)
