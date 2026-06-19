@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { PDFDocument, rgb } from 'pdf-lib'
-// @ts-expect-error - няма официални типове за fontkit
 import fontkit from '@pdf-lib/fontkit'
 import fs from 'fs'
 import path from 'path'
