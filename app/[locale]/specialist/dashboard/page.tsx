@@ -144,7 +144,7 @@ export default function SpecialistDashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
           <Link href="/bg/specialist/profile"
             className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
             <div className="text-2xl mb-1">👤</div>
@@ -164,6 +164,14 @@ export default function SpecialistDashboard() {
             className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
             <div className="text-2xl mb-1">🪙</div>
             <div className="text-sm font-medium">Купи кредити</div>
+          </Link>
+          <Link href="/bg/specialist/offers"
+            className="rounded-xl border border-[#1DB954]/30 bg-[#151528] p-4 text-center hover:border-[#1DB954]/60 transition relative">
+            <div className="absolute -top-2 -right-2 rounded-full bg-[#1DB954] px-2 py-0.5 text-[10px] font-bold text-black">
+              Ново
+            </div>
+            <div className="text-2xl mb-1">📋</div>
+            <div className="text-sm font-medium">Оферти</div>
           </Link>
         </div>
 
