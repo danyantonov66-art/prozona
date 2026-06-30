@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props) {
   const city = specialist.city || ""
   const description = specialist.description?.slice(0, 160) || `${name} — верифициран специалист в ProZona.`
   const image = specialist.user?.image || null
-  const canonicalUrl = `https://prozona.bg/bg/specialists/\$\{id\}`
+  const canonicalUrl = `https://prozona.bg/bg/specialist/${specialist.slug || id}`
   const titleCity = city ? `, ${city}` : ""
   const title = `${name}${titleCity} | ProZona`
 
