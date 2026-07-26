@@ -20,12 +20,10 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Specialist not found" }, { status: 404 })
     }
 
-    await prisma.specialist.delete({ where: { id: specialist.id } })
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: { role: "CLIENT" },
-    })
+    await prisma.$transaction([
+      prisma.specialist.delete({ where: { id: specialist.id } }),
+      prisma.user.update({ where: { id: userId }, data: { role: "CLIENT" } }),
+    ])
 
     return NextResponse.json({ success: true })
   } catch (error) {

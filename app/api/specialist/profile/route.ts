@@ -157,30 +157,100 @@ export async function PUT(request: NextRequest) {
     }
     const userId = (session.user as any)?.id
     const body = await request.json()
-    const { businessName, description, city, phone, experienceYears, serviceAreas, videoUrl } = body ?? {}
+    const { businessName, description, city, phone, experienceYears, serviceAreas, videoUrl, categories } = body ?? {}
 
-    if (videoUrl && !isValidVideoUrl(videoUrl)) {
+    if (videoUrl !== undefined && videoUrl && !isValidVideoUrl(videoUrl)) {
       return NextResponse.json(
-        { error: "Моля въведете валиден YouTube или TikTок линк." },
+        { error: "Моля въведете валиден YouTube или TikTok линк." },
         { status: 400 }
       )
     }
 
-    const specialist = await prisma.specialist.update({
-      where: { userId },
-      data: {
-        businessName: businessName || null,
-        description: description || null,
-        city: city?.trim() || "",
-        phone: phone || null,
-        experienceYears: experienceYears || null,
-        serviceAreas: Array.isArray(serviceAreas) ? serviceAreas : [],
-        videoUrl: videoUrl || null,
-      },
-      include: { user: true },
+    const specialist = await prisma.specialist.findUnique({ where: { userId } })
+    if (!specialist) {
+      return NextResponse.json({ error: "Профилът не е намерен." }, { status: 404 })
+    }
+
+    // Partial update — only touch fields that were actually sent, so one
+    // form can't wipe out fields (serviceAreas, videoUrl, ...) that another
+    // form on the site doesn't know about.
+    const data: Record<string, any> = {}
+    if (businessName !== undefined) data.businessName = businessName || null
+    if (description !== undefined) {
+      if (!description || !description.trim()) {
+        return NextResponse.json({ error: "Описанието не може да е празно." }, { status: 400 })
+      }
+      data.description = description
+    }
+    if (city !== undefined) {
+      const trimmedCity = city?.trim() || ""
+      if (!trimmedCity) {
+        return NextResponse.json({ error: "Градът не може да е празен." }, { status: 400 })
+      }
+      data.city = trimmedCity
+    }
+    if (phone !== undefined) {
+      if (!phone || !String(phone).trim()) {
+        return NextResponse.json({ error: "Телефонът не може да е празен." }, { status: 400 })
+      }
+      data.phone = phone
+    }
+    if (experienceYears !== undefined) data.experienceYears = experienceYears || null
+    if (serviceAreas !== undefined) data.serviceAreas = Array.isArray(serviceAreas) ? serviceAreas : []
+    if (videoUrl !== undefined) data.videoUrl = videoUrl || null
+
+    // Validate + normalize category assignments against the DB (categories
+    // are never taken from the hardcoded lib/constants list here).
+    let validatedCategories: { categoryId: number; subcategoryId: number | null }[] | null = null
+    if (categories !== undefined) {
+      if (!Array.isArray(categories) || categories.length === 0) {
+        return NextResponse.json({ error: "Избери поне една категория." }, { status: 400 })
+      }
+      const categoryIds = [...new Set(categories.map((c: any) => Number(c.categoryId)))]
+      const dbCategories = await prisma.category.findMany({
+        where: { id: { in: categoryIds } },
+        include: { Subcategory: true },
+      })
+      const categoryMap = new Map(dbCategories.map((c) => [c.id, c]))
+
+      validatedCategories = []
+      for (const c of categories) {
+        const categoryId = Number(c.categoryId)
+        const category = categoryMap.get(categoryId)
+        if (!category) {
+          return NextResponse.json({ error: "Невалидна категория." }, { status: 400 })
+        }
+        let subcategoryId: number | null = null
+        if (c.subcategoryId) {
+          subcategoryId = Number(c.subcategoryId)
+          if (!category.Subcategory.some((s) => s.id === subcategoryId)) {
+            return NextResponse.json({ error: "Невалидна подкатегория." }, { status: 400 })
+          }
+        }
+        validatedCategories.push({ categoryId, subcategoryId })
+      }
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.specialist.update({
+        where: { userId },
+        data,
+        include: { user: true },
+      })
+
+      if (validatedCategories) {
+        await tx.specialistCategory.deleteMany({ where: { specialistId: specialist.id } })
+        for (const c of validatedCategories) {
+          await tx.specialistCategory.create({
+            data: { specialistId: specialist.id, categoryId: c.categoryId, subcategoryId: c.subcategoryId },
+          })
+        }
+      }
+
+      return result
     })
 
-    return NextResponse.json({ success: true, specialist })
+    return NextResponse.json({ success: true, specialist: updated })
   } catch (error) {
     console.error("Specialist profile PUT error:", error)
     return NextResponse.json({ error: "Failed" }, { status: 500 })

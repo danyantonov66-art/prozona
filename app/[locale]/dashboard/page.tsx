@@ -84,7 +84,7 @@ export default async function DashboardPage({ params }: Props) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Profile */}
         <Link
-          href={`/${locale}/dashboard/profile-edit`}
+          href={`/${locale}/specialist/profile`}
           className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-[#1DB954]/40 hover:bg-white/10"
         >
           <div className="mb-3 text-2xl">👤</div>

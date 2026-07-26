@@ -4,12 +4,25 @@ import { useSession } from "next-auth/react"
 import { useRouter, useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { categories } from "@/lib/constants"
+import { UploadButton } from "@/lib/uploadthing"
 import ChangePasswordSection from "@/components/ChangePasswordSection"
 
 interface SelectedCategory {
   categoryId: string
   subcategoryId: string
+}
+
+interface DbCategory {
+  id: number
+  name: string
+  Subcategory: { id: number; name: string }[]
+}
+
+function getYoutubeEmbedUrl(url: string): string {
+  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/
+  const match = url.match(regExp)
+  const videoId = match && match[7].length === 11 ? match[7] : null
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : url
 }
 
 export default function SpecialistProfilePage() {
@@ -25,8 +38,11 @@ export default function SpecialistProfilePage() {
     phone: "",
     experienceYears: "",
     serviceAreas: "",
+    videoUrl: "",
     selectedCategories: [{ categoryId: "", subcategoryId: "" }] as SelectedCategory[],
   })
+  const [profileImage, setProfileImage] = useState<string | null>(null)
+  const [dbCategories, setDbCategories] = useState<DbCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState("")
@@ -37,16 +53,30 @@ export default function SpecialistProfilePage() {
   }, [status])
 
   useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then(setDbCategories)
+  }, [])
+
+  useEffect(() => {
     if (status === "authenticated") {
       fetch("/api/specialist/me")
-        .then((r) => r.json())
+        .then(async (r) => {
+          if (r.status === 404) {
+            router.push(`/${locale}/dashboard`)
+            return null
+          }
+          return r.json()
+        })
         .then((data) => {
+          if (!data) return
+
           const existingCats = data.SpecialistCategory?.length > 0
             ? data.SpecialistCategory.map((sc: any) => ({
                 categoryId: String(sc.categoryId || ""),
-                subcategoryId: String(sc.subcategoryId || ""),
+                subcategoryId: sc.subcategoryId ? String(sc.subcategoryId) : "",
               }))
-            : [{ categoryId: data.categoryId || "", subcategoryId: data.subcategoryId || "" }]
+            : [{ categoryId: "", subcategoryId: "" }]
 
           setForm({
             businessName: data.businessName || "",
@@ -55,8 +85,10 @@ export default function SpecialistProfilePage() {
             phone: data.phone || "",
             experienceYears: data.experienceYears || "",
             serviceAreas: data.serviceAreas?.join(", ") || "",
-            selectedCategories: existingCats.length > 0 ? existingCats : [{ categoryId: "", subcategoryId: "" }],
+            videoUrl: data.videoUrl || "",
+            selectedCategories: existingCats,
           })
+          setProfileImage(data.user?.image || null)
           setLoading(false)
         })
     }
@@ -108,6 +140,7 @@ export default function SpecialistProfilePage() {
           phone: form.phone,
           experienceYears: form.experienceYears ? parseInt(form.experienceYears) : null,
           serviceAreas: form.serviceAreas.split(",").map((s) => s.trim()).filter(Boolean),
+          videoUrl: form.videoUrl.trim() || null,
           categories: validCategories,
         }),
       })
@@ -119,6 +152,16 @@ export default function SpecialistProfilePage() {
       setError(err.message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm("Сигурен ли си? Профилът ти на специалист ще бъде изтрит безвъзвратно.")) return
+    const res = await fetch("/api/specialist/profile/delete", { method: "DELETE" })
+    if (res.ok) {
+      window.location.href = "/"
+    } else {
+      alert("Грешка при изтриване")
     }
   }
 
@@ -140,6 +183,33 @@ export default function SpecialistProfilePage() {
         </div>
 
         <h1 className="text-3xl font-bold mb-8">Редактирай профила</h1>
+
+        <div className="bg-[#151528] border border-white/10 rounded-2xl p-8 mb-6">
+          <h2 className="text-white font-semibold mb-4">Профилна снимка</h2>
+          <div className="flex items-center gap-6">
+            <div className="w-24 h-24 bg-[#25253a] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+              {profileImage ? (
+                <img src={profileImage} alt="Профил" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-4xl text-[#1DB954]">
+                  {(session?.user?.name || "П").charAt(0)}
+                </span>
+              )}
+            </div>
+            <UploadButton
+              endpoint="profileImage"
+              onClientUploadComplete={(res) => {
+                if (res?.[0]?.url) setProfileImage(res[0].url)
+                setSuccess("Профилната снимка е обновена!")
+                setError("")
+              }}
+              onUploadError={(err) => {
+                setError(err.message || "Грешка при качване")
+                setSuccess("")
+              }}
+            />
+          </div>
+        </div>
 
         <div className="bg-[#151528] border border-white/10 rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -186,8 +256,8 @@ export default function SpecialistProfilePage() {
               </label>
 
               {form.selectedCategories.map((sc, idx) => {
-                const catObj = categories.find((c) => String(c.id) === String(sc.categoryId))
-                const subs = catObj?.subcategories ?? []
+                const catObj = dbCategories.find((c) => String(c.id) === String(sc.categoryId))
+                const subs = catObj?.Subcategory ?? []
                 return (
                   <div key={idx} className="mb-3 rounded-xl border border-white/10 bg-[#0F1020] p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -208,7 +278,7 @@ export default function SpecialistProfilePage() {
                       className="w-full rounded-xl bg-[#151528] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50 mb-2"
                     >
                       <option value="">-- Избери категория --</option>
-                      {categories.map((cat) => (
+                      {dbCategories.map((cat) => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                       ))}
                     </select>
@@ -219,8 +289,8 @@ export default function SpecialistProfilePage() {
                         className="w-full rounded-xl bg-[#151528] border border-white/10 px-4 py-3 text-white outline-none focus:border-[#1DB954]/50"
                       >
                         <option value="">Подкатегория (по желание)</option>
-                        {subs.map((sub: any) => (
-                          <option key={sub.id} value={sub.id}>{sub.icon} {sub.name}</option>
+                        {subs.map((sub) => (
+                          <option key={sub.id} value={sub.id}>{sub.name}</option>
                         ))}
                       </select>
                     )}
@@ -276,6 +346,30 @@ export default function SpecialistProfilePage() {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                🎥 Видео за работата ти
+                <span className="ml-2 text-xs text-gray-500">YouTube или TikTok линк</span>
+              </label>
+              <input
+                type="url"
+                value={form.videoUrl}
+                onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="w-full rounded-xl bg-[#0F1020] border border-white/10 px-4 py-3 outline-none focus:border-[#1DB954]/50"
+              />
+              {form.videoUrl && (form.videoUrl.includes("youtube.com") || form.videoUrl.includes("youtu.be")) && (
+                <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl">
+                  <iframe
+                    src={getYoutubeEmbedUrl(form.videoUrl)}
+                    className="h-full w-full"
+                    allowFullScreen
+                    title="Видео преглед"
+                  />
+                </div>
+              )}
+            </div>
+
             {success && (
               <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-green-300">
                 {success}
@@ -298,6 +392,18 @@ export default function SpecialistProfilePage() {
         </div>
 
         <ChangePasswordSection />
+
+        <div className="mt-6 rounded-xl border border-red-500/20 bg-red-500/5 p-6">
+          <h2 className="mb-1 font-semibold text-red-400">⚠️ Опасна зона</h2>
+          <p className="mb-4 text-sm text-gray-400">Изтриването на профила е необратимо. Всички данни ще бъдат изгубени.</p>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="rounded-lg border border-red-500/30 bg-red-500/10 px-5 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition"
+          >
+            🗑️ Изтрий профила си
+          </button>
+        </div>
       </section>
     </main>
   )

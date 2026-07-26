@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (type === "complete_profile") {
-      const editProfileUrl = `https://www.prozona.bg/bg/specialist/profile/edit`
+      const editProfileUrl = `https://www.prozona.bg/bg/specialist/profile`
       await resend.emails.send({
         from: "ProZona <office@prozona.bg>",
         to,
