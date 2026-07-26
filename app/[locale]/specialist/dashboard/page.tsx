@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
+import ProZonaHeader from "@/components/header/ProZonaHeader"
+import ProZonaFooter from "@/components/footer/ProZonaFooter"
 
 interface Inquiry {
   id: string
@@ -35,6 +37,8 @@ interface Referral {
 export default function SpecialistDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const params = useParams()
+  const locale = (params?.locale as string) || "bg"
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [credits, setCredits] = useState(0)
   const [stats, setStats] = useState<Stats | null>(null)
@@ -44,7 +48,7 @@ export default function SpecialistDashboard() {
   const [emailVerified, setEmailVerified] = useState(true)
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/bg/login")
+    if (status === "unauthenticated") router.push(`/${locale}/login`)
   }, [status])
 
   useEffect(() => {
@@ -85,14 +89,18 @@ export default function SpecialistDashboard() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="min-h-screen bg-[#0D0D1A] text-white flex items-center justify-center">
-        <p className="text-gray-400">Зареждане...</p>
+      <main className="min-h-screen bg-[#0D0D1A] text-white">
+        <ProZonaHeader locale={locale} />
+        <div className="flex items-center justify-center py-20">
+          <p className="text-gray-400">Зареждане...</p>
+        </div>
       </main>
     )
   }
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <ProZonaHeader locale={locale} />
       <section className="mx-auto max-w-5xl px-4 py-10">
 
         {!emailVerified && (
@@ -109,7 +117,7 @@ export default function SpecialistDashboard() {
               <span className="font-bold text-[#1DB954]">{credits}</span>
             </div>
             <Link
-              href="/bg/specialist/buy-credits"
+              href={`/${locale}/specialist/buy-credits`}
               className="rounded-xl bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black hover:bg-[#1ed760]"
             >
               + Купи кредити
@@ -145,27 +153,27 @@ export default function SpecialistDashboard() {
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
-          <Link href="/bg/specialist/profile"
+          <Link href={`/${locale}/specialist/profile`}
             className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
             <div className="text-2xl mb-1">👤</div>
             <div className="text-sm font-medium">Профил</div>
           </Link>
-          <Link href="/bg/specialist/gallery"
+          <Link href={`/${locale}/specialist/gallery`}
             className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
             <div className="text-2xl mb-1">🖼️</div>
             <div className="text-sm font-medium">Галерия</div>
           </Link>
-          <Link href="/bg/specialist/price-list"
+          <Link href={`/${locale}/specialist/price-list`}
             className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
             <div className="text-2xl mb-1">💰</div>
             <div className="text-sm font-medium">Ценова листа</div>
           </Link>
-          <Link href="/bg/specialist/buy-credits"
+          <Link href={`/${locale}/specialist/buy-credits`}
             className="rounded-xl border border-white/10 bg-[#151528] p-4 text-center hover:border-[#1DB954]/40 transition">
             <div className="text-2xl mb-1">🪙</div>
             <div className="text-sm font-medium">Купи кредити</div>
           </Link>
-          <Link href="/bg/specialist/offers"
+          <Link href={`/${locale}/specialist/offers`}
             className="rounded-xl border border-[#1DB954]/30 bg-[#151528] p-4 text-center hover:border-[#1DB954]/60 transition relative">
             <div className="absolute -top-2 -right-2 rounded-full bg-[#1DB954] px-2 py-0.5 text-[10px] font-bold text-black">
               Ново
@@ -271,6 +279,7 @@ export default function SpecialistDashboard() {
           ))}
         </div>
       </section>
+      <ProZonaFooter locale={locale} />
     </main>
   )
 }
