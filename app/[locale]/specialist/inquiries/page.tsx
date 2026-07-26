@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import InquiryActions from './InquiryActions'
+import ProZonaHeader from '@/components/header/ProZonaHeader'
+import ProZonaFooter from '@/components/footer/ProZonaFooter'
 
 interface Props {
   params: Promise<{ locale: string }>
@@ -34,7 +36,9 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
   const credits = specialist.credits
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] py-8 px-4">
+    <div className="min-h-screen bg-[#0D0D1A]">
+      <ProZonaHeader locale={locale} />
+      <div className="py-8 px-4">
       <div className="container mx-auto max-w-4xl">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -123,6 +127,8 @@ export default async function SpecialistInquiriesPage({ params }: Props) {
           </div>
         )}
       </div>
+      </div>
+      <ProZonaFooter locale={locale} />
     </div>
   )
 }

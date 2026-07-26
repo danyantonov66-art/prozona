@@ -5,6 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import CheckoutButton from '../../../../components/payment/CheckoutButton';
 import { getDualPrice, isTransitionPeriod } from '../../../../lib/currency';
+import ProZonaHeader from '@/components/header/ProZonaHeader';
+import ProZonaFooter from '@/components/footer/ProZonaFooter';
 
 export default function BuyCreditsPage() {
   const { data: session, status } = useSession();
@@ -15,8 +17,11 @@ export default function BuyCreditsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
-        <div className="text-white">Зареждане...</div>
+      <div className="min-h-screen bg-[#0D0D1A]">
+        <ProZonaHeader locale={locale} />
+        <div className="flex items-center justify-center py-20">
+          <div className="text-white">Зареждане...</div>
+        </div>
       </div>
     );
   }
@@ -61,7 +66,9 @@ export default function BuyCreditsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] py-16 px-4">
+    <div className="min-h-screen bg-[#0D0D1A]">
+      <ProZonaHeader locale={locale} />
+      <div className="py-16 px-4">
       <div className="container mx-auto max-w-6xl">
         <Link href={`/${locale}/specialist/dashboard`} className="text-[#1DB954] hover:underline mb-4 inline-block">
           Назад към таблото
@@ -153,6 +160,8 @@ export default function BuyCreditsPage() {
           </ul>
         </div>
       </div>
+      </div>
+      <ProZonaFooter locale={locale} />
     </div>
   );
 }

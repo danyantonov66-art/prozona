@@ -2,12 +2,16 @@
 
 import { useState } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
+import ProZonaHeader from "@/components/header/ProZonaHeader"
+import ProZonaFooter from "@/components/footer/ProZonaFooter"
 
 export default function OffersGeneratorPage() {
   const { status } = useSession()
   const router = useRouter()
+  const params = useParams()
+  const locale = (params?.locale as string) || "bg"
 
   const [clientName, setClientName] = useState("")
   const [serviceDescription, setServiceDescription] = useState("")
@@ -100,19 +104,23 @@ export default function OffersGeneratorPage() {
 
   if (status === "loading") {
     return (
-      <main className="min-h-screen bg-[#0D0D1A] text-white flex items-center justify-center">
-        <p className="text-gray-400">Зареждане...</p>
+      <main className="min-h-screen bg-[#0D0D1A] text-white">
+        <ProZonaHeader locale={locale} />
+        <div className="flex items-center justify-center py-20">
+          <p className="text-gray-400">Зареждане...</p>
+        </div>
       </main>
     )
   }
 
   if (status === "unauthenticated") {
-    router.push("/bg/login")
+    router.push(`/${locale}/login`)
     return null
   }
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <ProZonaHeader locale={locale} />
       <section className="mx-auto max-w-3xl px-4 py-10">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -122,7 +130,7 @@ export default function OffersGeneratorPage() {
             </p>
           </div>
           <Link
-            href="/bg/specialist/dashboard"
+            href={`/${locale}/specialist/dashboard`}
             className="text-sm text-gray-400 hover:text-white whitespace-nowrap"
           >
             ← Назад
@@ -136,7 +144,7 @@ export default function OffersGeneratorPage() {
               Генераторът на оферти е достъпен с Premium план. Първите 200 регистрирани получават Premium безплатно за 6 месеца.
             </p>
             <Link
-              href="/bg/specialist/buy-credits"
+              href={`/${locale}/specialist/buy-credits`}
               className="inline-block rounded-xl bg-[#1DB954] px-5 py-2 text-sm font-semibold text-black hover:bg-[#1ed760]"
             >
               Виж Premium плана
@@ -265,6 +273,7 @@ export default function OffersGeneratorPage() {
           </div>
         )}
       </section>
+      <ProZonaFooter locale={locale} />
     </main>
   )
 }

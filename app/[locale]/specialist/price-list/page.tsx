@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react"
 import { useRouter, useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import ProZonaHeader from "@/components/header/ProZonaHeader"
+import ProZonaFooter from "@/components/footer/ProZonaFooter"
 
 interface PriceItem {
   id: number
@@ -77,14 +79,18 @@ export default function PriceListPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="min-h-screen bg-[#0D0D1A] text-white flex items-center justify-center">
-        <p className="text-gray-400">Зареждане...</p>
+      <main className="min-h-screen bg-[#0D0D1A] text-white">
+        <ProZonaHeader locale={locale} />
+        <div className="flex items-center justify-center py-20">
+          <p className="text-gray-400">Зареждане...</p>
+        </div>
       </main>
     )
   }
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
+      <ProZonaHeader locale={locale} />
       <section className="mx-auto max-w-3xl px-4 py-10">
         <div className="mb-6">
           <Link href={`/${locale}/specialist/dashboard`} className="text-[#1DB954] hover:underline text-sm">
@@ -172,6 +178,7 @@ export default function PriceListPage() {
           ))}
         </div>
       </section>
+      <ProZonaFooter locale={locale} />
     </main>
   )
 }

@@ -5,6 +5,8 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { UploadButton } from '@/lib/uploadthing'
+import ProZonaHeader from '@/components/header/ProZonaHeader'
+import ProZonaFooter from '@/components/footer/ProZonaFooter'
 
 type ImageType = 'NORMAL' | 'BEFORE' | 'AFTER'
 
@@ -132,14 +134,19 @@ export default function GalleryPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
-        <div className="text-white">Зареждане...</div>
+      <div className="min-h-screen bg-[#0D0D1A]">
+        <ProZonaHeader locale={locale} />
+        <div className="flex items-center justify-center py-20">
+          <div className="text-white">Зареждане...</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] py-8 px-4">
+    <div className="min-h-screen bg-[#0D0D1A]">
+      <ProZonaHeader locale={locale} />
+      <div className="py-8 px-4">
       <div className="container mx-auto max-w-4xl">
         <Link href={`/${locale}/specialist/dashboard`} className="text-[#1DB954] hover:underline mb-4 inline-block">
           ← Назад към таблото
@@ -357,6 +364,8 @@ export default function GalleryPage() {
           </div>
         )}
       </div>
+      </div>
+      <ProZonaFooter locale={locale} />
     </div>
   )
 }

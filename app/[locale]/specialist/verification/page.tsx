@@ -3,12 +3,16 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import ProZonaHeader from '@/components/header/ProZonaHeader'
+import ProZonaFooter from '@/components/footer/ProZonaFooter'
 
 export default function VerificationPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const params = useParams()
+  const locale = (params?.locale as string) || 'bg'
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -21,14 +25,17 @@ export default function VerificationPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
-        <div className="text-white">Зареждане...</div>
+      <div className="min-h-screen bg-[#0D0D1A]">
+        <ProZonaHeader locale={locale} />
+        <div className="flex items-center justify-center py-20">
+          <div className="text-white">Зареждане...</div>
+        </div>
       </div>
     )
   }
 
   if (!session || session.user?.role !== 'SPECIALIST') {
-    router.push('/login')
+    router.push(`/${locale}/login`)
     return null
   }
 
@@ -48,7 +55,7 @@ export default function VerificationPage() {
 
       if (res.ok) {
         setMessage('Заявката за верификация е изпратена успешно!')
-        setTimeout(() => router.push('/specialist/dashboard'), 3000)
+        setTimeout(() => router.push(`/${locale}/specialist/dashboard`), 3000)
       } else {
         const data = await res.json()
         setMessage(data.error || 'Грешка при изпращане')
@@ -61,9 +68,11 @@ export default function VerificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] py-8 px-4">
+    <div className="min-h-screen bg-[#0D0D1A]">
+      <ProZonaHeader locale={locale} />
+      <div className="py-8 px-4">
       <div className="container mx-auto max-w-2xl">
-        <Link href="/specialist/dashboard" className="text-[#1DB954] hover:underline mb-4 inline-block">
+        <Link href={`/${locale}/specialist/dashboard`} className="text-[#1DB954] hover:underline mb-4 inline-block">
           ← Назад към таблото
         </Link>
 
@@ -213,6 +222,8 @@ export default function VerificationPage() {
           )}
         </div>
       </div>
+      </div>
+      <ProZonaFooter locale={locale} />
     </div>
   )
 }
