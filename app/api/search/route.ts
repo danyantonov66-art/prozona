@@ -44,15 +44,17 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(
-      specialists.map((specialist) => ({
+    return NextResponse.json({
+      results: specialists.map((specialist) => ({
+        type: "specialist",
         id: specialist.id,
+        slug: specialist.slug,
         name: specialist.businessName || specialist.user?.name || "Специалист",
         city: specialist.city,
         description: specialist.description,
         image: specialist.user?.image || null,
-      }))
-    )
+      })),
+    })
   } catch (error) {
     console.error("Search API error:", error)
     return NextResponse.json({ error: "Failed to search" }, { status: 500 })

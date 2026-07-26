@@ -1,4 +1,3 @@
-// app/specialist/[id]/review/ReviewForm.tsx
 'use client'
 
 import { useState } from 'react'

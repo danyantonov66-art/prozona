@@ -75,14 +75,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const specialists = await prisma.specialist.findMany({
       where: { verified: true },
-      select: { id: true, updatedAt: true },
+      select: {
+        id: true,
+        slug: true,
+        updatedAt: true,
+        description: true,
+        _count: { select: { SpecialistCategory: true, GalleryImage: true } },
+      },
     })
-    specialistPages = specialists.map((s) => ({
-      url: `${baseUrl}/bg/specialists/${s.id}`,
-      lastModified: s.updatedAt,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }))
+    // Изключваме тънките (непопълнени) профили — същата "isThin" проверка
+    // като в generateMetadata на профилната страница, за да не подаваме на
+    // Google URL-и, които самата страница маркира с noindex.
+    specialistPages = specialists
+      .filter((s) => {
+        const hasDescription = !!s.description &&
+          s.description.trim().length >= 20 &&
+          !s.description.includes("предстои да бъде попълнен")
+        const hasCategories = s._count.SpecialistCategory > 0
+        const hasPhotos = s._count.GalleryImage > 0
+        return hasDescription || hasCategories || hasPhotos
+      })
+      .map((s) => ({
+        url: `${baseUrl}/bg/specialist/${s.slug || s.id}`,
+        lastModified: s.updatedAt,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      }))
   } catch (e) {
     console.error("Sitemap: specialists error", e)
   }

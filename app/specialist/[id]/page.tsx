@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { notFound, redirect } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 
 export const dynamic = 'force-dynamic'
 
@@ -19,5 +19,5 @@ export default async function SpecialistOldPage({ params }: Props) {
 
   if (!specialist) notFound()
 
-  redirect(`/bg/specialist/${specialist.slug || id}`)
+  permanentRedirect(`/bg/specialist/${specialist.slug || id}`)
 }

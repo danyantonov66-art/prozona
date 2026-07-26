@@ -98,7 +98,7 @@ export default function SearchBar({ locale = "bg" }: SearchBarProps) {
             type: "specialist",
             id: `specialist-${item.id}`,
             label: item.name,
-            href: `/${locale}/specialist/${item.id}`,
+            href: `/${locale}/specialist/${item.slug || item.id}`,
             subtitle: item.city ? `Специалист · ${item.city}` : "Специалист",
           }))
         setSpecialistResults(mapped.slice(0, 5))

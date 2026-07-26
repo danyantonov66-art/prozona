@@ -132,7 +132,7 @@ export default async function Home({ params }: Props) {
       const coords = s.city ? CITY_COORDS[s.city] : null
       if (!coords) return null
       return {
-        id: s.id,
+        id: s.slug || s.id,
         name: s.businessName || s.user?.name || "Специалист",
         city: s.city!,
         lat: coords[0],

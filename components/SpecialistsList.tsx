@@ -5,6 +5,7 @@ import Link from "next/link"
 
 interface Specialist {
   id: string
+  slug?: string | null
   businessName?: string | null
   city?: string | null
   description?: string | null
@@ -121,7 +122,7 @@ export default function SpecialistsList({ specialists, locale }: SpecialistsList
                 {isSelected && <span className="text-xs font-bold">✓</span>}
               </button>
 
-              <Link href={`/${locale}/specialists/${specialist.id}`} className="block p-5">
+              <Link href={`/${locale}/specialist/${specialist.slug || specialist.id}`} className="block p-5">
                 <div className="mb-4">
                   {image ? (
                     <img src={image} alt={name} className="h-40 w-full rounded-xl object-cover" />

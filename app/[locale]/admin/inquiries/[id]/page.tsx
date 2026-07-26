@@ -139,7 +139,7 @@ export default async function AdminInquiryDetailPage({ params }: Props) {
               </div>
               <div className="flex gap-2">
                 <Link
-                  href={`/${locale}/specialist/${inq.specialist.id}`}
+                  href={`/${locale}/specialist/${inq.specialist.slug || inq.specialist.id}`}
                   className="rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white transition"
                 >
                   Виж профил →

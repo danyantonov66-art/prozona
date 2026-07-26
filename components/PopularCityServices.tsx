@@ -13,11 +13,11 @@ const popularServices = [
 ]
 
 const popularCities = [
-  "София",
-  "Пловдив",
-  "Варна",
-  "Бургас",
-  "Русе",
+  { name: "София", slug: "sofia" },
+  { name: "Пловдив", slug: "plovdiv" },
+  { name: "Варна", slug: "varna" },
+  { name: "Бургас", slug: "burgas" },
+  { name: "Русе", slug: "ruse" },
 ]
 
 export default function PopularCityServices({ locale }: Props) {
@@ -35,13 +35,13 @@ export default function PopularCityServices({ locale }: Props) {
         {popularCities.map((city) =>
           popularServices.map((service) => (
             <Link
-              key={`${city}-${service.slug}`}
-              href={`/${locale}/uslugi/${encodeURIComponent(city)}/${service.slug}`}
+              key={`${city.slug}-${service.slug}`}
+              href={`/${locale}/uslugi/${city.slug}/${service.slug}`}
               className="rounded-xl border border-white/10 bg-[#151528] px-4 py-3 text-sm text-center transition hover:border-[#1DB954] hover:bg-[#1b1b31]"
             >
               {service.name}
               <div className="text-xs text-gray-400 mt-1">
-                {city}
+                {city.name}
               </div>
             </Link>
           ))
