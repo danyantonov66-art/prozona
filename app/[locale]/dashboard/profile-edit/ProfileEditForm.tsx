@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { UploadButton } from '@/lib/uploadthing'
-import ChangePasswordSection from '@/components/ChangePasswordSection'
 
 interface Props {
   locale: string
@@ -185,7 +184,6 @@ export default function ProfileEditForm({ locale, specialist }: Props) {
         </button>
       </form>
 
-      <ChangePasswordSection />
     </div>
   )
 }

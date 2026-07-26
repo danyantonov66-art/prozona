@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { categories } from "@/lib/constants"
+import ChangePasswordSection from "@/components/ChangePasswordSection"
 
 interface SelectedCategory {
   categoryId: string
@@ -295,6 +296,8 @@ export default function SpecialistProfilePage() {
             </button>
           </form>
         </div>
+
+        <ChangePasswordSection />
       </section>
     </main>
   )
