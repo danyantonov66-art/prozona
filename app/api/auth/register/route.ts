@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { Resend } from 'resend'
 import crypto from 'crypto'
+import type { Prisma } from '@prisma/client'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -33,8 +34,24 @@ function isDisposableEmail(email: string): boolean {
   return !!domain && DISPOSABLE_DOMAINS.has(domain)
 }
 
-function generateRefCode(name: string, id: string): string {
-  return Buffer.from(`${name}-${id}`).toString('base64').slice(0, 8).toUpperCase()
+function generateRefCode(): string {
+  return crypto.randomBytes(5).toString('hex').toUpperCase()
+}
+
+async function createSpecialistWithRefCode(
+  data: Omit<Prisma.SpecialistUncheckedCreateInput, 'refCode'>
+) {
+  const MAX_ATTEMPTS = 5
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await prisma.specialist.create({ data: { ...data, refCode: generateRefCode() } })
+    } catch (err: any) {
+      const isRefCodeCollision = err?.code === 'P2002' && err?.meta?.target?.includes?.('refCode')
+      if (isRefCodeCollision && attempt < MAX_ATTEMPTS) continue
+      throw err
+    }
+  }
+  throw new Error('unreachable')
 }
 
 function containsContactInfo(text: string): boolean {
@@ -118,8 +135,9 @@ export async function POST(request: Request) {
       const premiumExpiry = new Date()
       premiumExpiry.setMonth(premiumExpiry.getMonth() + 6)
 
-      const specialist = await prisma.specialist.create({
-        data: {
+      let specialist
+      try {
+        specialist = await createSpecialistWithRefCode({
           userId: user.id,
           description: description || '',
           city: city,
@@ -132,14 +150,16 @@ export async function POST(request: Request) {
           credits: isPremiumPromo ? 25 : 0,
           monthlyCredits: isPremiumPromo ? 25 : 0,
           maxImages: isPremiumPromo ? 20 : 5,
-        }
-      })
+        })
+      } catch (err) {
+        console.error('Specialist creation failed after refCode retries:', err)
+        return NextResponse.json(
+          { error: 'Възникна грешка при създаване на профила. Моля, опитай отново.' },
+          { status: 500 }
+        )
+      }
 
-      const refCode = generateRefCode(name, specialist.id)
-      await prisma.specialist.update({
-        where: { id: specialist.id },
-        data: { refCode }
-      })
+      const refCode = specialist.refCode!
 
       if (suggestedService) {
         await prisma.categorySuggestion.create({
