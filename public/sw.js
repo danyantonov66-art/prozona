@@ -23,10 +23,16 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url)
+
+  // Cross-origin (Facebook pixel, analytics и т.н.) — не пипаме, оставяме
+  // заявката да мине нормално по мрежата.
+  if (url.origin !== self.location.origin) return
+
   // Само GET заявки
   if (event.request.method !== 'GET') return
   // Не кешираме API заявки
-  if (event.request.url.includes('/api/')) return
+  if (url.pathname.startsWith('/api/')) return
 
   event.respondWith(
     fetch(event.request)
@@ -35,6 +41,8 @@ self.addEventListener('fetch', (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
         return response
       })
-      .catch(() => caches.match(event.request))
+      .catch(() =>
+        caches.match(event.request).then((cached) => cached || fetch(event.request))
+      )
   )
 })
