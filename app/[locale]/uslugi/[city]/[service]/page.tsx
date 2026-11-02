@@ -3,7 +3,7 @@ import { prisma } from "../../../../../lib/prisma"
 import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 import type { Metadata } from "next"
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 const SERVICE_MAP: Record<string, {
   name: string
@@ -201,9 +201,11 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { city, service, locale } = await params
-  const cityBg = CITY_MAP[city] || city
+  const cityBg = CITY_MAP[city]
   const svc = SERVICE_MAP[service]
-  if (!svc) return { title: "ProZona" }
+  if (!cityBg || !svc) {
+    return { title: "ProZona", robots: { index: false, follow: false } }
+  }
 
   return {
     title: `${svc.name} в ${cityBg} | ProZona`,
@@ -215,24 +217,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export const dynamic = "force-dynamic"
+export const revalidate = 3600
 
-export default async function ServiceCityPage({ params }: Props) {
-  const { locale, city, service } = await params
-  // Redirect кирилски градове към latin slug
-const cityLower = city.toLowerCase()
-if (city !== cityLower || /[а-яё]/i.test(city)) {
-  const latinCity = Object.entries(CITY_MAP).find(([, bg]) => 
-    bg.toLowerCase() === decodeURIComponent(city).toLowerCase()
-  )?.[0]
-  if (latinCity) {
-    redirect(`/${locale}/uslugi/${latinCity}/${service}`)
+function safeDecode(value: string) {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
   }
 }
 
-  const cityBg = CITY_MAP[city] || decodeURIComponent(city)
+// Намира latin slug за град, подаден на кирилица или с главни букви
+function findCitySlug(city: string) {
+  const decoded = safeDecode(city).trim().toLowerCase()
+  if (CITY_MAP[decoded]) return decoded
+  return Object.entries(CITY_MAP).find(([, bg]) => bg.toLowerCase() === decoded)?.[0]
+}
+
+export default async function ServiceCityPage({ params }: Props) {
+  const { locale, city, service } = await params
+
+  if (!CITY_MAP[city]) {
+    // Redirect кирилски градове към latin slug
+    const latinCity = findCitySlug(city)
+    if (latinCity) {
+      redirect(`/${locale}/uslugi/${latinCity}/${service}`)
+    }
+    notFound()
+  }
+
   const svc = SERVICE_MAP[service]
-  const serviceName = svc?.name || decodeURIComponent(service)
+  if (!svc) notFound()
+
+  const cityBg = CITY_MAP[city]
+  const serviceName = svc.name
   const specialists = await prisma.specialist.findMany({
     where: {
       verified: true,
