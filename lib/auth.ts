@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { Role } from '@prisma/client'
 
+const ROLE_RECHECK_MS = 10 * 60 * 1000
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
@@ -49,18 +51,26 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
         token.role = user.role ?? Role.CLIENT
       }
-      if (token.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { role: true },
-        })
-        if (dbUser) {
-          token.role = dbUser.role
+      const roleIsStale =
+        !token.roleCheckedAt || Date.now() - token.roleCheckedAt > ROLE_RECHECK_MS
+      if (token.id && (user || trigger === 'update' || roleIsStale)) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true },
+          })
+          if (dbUser) {
+            token.role = dbUser.role
+          }
+          token.roleCheckedAt = Date.now()
+        } catch (error) {
+          // Keep the current token if the database is unreachable
+          console.error('jwt callback: role refresh failed', error)
         }
       }
       return token
