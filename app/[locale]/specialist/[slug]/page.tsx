@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { prisma } from "@/lib/prisma"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
@@ -7,7 +8,7 @@ import InquiryButton from "@/components/InquiryButton"
 import type { Metadata } from "next"
 import ExitIntentPopup from "@/components/ExitIntentPopup"
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 interface Props {
   params: Promise<{
@@ -16,40 +17,22 @@ interface Props {
   }>
 }
 
-async function getSpecialist(slug: string) {
-  // Първо опитай по slug
-  let specialist = await prisma.specialist.findUnique({
-    where: { slug },
+// По slug или по ID (стар URL). cache() споделя резултата между generateMetadata и страницата
+const getSpecialist = cache(async (slug: string) => {
+  return prisma.specialist.findFirst({
+    where: { OR: [{ slug }, { id: slug }] },
     include: {
-      user: true,
+      user: { select: { name: true, image: true } },
       GalleryImage: true,
       reviews: { orderBy: { createdAt: "desc" }, take: 5 },
       PriceListItem: true,
     },
   })
-
-  // Ако не намери по slug — опитай по ID (стар URL)
-  if (!specialist) {
-    specialist = await prisma.specialist.findUnique({
-      where: { id: slug },
-      include: {
-        user: true,
-        GalleryImage: true,
-        reviews: { orderBy: { createdAt: "desc" }, take: 5 },
-        PriceListItem: true,
-      },
-    })
-  }
-
-  return specialist
-}
+})
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const specialist = await prisma.specialist.findFirst({
-    where: { OR: [{ slug }, { id: slug }] },
-    include: { user: true },
-  })
+  const specialist = await getSpecialist(slug)
 
   if (!specialist) return { title: "Специалист не е намерен | ProZona" }
 
