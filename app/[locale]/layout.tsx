@@ -1,8 +1,15 @@
 import { Inter } from 'next/font/google'
 import { Providers } from '../providers'
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
+
+const LOCALES = ['bg', 'en']
+
+export function generateStaticParams() {
+  return LOCALES.map((locale) => ({ locale }))
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
@@ -22,6 +29,7 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  if (!LOCALES.includes(locale)) notFound()
   return (
     <Providers>
       {children}
