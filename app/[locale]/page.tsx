@@ -100,6 +100,8 @@ const CITY_COORDS: Record<string, [number, number]> = {
   "Монтана": [43.4083, 23.2256],
 }
 
+export const revalidate = 3600
+
 export const metadata = {
   title: "Намери верифициран специалист или започни да получаваш клиенти | ProZona",
   description: "ProZona свързва клиенти с верифицирани специалисти в България. Безплатна заявка за клиенти. Безплатна регистрация за майстори.",
@@ -111,7 +113,12 @@ export default async function Home({ params }: Props) {
   const [specialists, specialistCount, dbCategories] = await Promise.all([
     prisma.specialist.findMany({
       where: { verified: true },
-      include: { user: true },
+      select: {
+        id: true,
+        businessName: true,
+        city: true,
+        user: { select: { name: true } },
+      },
     }),
     prisma.specialist.count(),
   prisma.category.findMany({
