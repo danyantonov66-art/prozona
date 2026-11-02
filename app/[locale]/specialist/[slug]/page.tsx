@@ -10,6 +10,10 @@ import ExitIntentPopup from "@/components/ExitIntentPopup"
 
 export const revalidate = 3600
 
+export async function generateStaticParams() {
+  return []
+}
+
 interface Props {
   params: Promise<{
     locale: string

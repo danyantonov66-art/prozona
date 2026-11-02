@@ -3,6 +3,10 @@ import ProZonaHeader from "../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../components/footer/ProZonaFooter"
 import type { Metadata } from "next"
 
+export async function generateStaticParams() {
+  return []
+}
+
 const CITY_MAP: Record<string, string> = {
   "sofia": "София",
   "plovdiv": "Пловдив",

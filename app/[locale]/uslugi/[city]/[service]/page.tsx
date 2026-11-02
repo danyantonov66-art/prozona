@@ -5,6 +5,10 @@ import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 import type { Metadata } from "next"
 import { notFound, redirect } from 'next/navigation'
 
+export async function generateStaticParams() {
+  return []
+}
+
 const SERVICE_MAP: Record<string, {
   name: string
   categoryName: string
