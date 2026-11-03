@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next"
 import { prisma } from "@/lib/prisma"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 86400
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://prozona.bg"
@@ -60,6 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     )
   } catch (e) {
     console.error("Sitemap: categories error", e)
+     throw e
   }
 
   const cityServicePages: MetadataRoute.Sitemap = cities.flatMap((city) =>
@@ -74,17 +75,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let specialistPages: MetadataRoute.Sitemap = []
   try {
     const specialists = await prisma.specialist.findMany({
-      where: { verified: true },
-      select: { id: true, updatedAt: true },
-    })
-    specialistPages = specialists.map((s) => ({
-      url: `${baseUrl}/bg/specialists/${s.id}`,
-      lastModified: s.updatedAt,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }))
+  where: { verified: true },
+  select: { id: true, slug: true, updatedAt: true },
+})
+specialistPages = specialists.map((s) => ({
+  url: `${baseUrl}/bg/specialist/${s.slug || s.id}`,
+  lastModified: s.updatedAt,
+  changeFrequency: "monthly" as const,
+  priority: 0.6,
+}))
   } catch (e) {
     console.error("Sitemap: specialists error", e)
+     throw e
   }
 
   let blogPages: MetadataRoute.Sitemap = []
@@ -101,6 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   } catch (e) {
     console.error("Sitemap: blog error", e)
+     throw e
   }
 
   return [

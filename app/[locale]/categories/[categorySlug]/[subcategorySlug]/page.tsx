@@ -3,6 +3,12 @@ import ProZonaHeader from "../../../../../components/header/ProZonaHeader"
 import ProZonaFooter from "../../../../../components/footer/ProZonaFooter"
 import { prisma } from "../../../../../lib/prisma"
 
+export const revalidate = 3600
+
+export async function generateStaticParams() {
+  return []
+}
+
 interface Props {
   params: Promise<{
     locale: string

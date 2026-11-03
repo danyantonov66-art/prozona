@@ -4,6 +4,12 @@ import Link from "next/link"
 import ProZonaHeader from "@/components/header/ProZonaHeader"
 import ProZonaFooter from "@/components/footer/ProZonaFooter"
 
+export const revalidate = 3600
+
+export async function generateStaticParams() {
+  return []
+}
+
 interface Props {
   params: Promise<{ locale: string; slug: string }>
 }
