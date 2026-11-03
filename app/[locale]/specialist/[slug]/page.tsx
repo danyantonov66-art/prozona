@@ -51,16 +51,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${name} — специалист в ${city}`,
     description,
     alternates: {
-      canonical: `https://www.prozona.bg/bg/specialist/${canonicalSlug}`,
+      canonical: `https://prozona.bg/bg/specialist/${canonicalSlug}`,
     },
     openGraph: {
       title: `${name} — специалист в ${city} | ProZona`,
       description,
-      url: `https://www.prozona.bg/bg/specialist/${canonicalSlug}`,
+      url: `https://prozona.bg/bg/specialist/${canonicalSlug}`,
       siteName: "ProZona",
       images: specialist.user?.image
         ? [{ url: specialist.user.image }]
-        : [{ url: "https://www.prozona.bg/og-image.jpg" }],
+        : [{ url: "https://prozona.bg/og-image.jpg" }],
     },
   }
 }

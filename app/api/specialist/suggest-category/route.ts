@@ -39,7 +39,7 @@ export async function POST(request: Request) {
           <li>Телефон: ${phone || '—'}</li>
           <li>Имейл: ${email || '—'}</li>
         </ul>
-        <a href="https://www.prozona.bg/bg/admin/suggestions">Виж в админ панела →</a>
+        <a href="https://prozona.bg/bg/admin/suggestions">Виж в админ панела →</a>
       `
     })
 

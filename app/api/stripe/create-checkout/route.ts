@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.prozona.bg'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://prozona.bg'
 
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

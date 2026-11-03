@@ -9,7 +9,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.prozona.bg"),
+  metadataBase: new URL("https://prozona.bg"),
   title: {
     default: "ProZona | Намери специалист близо до теб",
     template: "%s | ProZona",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "bg_BG",
-    url: "https://www.prozona.bg",
+    url: "https://prozona.bg",
     siteName: "ProZona",
     title: "ProZona | Намери специалист близо до теб",
     description: "Намери надежден специалист близо до теб. Ремонти, почистване, монтаж и още. Безплатно запитване.",

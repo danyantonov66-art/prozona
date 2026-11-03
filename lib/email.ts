@@ -62,7 +62,7 @@ export async function sendNewSpecialistNotification({
             </tr>
           </table>
           <div style="text-align: center; margin-top: 24px;">
-            <a href="https://www.prozona.bg/bg/admin/specialists" 
+            <a href="https://prozona.bg/bg/admin/specialists" 
                style="background: #1DB954; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
               Прегледай и одобри →
             </a>
@@ -97,7 +97,7 @@ export async function sendSpecialistRegistrationConfirmation({
             <p style="margin: 0; color: #333;">📌 Можеш да влезеш в профила си и да допълниш информацията докато чакаш одобрение.</p>
           </div>
           <div style="text-align: center; margin-top: 24px;">
-            <a href="https://www.prozona.bg/bg/specialist/dashboard" 
+            <a href="https://prozona.bg/bg/specialist/dashboard" 
                style="background: #1DB954; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
               Виж профила си →
             </a>
@@ -133,7 +133,7 @@ export async function sendSpecialistApprovedEmail({
             <p style="margin: 0; color: #333;">💡 Съвет: Добави снимки на работата си за да привлечеш повече клиенти!</p>
           </div>
           <div style="text-align: center; margin-top: 24px;">
-            <a href="https://www.prozona.bg/bg/specialist/dashboard" 
+            <a href="https://prozona.bg/bg/specialist/dashboard" 
                style="background: #1DB954; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
               Към таблото →
             </a>

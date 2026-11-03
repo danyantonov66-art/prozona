@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
               </p>
             </div>
             <div style="text-align: center; margin: 32px 0;">
-              <a href="https://www.prozona.bg/bg/become-specialist"
+              <a href="https://prozona.bg/bg/become-specialist"
                 style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
                 Регистрирай се като специалист →
               </a>
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (type === "complete_profile") {
-      const editProfileUrl = `https://www.prozona.bg/bg/specialist/profile/edit`
+      const editProfileUrl = `https://prozona.bg/bg/specialist/profile/edit`
       await resend.emails.send({
         from: "ProZona <office@prozona.bg>",
         to,
@@ -152,14 +152,14 @@ export async function POST(request: NextRequest) {
             </p>
             <div style="background: #151528; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
               <p style="color: #cccccc; font-size: 15px; margin: 0;">
-                💡 При регистрация си получил <strong style="color: #1DB954;">25 стартови кредита</strong> които са активни в профила ти. Можеш да ги видиш в таблото си на <a href="https://www.prozona.bg/bg/dashboard" style="color: #1DB954;">prozona.bg</a>.
+                💡 При регистрация си получил <strong style="color: #1DB954;">25 стартови кредита</strong> които са активни в профила ти. Можеш да ги видиш в таблото си на <a href="https://prozona.bg/bg/dashboard" style="color: #1DB954;">prozona.bg</a>.
               </p>
             </div>
             <p style="color: #cccccc; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
               При въпроси сме насреща!
             </p>
             <div style="text-align: center; margin: 32px 0;">
-              <a href="https://www.prozona.bg/bg/dashboard"
+              <a href="https://prozona.bg/bg/dashboard"
                 style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
                 Виж таблото си →
               </a>
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
               Намираш я в <strong style="color: #1DB954;">Моето табло → Табло на специалист → Оферти</strong>.
             </p>
             <div style="text-align: center; margin: 32px 0;">
-              <a href="https://www.prozona.bg/bg/specialist/offers"
+              <a href="https://prozona.bg/bg/specialist/offers"
                 style="background: #1DB954; color: #0D0D1A; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
                 Изпробвай сега →
               </a>

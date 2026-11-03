@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Имейл до специалиста
     if (specialist?.user?.email) {
       const specialistName = specialist.businessName || specialist.user.name || "Специалист"
-      const dashboardUrl = `https://www.prozona.bg/bg/specialist/dashboard`
+      const dashboardUrl = `https://prozona.bg/bg/specialist/dashboard`
 
       await resend.emails.send({
         from: "ProZona <office@prozona.bg>",
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     // Потвърдителен имейл до клиента
     try {
-      const specialistsUrl = `https://www.prozona.bg/bg/specialists`
+      const specialistsUrl = `https://prozona.bg/bg/specialists`
       await resend.emails.send({
         from: "ProZona <office@prozona.bg>",
         to: email,

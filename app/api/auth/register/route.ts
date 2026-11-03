@@ -212,8 +212,8 @@ export async function POST(request: Request) {
         }
       }
 
-      const refLink = `https://www.prozona.bg/bg/register/specialist?ref=${refCode}`
-      const verifyLink = `https://www.prozona.bg/api/auth/verify-email?token=${verifyToken}&id=${user.id}`
+      const refLink = `https://prozona.bg/bg/register/specialist?ref=${refCode}`
+      const verifyLink = `https://prozona.bg/api/auth/verify-email?token=${verifyToken}&id=${user.id}`
 
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',
@@ -263,13 +263,13 @@ export async function POST(request: Request) {
             <li>Предложена услуга: ${suggestedService || '—'}</li>
             <li>Реферал от: ${ref || '—'}</li>
           </ul>
-          <a href="https://www.prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
+          <a href="https://prozona.bg/bg/admin/specialists">Виж в админ панела →</a>
         `
       })
     }
 
     if (role !== 'SPECIALIST') {
-      const verifyLink = `https://www.prozona.bg/api/auth/verify-email?token=${verifyToken}&id=${user.id}`
+      const verifyLink = `https://prozona.bg/api/auth/verify-email?token=${verifyToken}&id=${user.id}`
 
       await resend.emails.send({
         from: 'ProZona <office@prozona.bg>',

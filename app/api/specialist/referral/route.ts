@@ -21,7 +21,7 @@ export async function GET() {
     if (!specialist) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const refLink = specialist.refCode
-      ? `https://www.prozona.bg/bg/register/specialist?ref=${specialist.refCode}`
+      ? `https://prozona.bg/bg/register/specialist?ref=${specialist.refCode}`
       : null
 
     return NextResponse.json({
