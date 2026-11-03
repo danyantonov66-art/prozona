@@ -9,10 +9,18 @@ interface HeaderProps {
   locale?: string
 }
 
-function NotificationBell({ locale }: { locale: string }) {
+// Колко често да се пита за нови запитвания (мс). 5 минути.
+const POLL_MS = 300000
+
+// Една заявка на таб, само когато табът е видим и потребителят е специалист.
+function useInquiryCount(enabled: boolean) {
   const [count, setCount] = useState(0)
 
   useEffect(() => {
+    if (!enabled) return
+
+    let timer: ReturnType<typeof setInterval> | undefined
+
     const fetchCount = async () => {
       try {
         const res = await fetch('/api/specialist/inquiries/count')
@@ -22,11 +30,38 @@ function NotificationBell({ locale }: { locale: string }) {
         }
       } catch {}
     }
-    fetchCount()
-    const interval = setInterval(fetchCount, 30000)
-    return () => clearInterval(interval)
-  }, [])
 
+    const start = () => {
+      if (timer) return
+      fetchCount()
+      timer = setInterval(fetchCount, POLL_MS)
+    }
+
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer)
+        timer = undefined
+      }
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') start()
+      else stop()
+    }
+
+    if (document.visibilityState === 'visible') start()
+    document.addEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [enabled])
+
+  return count
+}
+
+function NotificationBell({ locale, count }: { locale: string; count: number }) {
   if (count === 0) return null
 
   return (
@@ -51,6 +86,7 @@ export default function ProZonaHeader({ locale = 'bg' }: HeaderProps) {
 
   const currentLocale = locale || pathname?.split('/')[1] || 'bg'
   const isSpecialist = (session?.user as any)?.role === 'SPECIALIST'
+  const inquiryCount = useInquiryCount(isSpecialist)
 
   const navLinks = [
     { href: `/${currentLocale}/categories`, label: "Категории" },
@@ -87,7 +123,7 @@ export default function ProZonaHeader({ locale = 'bg' }: HeaderProps) {
               <span className="text-sm text-gray-400">Зареждане...</span>
             ) : session ? (
               <>
-                {isSpecialist && <NotificationBell locale={currentLocale} />}
+                {isSpecialist && <NotificationBell locale={currentLocale} count={inquiryCount} />}
                 <Link href={`/${currentLocale}/dashboard`} className="px-4 py-2 text-sm text-white hover:text-[#1DB954]">
                   Моето табло
                 </Link>
@@ -114,7 +150,7 @@ export default function ProZonaHeader({ locale = 'bg' }: HeaderProps) {
           <div className="flex md:hidden items-center gap-2">
             {session ? (
               <>
-                {isSpecialist && <NotificationBell locale={currentLocale} />}
+                {isSpecialist && <NotificationBell locale={currentLocale} count={inquiryCount} />}
                 <Link href={`/${currentLocale}/dashboard`} className="px-3 py-2 text-sm text-white hover:text-[#1DB954]">
                   Табло
                 </Link>

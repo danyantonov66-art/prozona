@@ -7,13 +7,14 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Неоторизиран' }, { status: 401 })
     }
 
     const specialist = await prisma.specialist.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: session.user.id },
+      select: { id: true },
     })
 
     if (!specialist) {
@@ -21,10 +22,10 @@ export async function GET() {
     }
 
     const count = await prisma.inquiry.count({
-      where: { 
+      where: {
         specialistId: specialist.id,
-        viewedBy: 0
-      }
+        viewedBy: 0,
+      },
     })
 
     return NextResponse.json({ count })
