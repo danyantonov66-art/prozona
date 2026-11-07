@@ -46,11 +46,6 @@ const comparisonRows = [
     benefit: "Клиентът вижда реални снимки и цени предварително – по-голямо доверие.",
   },
   {
-    feature: "Ранно предимство",
-    prozona: "Първите 200: Premium безплатно 6 месеца + TOP позиция",
-    benefit: "Регистрирай се сега и изпревари конкуренцията.",
-  },
-  {
     feature: "Заявки за клиенти",
     prozona: "Безплатни + до 5 специалиста се свързват директно",
     benefit: "Клиентът получава бързи оферти безплатно.",
@@ -110,7 +105,7 @@ export const metadata = {
 export default async function Home({ params }: Props) {
   const { locale } = await params
 
-  const [specialists, specialistCount, dbCategories] = await Promise.all([
+  const [specialists, dbCategories] = await Promise.all([
     prisma.specialist.findMany({
       where: { verified: true },
       select: {
@@ -120,19 +115,18 @@ export default async function Home({ params }: Props) {
         user: { select: { name: true } },
       },
     }),
-    prisma.specialist.count(),
-  prisma.category.findMany({
-  where: { isActive: true },
-  orderBy: { sortOrder: "asc" },
-  include: {
-    Subcategory: {
+    prisma.category.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: "asc" },
-      take: 3,
-    }
-  }
-}),
-])
+      include: {
+        Subcategory: {
+          where: { isActive: true },
+          orderBy: { sortOrder: "asc" },
+          take: 3,
+        },
+      },
+    }),
+  ])
 
   const mapSpecialists = specialists
     .map((s) => {
@@ -147,9 +141,6 @@ export default async function Home({ params }: Props) {
       }
     })
     .filter(Boolean) as any[]
-
-  const spotsLeft = Math.max(200 - specialistCount, 0)
-  const progressPercent = Math.min((specialistCount / 200) * 100, 100)
 
   return (
     <main className="min-h-screen bg-[#0D0D1A] text-white">
@@ -193,8 +184,6 @@ export default async function Home({ params }: Props) {
           <Link href={`/${locale}/become-specialist`} className="font-semibold text-[#1DB954] hover:underline">
             Регистрирай се безплатно
           </Link>
-          {" "}– първите 200 майстора получават 6 месеца Premium{" "}
-          <span className="text-[#1DB954] font-semibold">⏳ Остават {spotsLeft} места</span>
         </p>
       </div>
 
@@ -255,7 +244,7 @@ export default async function Home({ params }: Props) {
                 Започни да получаваш клиенти още днес
               </h2>
               <p className="mb-6 text-sm text-gray-300 flex-1">
-                Безплатна регистрация, реални запитвания от клиенти в твоя град. Първите 200 получават 6 месеца Premium.
+                Безплатна регистрация, реални запитвания от клиенти в твоя град. Плащаш само за заявките, които вземеш.
               </p>
               <div className="flex flex-col gap-3">
                 <Link
@@ -264,10 +253,6 @@ export default async function Home({ params }: Props) {
                 >
                   ✅ Регистрирай се безплатно
                 </Link>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="text-[#1DB954] font-bold">🔥</span>
-                  Само {spotsLeft} места остават за безплатен Premium
-                </div>
               </div>
             </div>
           </div>
@@ -460,7 +445,7 @@ export default async function Home({ params }: Props) {
           </div>
           <p className="mt-6 text-center text-sm text-gray-400">
             Плащаш само когато решиш да се свържеш с клиента.{" "}
-            <strong className="text-white">Без абонамент. Без скрити такси.</strong>
+            <strong className="text-white">Плащаш само за заявките, които вземеш. Абонаментът е по желание.</strong>
           </p>
         </div>
         <div className="mt-8 text-center">
@@ -503,6 +488,7 @@ export default async function Home({ params }: Props) {
           </Link>
           <Link href={`/${locale}/specialist/suggest-category`} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-6 py-3 text-white transition hover:bg-white/10">
             Предложи нова услуга
+ 
           </Link>
         </div>
       </section>

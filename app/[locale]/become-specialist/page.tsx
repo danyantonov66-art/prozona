@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { categories } from "../../../lib/constants"
 import ProZonaHeader from "../../../components/header/ProZonaHeader"
@@ -27,7 +27,6 @@ export default function BecomeSpecialistPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
-  const [spotsLeft, setSpotsLeft] = useState<number | null>(null)
   const [form, setForm] = useState({
     businessName: "",
     phone: "",
@@ -36,13 +35,6 @@ export default function BecomeSpecialistPage() {
     description: "",
     city: ""
   })
-
-  useEffect(() => {
-    fetch("/api/specialists/count")
-      .then(r => r.json())
-      .then(data => setSpotsLeft(Math.max(0, 200 - (data.count || 0))))
-      .catch(() => setSpotsLeft(143))
-  }, [])
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -131,10 +123,8 @@ export default function BecomeSpecialistPage() {
         <ProZonaHeader locale={locale} />
         <section className="max-w-lg mx-auto px-4 py-16">
           <div className="mb-6 rounded-2xl border border-[#1DB954]/30 bg-gradient-to-r from-[#1DB954]/10 to-[#151528] p-6 text-center">
-            <div className="mb-2 inline-block rounded-full bg-[#1DB954] px-4 py-1 text-sm font-bold text-black">🎉 Стартова оферта</div>
-            <h1 className="mt-3 text-2xl font-bold">3 месеца Premium безплатно</h1>
-            <p className="mt-2 text-gray-300">Регистрирай се сега и получи <strong className="text-white">Premium план безплатно за 3 месеца</strong> — топ позиция и 20 стартови кредита.</p>
-            <p className="mt-2 text-sm text-[#1DB954] font-semibold">⚡ Остават само {spotsLeft ?? "..."} места!</p>
+            <h1 className="text-2xl font-bold">Безплатна регистрация за специалисти</h1>
+            <p className="mt-2 text-gray-300">Получавай реални запитвания от клиенти във твоя град и започни с <strong className="text-white">20 стартови кредита</strong>. Плащаш само за заявките, които вземеш. Абонаментът е по желание.</p>
           </div>
           <div className="bg-[#151528] border border-white/10 rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold mb-2">Започни за 30 секунди</h2>
@@ -172,15 +162,8 @@ export default function BecomeSpecialistPage() {
 
         {/* Банер */}
         <div className="mb-8 rounded-2xl border border-[#1DB954]/30 bg-gradient-to-r from-[#1DB954]/10 to-[#151528] p-6">
-          <div className="flex items-start gap-4">
-            <span className="text-3xl">🎉</span>
-            <div>
-              <div className="mb-1 inline-block rounded-full bg-[#1DB954] px-3 py-0.5 text-xs font-bold text-black">Стартова оферта</div>
-              <h2 className="text-xl font-bold">3 месеца Premium безплатно</h2>
-              <p className="mt-1 text-sm text-gray-300">Регистрирай се сега и получи <strong className="text-white">Premium план безплатно за 3 месеца</strong> — топ позиция, неограничени снимки и 20 стартови кредита. Без кредитна карта.</p>
-              <p className="mt-2 text-sm text-[#1DB954] font-semibold">⚡ Остават само {spotsLeft ?? "..."} места за безплатен Premium!</p>
-            </div>
-          </div>
+          <h2 className="text-xl font-bold">Безплатна регистрация</h2>
+          <p className="mt-1 text-sm text-gray-300">Попълни профила си и получи <strong className="text-white">20 стартови кредита</strong>, за да започнеш да получаваш запитвания от клиенти. Плащаш само за заявките, които вземеш. Абонаментът е по желание. Без кредитна карта.</p>
         </div>
 
         {/* Стъпки */}
@@ -374,7 +357,7 @@ export default function BecomeSpecialistPage() {
                     disabled={loading}
                     className="flex-1 rounded-xl bg-[#1DB954] text-black font-bold px-6 py-3 hover:bg-[#1ed760] transition disabled:opacity-60"
                   >
-                    {loading ? "Изпращане..." : "Завърши регистрацията и вземи 3 месеца безплатно 🎉"}
+                    {loading ? "Изпращане..." : "Завърши регистрацията"}
                   </button>
                 </div>
 

@@ -17,28 +17,11 @@ export async function POST(request: NextRequest, { params }: Props) {
 
     const { id } = await params
 
-    // Брой одобрени специалисти преди този
-    const approvedCount = await prisma.specialist.count({
-      where: { verified: true }
-    })
-
-    const isPremiumSlot = approvedCount < 200
-
-    const sixMonthsFromNow = new Date()
-    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6)
-
     const specialist = await prisma.specialist.update({
       where: { id },
       data: {
         verified: true,
         verifiedAt: new Date(),
-        ...(isPremiumSlot ? {
-          subscriptionPlan: 'PREMIUM',
-          subscriptionExpiresAt: sixMonthsFromNow,
-          isFeatured: true,
-          featuredExpiresAt: sixMonthsFromNow,
-          credits: { increment: 10 },
-        } : {}),
       },
       include: { user: true },
     })
@@ -60,10 +43,7 @@ export async function POST(request: NextRequest, { params }: Props) {
     return NextResponse.json({
       success: true,
       specialist,
-      premiumGranted: isPremiumSlot,
-      message: isPremiumSlot
-        ? `Одобрен + 6 месеца Premium (място #${approvedCount + 1}/200)`
-        : `Одобрен (Premium местата са изчерпани)`
+      message: "Одобрен",
     })
   } catch (error) {
     console.error("Approve specialist error:", error)
