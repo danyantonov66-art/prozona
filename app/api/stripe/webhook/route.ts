@@ -1,3 +1,4 @@
+// app/api/stripe/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '../../../../lib/prisma'
@@ -19,13 +20,15 @@ export async function POST(request: NextRequest) {
   const sig = request.headers.get('stripe-signature')
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
+  // Подписът е ЗАДЪЛЖИТЕЛЕН. Без него всеки може да изпрати фалшиво събитие.
+  if (!webhookSecret || !sig) {
+    console.error('Webhook rejected: missing STRIPE_WEBHOOK_SECRET or stripe-signature header')
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
   let event: Stripe.Event
   try {
-    if (webhookSecret && sig) {
-      event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
-    } else {
-      event = JSON.parse(body)
-    }
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err: any) {
     console.error('Webhook signature error:', err.message)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
@@ -33,6 +36,13 @@ export async function POST(request: NextRequest) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
+
+    // Плащане, което още не е платено (асинхронни методи) - не даваме кредити
+    if (session.payment_status !== 'paid') {
+      console.log('Session not paid yet, skipping:', session.id, session.payment_status)
+      return NextResponse.json({ received: true })
+    }
+
     const { userId, specialistId, planType, credits } = session.metadata || {}
 
     if (!userId || !planType) {
@@ -44,7 +54,13 @@ export async function POST(request: NextRequest) {
     const creditsToAdd = planConfig?.credits || parseInt(credits || '0')
 
     try {
-      // Използвай specialistId директно ако има, иначе търси по userId
+      // Вече обработена сесия (повторно изпращане от Stripe или ръчен Resend)
+      const already = await prisma.creditTransaction.findUnique({ where: { id: session.id } })
+      if (already) {
+        console.log('Duplicate webhook, already processed:', session.id)
+        return NextResponse.json({ received: true, duplicate: true })
+      }
+
       let specialist
       if (specialistId) {
         specialist = await prisma.specialist.findUnique({ where: { id: specialistId } })
@@ -59,7 +75,6 @@ export async function POST(request: NextRequest) {
 
       const updateData: any = {
         credits: { increment: creditsToAdd },
-        totalCreditsUsed: specialist.totalCreditsUsed,
       }
 
       if (planConfig?.plan) {
@@ -74,37 +89,47 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      await prisma.specialist.update({
-        where: { id: specialist.id },
-        data: updateData,
-      })
-
-      await prisma.creditTransaction.create({
-        data: {
-          id: session.id,
-          specialistId: specialist.id,
-          amount: creditsToAdd,
-          type: 'PURCHASE',
-          description: `Закупен план: ${planType}`,
-          price: (session.amount_total || 0) / 100,
-        },
-      })
-
-      await prisma.payment.create({
-        data: {
-          id: session.payment_intent as string || session.id,
-          userId,
-          specialistId: specialist.id,
-          amount: (session.amount_total || 0) / 100,
-          status: 'COMPLETED',
-          type: 'CREDIT_PURCHASE',
-          credits: creditsToAdd,
-          updatedAt: new Date(),
-        },
-      })
+      // Всичко или нищо. Записът на CreditTransaction (id = session.id) е първи,
+      // така че при дубликат транзакцията пада ПРЕДИ да се добавят кредити.
+      await prisma.$transaction([
+        prisma.creditTransaction.create({
+          data: {
+            id: session.id,
+            specialistId: specialist.id,
+            amount: creditsToAdd,
+            type: 'PURCHASE',
+            description: `Закупен план: ${planType}`,
+            price: (session.amount_total || 0) / 100,
+          },
+        }),
+        prisma.specialist.update({
+          where: { id: specialist.id },
+          data: updateData,
+        }),
+        prisma.payment.create({
+          data: {
+            id: (session.payment_intent as string) || session.id,
+            userId,
+            specialistId: specialist.id,
+            amount: (session.amount_total || 0) / 100,
+            status: 'COMPLETED',
+            type: 'CREDIT_PURCHASE',
+            credits: creditsToAdd,
+            updatedAt: new Date(),
+          },
+        }),
+      ])
 
       console.log(`Added ${creditsToAdd} credits to specialist ${specialist.id}`)
-    } catch (error) {
+    } catch (error: any) {
+      // Паралелно изпълнение на същото събитие: другото вече е записало сесията
+      if (error?.code === 'P2002') {
+        const done = await prisma.creditTransaction.findUnique({ where: { id: session.id } })
+        if (done) {
+          console.log('Duplicate webhook (race), already processed:', session.id)
+          return NextResponse.json({ received: true, duplicate: true })
+        }
+      }
       console.error('Database error:', error)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
